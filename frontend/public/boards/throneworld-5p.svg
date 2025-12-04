@@ -2,20 +2,14 @@
 <svg
   xmlns="http://www.w3.org/2000/svg"
   width="944"
-  height="1183.6612651596733"
-  viewBox="0 0 944 1183.6612651596733"
+  height="1070.8100134752651"
+  viewBox="0 0 944 1070.8100134752651"
 >
   <defs>
     <radialGradient id="spaceGlow" cx="50%" cy="50%" r="70%">
       <stop offset="0%" stop-color="#0b1530"/>
       <stop offset="100%" stop-color="#030710"/>
     </radialGradient>
-    <pattern id="stars" width="120" height="120" patternUnits="userSpaceOnUse">
-      <circle cx="20" cy="30" r="1" fill="white" opacity="0.6"/>
-      <circle cx="80" cy="70" r="1.2" fill="white" opacity="0.4"/>
-      <circle cx="60" cy="20" r="0.8" fill="white" opacity="0.5"/>
-      <circle cx="100" cy="40" r="0.6" fill="white" opacity="0.4"/>
-    </pattern>
     <linearGradient id="world-home" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="rgba(255,255,127,0.30)"/>
       <stop offset="100%" stop-color="rgba(255,255,255,0.60)"/>
@@ -37,56 +31,468 @@
       <stop offset="100%" stop-color="rgba(190,190,70,0.35)"/>
     </linearGradient>
   </defs>
-  <rect x="0" y="0" width="100%" height="100%" fill="url(#spaceGlow)" />
-  <rect x="0" y="0" width="100%" height="100%" fill="url(#stars)" />
+  <rect width="100%" height="100%" fill="url(#spaceGlow)"/>
+  <rect width="100%" height="100%" fill="url(#stars)"/>
+  <circle cx="722.62" cy="720.59" r="0.44" fill="white" opacity="0.41"/>
+  <circle cx="685.63" cy="871.88" r="0.38" fill="white" opacity="0.21"/>
+  <circle cx="622.55" cy="1029.90" r="1.12" fill="white" opacity="0.45"/>
+  <circle cx="730.87" cy="409.28" r="0.22" fill="white" opacity="0.46"/>
+  <circle cx="114.59" cy="740.39" r="1.05" fill="white" opacity="0.45"/>
+  <circle cx="423.84" cy="879.76" r="0.27" fill="white" opacity="0.47"/>
+  <circle cx="652.76" cy="343.10" r="0.25" fill="white" opacity="0.52"/>
+  <circle cx="554.56" cy="523.93" r="0.35" fill="white" opacity="0.22"/>
+  <circle cx="221.20" cy="162.88" r="1.02" fill="white" opacity="0.12"/>
+  <circle cx="780.90" cy="47.06" r="0.26" fill="white" opacity="0.12"/>
+  <circle cx="252.00" cy="730.03" r="0.56" fill="white" opacity="0.22"/>
+  <circle cx="12.12" cy="964.04" r="1.15" fill="white" opacity="0.45"/>
+  <circle cx="58.17" cy="1009.14" r="1.11" fill="white" opacity="0.33"/>
+  <circle cx="219.08" cy="618.86" r="0.92" fill="white" opacity="0.13"/>
+  <circle cx="484.53" cy="849.15" r="0.41" fill="white" opacity="0.15"/>
+  <circle cx="40.97" cy="200.70" r="1.03" fill="white" opacity="0.19"/>
+  <circle cx="837.30" cy="887.22" r="1.14" fill="white" opacity="0.40"/>
+  <circle cx="61.91" cy="806.60" r="0.95" fill="white" opacity="0.47"/>
+  <circle cx="649.57" cy="920.11" r="0.82" fill="white" opacity="0.21"/>
+  <circle cx="30.23" cy="568.42" r="1.09" fill="white" opacity="0.27"/>
+  <circle cx="778.30" cy="173.36" r="0.71" fill="white" opacity="0.20"/>
+  <circle cx="765.49" cy="392.42" r="0.30" fill="white" opacity="0.25"/>
+  <circle cx="675.13" cy="353.90" r="0.93" fill="white" opacity="0.54"/>
+  <circle cx="139.00" cy="1004.83" r="0.28" fill="white" opacity="0.11"/>
+  <circle cx="293.03" cy="149.22" r="1.17" fill="white" opacity="0.49"/>
+  <circle cx="93.79" cy="495.60" r="0.78" fill="white" opacity="0.30"/>
+  <circle cx="124.33" cy="482.93" r="0.87" fill="white" opacity="0.19"/>
+  <circle cx="781.76" cy="817.67" r="1.00" fill="white" opacity="0.11"/>
+  <circle cx="889.90" cy="191.97" r="0.84" fill="white" opacity="0.11"/>
+  <circle cx="187.49" cy="661.44" r="0.37" fill="white" opacity="0.22"/>
+  <circle cx="910.01" cy="571.36" r="0.87" fill="white" opacity="0.15"/>
+  <circle cx="375.99" cy="997.62" r="0.68" fill="white" opacity="0.29"/>
+  <circle cx="8.39" cy="752.44" r="0.81" fill="white" opacity="0.23"/>
+  <circle cx="923.29" cy="671.53" r="1.11" fill="white" opacity="0.41"/>
+  <circle cx="672.00" cy="238.35" r="0.44" fill="white" opacity="0.43"/>
+  <circle cx="311.52" cy="95.06" r="0.21" fill="white" opacity="0.54"/>
+  <circle cx="255.09" cy="561.54" r="0.34" fill="white" opacity="0.53"/>
+  <circle cx="844.96" cy="132.48" r="0.66" fill="white" opacity="0.26"/>
+  <circle cx="292.28" cy="782.40" r="0.77" fill="white" opacity="0.50"/>
+  <circle cx="608.86" cy="152.71" r="0.37" fill="white" opacity="0.54"/>
+  <circle cx="610.87" cy="919.93" r="0.67" fill="white" opacity="0.38"/>
+  <circle cx="228.64" cy="742.93" r="0.43" fill="white" opacity="0.15"/>
+  <circle cx="617.49" cy="283.98" r="0.84" fill="white" opacity="0.28"/>
+  <circle cx="582.11" cy="103.76" r="0.90" fill="white" opacity="0.13"/>
+  <circle cx="391.88" cy="759.00" r="0.28" fill="white" opacity="0.33"/>
+  <circle cx="582.25" cy="1027.19" r="0.61" fill="white" opacity="0.55"/>
+  <circle cx="424.06" cy="810.67" r="1.08" fill="white" opacity="0.43"/>
+  <circle cx="31.96" cy="940.67" r="0.89" fill="white" opacity="0.23"/>
+  <circle cx="601.78" cy="207.25" r="0.96" fill="white" opacity="0.42"/>
+  <circle cx="851.60" cy="342.14" r="0.29" fill="white" opacity="0.52"/>
+  <circle cx="290.85" cy="404.78" r="0.65" fill="white" opacity="0.44"/>
+  <circle cx="859.89" cy="70.01" r="0.57" fill="white" opacity="0.45"/>
+  <circle cx="689.61" cy="1020.77" r="0.70" fill="white" opacity="0.15"/>
+  <circle cx="939.79" cy="354.07" r="0.83" fill="white" opacity="0.12"/>
+  <circle cx="434.62" cy="402.42" r="0.80" fill="white" opacity="0.11"/>
+  <circle cx="1.49" cy="819.57" r="0.60" fill="white" opacity="0.36"/>
+  <circle cx="85.43" cy="835.59" r="0.60" fill="white" opacity="0.47"/>
+  <circle cx="730.83" cy="695.39" r="0.26" fill="white" opacity="0.30"/>
+  <circle cx="478.73" cy="185.61" r="0.34" fill="white" opacity="0.46"/>
+  <circle cx="640.02" cy="444.78" r="0.37" fill="white" opacity="0.54"/>
+  <circle cx="827.91" cy="221.94" r="0.89" fill="white" opacity="0.34"/>
+  <circle cx="939.45" cy="216.62" r="0.49" fill="white" opacity="0.46"/>
+  <circle cx="661.92" cy="604.23" r="0.96" fill="white" opacity="0.46"/>
+  <circle cx="626.41" cy="681.71" r="0.97" fill="white" opacity="0.52"/>
+  <circle cx="699.39" cy="795.48" r="0.33" fill="white" opacity="0.40"/>
+  <circle cx="154.25" cy="922.28" r="0.63" fill="white" opacity="0.16"/>
+  <circle cx="260.01" cy="427.21" r="1.05" fill="white" opacity="0.27"/>
+  <circle cx="853.90" cy="358.71" r="0.73" fill="white" opacity="0.27"/>
+  <circle cx="753.24" cy="1015.33" r="0.55" fill="white" opacity="0.32"/>
+  <circle cx="822.05" cy="33.90" r="0.96" fill="white" opacity="0.34"/>
+  <circle cx="537.26" cy="609.40" r="0.58" fill="white" opacity="0.47"/>
+  <circle cx="546.19" cy="765.41" r="0.60" fill="white" opacity="0.42"/>
+  <circle cx="97.90" cy="583.03" r="0.38" fill="white" opacity="0.44"/>
+  <circle cx="551.90" cy="54.11" r="1.03" fill="white" opacity="0.44"/>
+  <circle cx="144.68" cy="667.98" r="1.00" fill="white" opacity="0.21"/>
+  <circle cx="195.76" cy="561.32" r="0.21" fill="white" opacity="0.20"/>
+  <circle cx="440.62" cy="954.22" r="1.18" fill="white" opacity="0.34"/>
+  <circle cx="367.63" cy="349.47" r="0.94" fill="white" opacity="0.21"/>
+  <circle cx="717.49" cy="897.15" r="0.77" fill="white" opacity="0.39"/>
+  <circle cx="915.70" cy="245.45" r="0.78" fill="white" opacity="0.44"/>
+  <circle cx="904.77" cy="443.14" r="1.10" fill="white" opacity="0.39"/>
+  <circle cx="866.18" cy="1003.95" r="0.30" fill="white" opacity="0.52"/>
+  <circle cx="558.08" cy="575.08" r="1.15" fill="white" opacity="0.10"/>
+  <circle cx="337.74" cy="485.81" r="0.53" fill="white" opacity="0.28"/>
+  <circle cx="732.18" cy="456.20" r="0.23" fill="white" opacity="0.45"/>
+  <circle cx="356.34" cy="546.05" r="1.09" fill="white" opacity="0.40"/>
+  <circle cx="544.71" cy="708.71" r="0.82" fill="white" opacity="0.29"/>
+  <circle cx="112.30" cy="706.54" r="0.84" fill="white" opacity="0.49"/>
+  <circle cx="793.02" cy="821.39" r="0.98" fill="white" opacity="0.11"/>
+  <circle cx="877.76" cy="612.43" r="0.60" fill="white" opacity="0.43"/>
+  <circle cx="108.77" cy="871.43" r="1.10" fill="white" opacity="0.12"/>
+  <circle cx="930.40" cy="1049.72" r="0.97" fill="white" opacity="0.22"/>
+  <circle cx="668.41" cy="632.92" r="0.52" fill="white" opacity="0.37"/>
+  <circle cx="631.76" cy="928.33" r="1.11" fill="white" opacity="0.21"/>
+  <circle cx="367.57" cy="393.21" r="0.98" fill="white" opacity="0.18"/>
+  <circle cx="878.47" cy="859.54" r="0.75" fill="white" opacity="0.45"/>
+  <circle cx="702.87" cy="460.61" r="1.05" fill="white" opacity="0.17"/>
+  <circle cx="258.36" cy="673.63" r="0.59" fill="white" opacity="0.39"/>
+  <circle cx="129.51" cy="209.82" r="0.34" fill="white" opacity="0.14"/>
+  <circle cx="228.14" cy="73.26" r="0.33" fill="white" opacity="0.39"/>
+  <circle cx="414.53" cy="890.41" r="0.37" fill="white" opacity="0.44"/>
+  <circle cx="123.97" cy="450.74" r="0.31" fill="white" opacity="0.28"/>
+  <circle cx="2.00" cy="981.24" r="1.02" fill="white" opacity="0.29"/>
+  <circle cx="220.14" cy="994.47" r="0.54" fill="white" opacity="0.36"/>
+  <circle cx="12.66" cy="231.78" r="0.53" fill="white" opacity="0.29"/>
+  <circle cx="47.80" cy="974.67" r="0.69" fill="white" opacity="0.40"/>
+  <circle cx="479.97" cy="955.08" r="0.58" fill="white" opacity="0.27"/>
+  <circle cx="163.80" cy="1008.70" r="1.17" fill="white" opacity="0.22"/>
+  <circle cx="502.38" cy="797.93" r="0.74" fill="white" opacity="0.40"/>
+  <circle cx="467.08" cy="267.53" r="0.85" fill="white" opacity="0.47"/>
+  <circle cx="892.86" cy="995.96" r="0.41" fill="white" opacity="0.34"/>
+  <circle cx="455.95" cy="731.81" r="0.41" fill="white" opacity="0.37"/>
+  <circle cx="391.99" cy="359.80" r="1.15" fill="white" opacity="0.52"/>
+  <circle cx="162.81" cy="824.83" r="0.76" fill="white" opacity="0.20"/>
+  <circle cx="894.36" cy="542.07" r="1.03" fill="white" opacity="0.45"/>
+  <circle cx="170.03" cy="684.68" r="0.87" fill="white" opacity="0.13"/>
+  <circle cx="44.97" cy="261.92" r="1.00" fill="white" opacity="0.44"/>
+  <circle cx="807.29" cy="785.17" r="1.19" fill="white" opacity="0.24"/>
+  <circle cx="822.76" cy="1007.60" r="0.94" fill="white" opacity="0.25"/>
+  <circle cx="710.46" cy="58.41" r="0.55" fill="white" opacity="0.15"/>
+  <circle cx="292.48" cy="844.99" r="1.13" fill="white" opacity="0.26"/>
+  <circle cx="809.63" cy="986.46" r="0.23" fill="white" opacity="0.34"/>
+  <circle cx="455.86" cy="417.43" r="0.82" fill="white" opacity="0.34"/>
+  <circle cx="227.35" cy="648.76" r="0.93" fill="white" opacity="0.18"/>
+  <circle cx="68.54" cy="395.76" r="0.67" fill="white" opacity="0.41"/>
+  <circle cx="641.67" cy="455.92" r="0.39" fill="white" opacity="0.53"/>
+  <circle cx="76.31" cy="284.33" r="0.99" fill="white" opacity="0.31"/>
+  <circle cx="44.80" cy="1000.74" r="1.13" fill="white" opacity="0.13"/>
+  <circle cx="330.28" cy="614.90" r="0.56" fill="white" opacity="0.37"/>
+  <circle cx="331.66" cy="305.47" r="1.00" fill="white" opacity="0.35"/>
+  <circle cx="913.88" cy="872.60" r="1.04" fill="white" opacity="0.53"/>
+  <circle cx="181.71" cy="536.80" r="1.11" fill="white" opacity="0.43"/>
+  <circle cx="795.68" cy="362.92" r="0.93" fill="white" opacity="0.21"/>
+  <circle cx="867.67" cy="47.16" r="0.23" fill="white" opacity="0.26"/>
+  <circle cx="483.48" cy="828.13" r="1.01" fill="white" opacity="0.16"/>
+  <circle cx="96.15" cy="760.78" r="0.31" fill="white" opacity="0.29"/>
+  <circle cx="489.13" cy="323.31" r="0.24" fill="white" opacity="0.23"/>
+  <circle cx="939.86" cy="1060.42" r="0.32" fill="white" opacity="0.54"/>
+  <circle cx="910.71" cy="970.25" r="0.60" fill="white" opacity="0.45"/>
+  <circle cx="408.92" cy="542.43" r="0.50" fill="white" opacity="0.18"/>
+  <circle cx="340.64" cy="194.97" r="1.16" fill="white" opacity="0.22"/>
+  <circle cx="720.35" cy="211.50" r="0.61" fill="white" opacity="0.35"/>
+  <circle cx="504.86" cy="974.42" r="0.83" fill="white" opacity="0.22"/>
+  <circle cx="180.01" cy="1032.15" r="0.54" fill="white" opacity="0.51"/>
+  <circle cx="787.60" cy="839.13" r="0.59" fill="white" opacity="0.54"/>
+  <circle cx="248.75" cy="200.13" r="1.04" fill="white" opacity="0.36"/>
+  <circle cx="765.52" cy="168.69" r="1.00" fill="white" opacity="0.54"/>
+  <circle cx="755.14" cy="502.27" r="0.31" fill="white" opacity="0.43"/>
+  <circle cx="489.59" cy="175.01" r="0.67" fill="white" opacity="0.12"/>
+  <circle cx="911.90" cy="23.78" r="1.12" fill="white" opacity="0.25"/>
+  <circle cx="180.35" cy="691.68" r="1.00" fill="white" opacity="0.20"/>
+  <circle cx="352.84" cy="735.99" r="0.98" fill="white" opacity="0.15"/>
+  <circle cx="194.24" cy="227.24" r="0.92" fill="white" opacity="0.34"/>
+  <circle cx="670.72" cy="34.11" r="1.10" fill="white" opacity="0.20"/>
+  <circle cx="789.57" cy="130.46" r="0.56" fill="white" opacity="0.15"/>
+  <circle cx="471.43" cy="733.77" r="1.10" fill="white" opacity="0.33"/>
+  <circle cx="881.88" cy="298.87" r="0.25" fill="white" opacity="0.42"/>
+  <circle cx="68.12" cy="186.07" r="0.44" fill="white" opacity="0.15"/>
+  <circle cx="803.79" cy="824.06" r="1.10" fill="white" opacity="0.38"/>
+  <circle cx="822.15" cy="45.28" r="1.12" fill="white" opacity="0.48"/>
+  <circle cx="608.67" cy="422.93" r="0.25" fill="white" opacity="0.32"/>
+  <circle cx="475.70" cy="718.60" r="1.19" fill="white" opacity="0.22"/>
+  <circle cx="199.33" cy="486.25" r="0.22" fill="white" opacity="0.46"/>
+  <circle cx="42.52" cy="186.99" r="0.83" fill="white" opacity="0.37"/>
+  <circle cx="632.39" cy="411.93" r="1.11" fill="white" opacity="0.40"/>
+  <circle cx="156.90" cy="573.77" r="1.00" fill="white" opacity="0.47"/>
+  <circle cx="529.53" cy="969.46" r="0.57" fill="white" opacity="0.48"/>
+  <circle cx="719.23" cy="49.63" r="0.74" fill="white" opacity="0.22"/>
+  <circle cx="815.72" cy="210.18" r="0.29" fill="white" opacity="0.43"/>
+  <circle cx="860.29" cy="469.24" r="0.61" fill="white" opacity="0.52"/>
+  <circle cx="180.02" cy="26.09" r="0.98" fill="white" opacity="0.33"/>
+  <circle cx="406.65" cy="104.58" r="0.87" fill="white" opacity="0.35"/>
+  <circle cx="69.44" cy="1006.07" r="1.17" fill="white" opacity="0.48"/>
+  <circle cx="273.06" cy="464.35" r="0.90" fill="white" opacity="0.42"/>
+  <circle cx="758.98" cy="697.06" r="0.38" fill="white" opacity="0.49"/>
+  <circle cx="936.58" cy="462.88" r="0.99" fill="white" opacity="0.53"/>
+  <circle cx="729.82" cy="791.87" r="0.84" fill="white" opacity="0.10"/>
+  <circle cx="177.43" cy="959.45" r="0.39" fill="white" opacity="0.31"/>
+  <circle cx="451.34" cy="625.74" r="1.13" fill="white" opacity="0.44"/>
+  <circle cx="124.12" cy="680.09" r="0.55" fill="white" opacity="0.39"/>
+  <circle cx="452.15" cy="489.98" r="0.71" fill="white" opacity="0.18"/>
+  <circle cx="611.17" cy="717.64" r="0.46" fill="white" opacity="0.51"/>
+  <circle cx="135.82" cy="469.21" r="1.13" fill="white" opacity="0.45"/>
+  <circle cx="741.25" cy="222.34" r="0.92" fill="white" opacity="0.14"/>
+  <circle cx="938.47" cy="845.64" r="0.45" fill="white" opacity="0.10"/>
+  <circle cx="408.30" cy="663.89" r="0.67" fill="white" opacity="0.12"/>
+  <circle cx="514.09" cy="442.43" r="0.86" fill="white" opacity="0.13"/>
+  <circle cx="766.10" cy="743.91" r="1.10" fill="white" opacity="0.30"/>
+  <circle cx="300.47" cy="1000.43" r="0.24" fill="white" opacity="0.51"/>
+  <circle cx="532.31" cy="123.09" r="0.96" fill="white" opacity="0.36"/>
+  <circle cx="831.11" cy="561.82" r="0.50" fill="white" opacity="0.39"/>
+  <circle cx="424.43" cy="330.51" r="1.17" fill="white" opacity="0.34"/>
+  <circle cx="572.81" cy="973.15" r="1.12" fill="white" opacity="0.53"/>
+  <circle cx="428.28" cy="1013.10" r="0.66" fill="white" opacity="0.42"/>
+  <circle cx="300.71" cy="994.30" r="0.85" fill="white" opacity="0.37"/>
+  <circle cx="918.94" cy="644.16" r="0.28" fill="white" opacity="0.47"/>
+  <circle cx="368.97" cy="207.74" r="1.08" fill="white" opacity="0.25"/>
+  <circle cx="12.45" cy="449.97" r="1.18" fill="white" opacity="0.28"/>
+  <circle cx="210.04" cy="771.25" r="0.35" fill="white" opacity="0.54"/>
+  <circle cx="97.10" cy="532.92" r="0.62" fill="white" opacity="0.28"/>
+  <circle cx="394.52" cy="80.32" r="0.90" fill="white" opacity="0.24"/>
+  <circle cx="604.53" cy="616.17" r="1.07" fill="white" opacity="0.53"/>
+  <circle cx="205.99" cy="974.21" r="0.78" fill="white" opacity="0.51"/>
+  <circle cx="477.89" cy="764.09" r="0.55" fill="white" opacity="0.20"/>
+  <circle cx="806.14" cy="35.31" r="0.27" fill="white" opacity="0.31"/>
+  <circle cx="408.85" cy="751.15" r="1.14" fill="white" opacity="0.47"/>
+  <circle cx="561.64" cy="338.89" r="0.24" fill="white" opacity="0.16"/>
+  <circle cx="484.44" cy="1034.73" r="0.35" fill="white" opacity="0.54"/>
+  <circle cx="121.65" cy="132.56" r="1.11" fill="white" opacity="0.42"/>
+  <circle cx="190.47" cy="496.76" r="0.90" fill="white" opacity="0.18"/>
+  <circle cx="480.51" cy="369.07" r="0.58" fill="white" opacity="0.32"/>
+  <circle cx="166.44" cy="783.44" r="0.98" fill="white" opacity="0.23"/>
+  <circle cx="170.30" cy="299.23" r="0.94" fill="white" opacity="0.22"/>
+  <circle cx="389.72" cy="680.39" r="0.42" fill="white" opacity="0.41"/>
+  <circle cx="711.39" cy="397.75" r="0.50" fill="white" opacity="0.12"/>
+  <circle cx="857.16" cy="976.96" r="0.72" fill="white" opacity="0.41"/>
+  <circle cx="887.89" cy="177.33" r="1.02" fill="white" opacity="0.52"/>
+  <circle cx="822.68" cy="786.61" r="0.69" fill="white" opacity="0.28"/>
+  <circle cx="854.08" cy="384.67" r="0.89" fill="white" opacity="0.53"/>
+  <circle cx="638.09" cy="507.99" r="0.30" fill="white" opacity="0.51"/>
+  <circle cx="760.55" cy="859.42" r="1.04" fill="white" opacity="0.47"/>
+  <circle cx="31.93" cy="477.37" r="0.91" fill="white" opacity="0.42"/>
+  <circle cx="882.20" cy="394.61" r="0.52" fill="white" opacity="0.40"/>
+  <circle cx="647.16" cy="986.16" r="0.72" fill="white" opacity="0.15"/>
+  <circle cx="532.70" cy="486.25" r="0.94" fill="white" opacity="0.24"/>
+  <circle cx="82.41" cy="949.23" r="1.10" fill="white" opacity="0.32"/>
+  <circle cx="718.66" cy="1068.46" r="0.91" fill="white" opacity="0.32"/>
+  <circle cx="590.60" cy="320.19" r="1.03" fill="white" opacity="0.39"/>
+  <circle cx="713.05" cy="478.95" r="0.97" fill="white" opacity="0.24"/>
+  <circle cx="47.07" cy="641.58" r="1.15" fill="white" opacity="0.43"/>
+  <circle cx="688.31" cy="613.09" r="0.89" fill="white" opacity="0.14"/>
+  <circle cx="40.02" cy="248.91" r="0.72" fill="white" opacity="0.20"/>
+  <circle cx="389.40" cy="584.18" r="0.21" fill="white" opacity="0.28"/>
+  <circle cx="707.76" cy="292.04" r="0.74" fill="white" opacity="0.19"/>
+  <circle cx="154.54" cy="233.26" r="0.26" fill="white" opacity="0.23"/>
+  <circle cx="686.37" cy="260.74" r="0.99" fill="white" opacity="0.27"/>
+  <circle cx="606.89" cy="129.77" r="0.56" fill="white" opacity="0.33"/>
+  <circle cx="521.59" cy="454.69" r="0.67" fill="white" opacity="0.39"/>
+  <circle cx="314.61" cy="1023.52" r="0.44" fill="white" opacity="0.39"/>
+  <circle cx="190.06" cy="274.83" r="0.46" fill="white" opacity="0.11"/>
+  <circle cx="683.38" cy="533.03" r="0.90" fill="white" opacity="0.15"/>
+  <circle cx="687.12" cy="184.88" r="0.79" fill="white" opacity="0.24"/>
+  <circle cx="262.67" cy="432.58" r="0.60" fill="white" opacity="0.35"/>
+  <circle cx="891.13" cy="71.80" r="0.93" fill="white" opacity="0.35"/>
+  <circle cx="268.81" cy="739.50" r="0.52" fill="white" opacity="0.16"/>
+  <circle cx="45.51" cy="656.19" r="1.15" fill="white" opacity="0.31"/>
+  <circle cx="477.49" cy="1036.49" r="0.61" fill="white" opacity="0.49"/>
+  <circle cx="188.97" cy="316.26" r="0.87" fill="white" opacity="0.46"/>
+  <circle cx="34.00" cy="961.77" r="0.52" fill="white" opacity="0.50"/>
+  <circle cx="414.73" cy="185.31" r="0.89" fill="white" opacity="0.45"/>
+  <circle cx="443.67" cy="124.59" r="0.64" fill="white" opacity="0.18"/>
+  <circle cx="830.24" cy="63.76" r="1.18" fill="white" opacity="0.54"/>
+  <circle cx="943.54" cy="991.60" r="0.78" fill="white" opacity="0.30"/>
+  <circle cx="211.00" cy="752.95" r="0.98" fill="white" opacity="0.26"/>
+  <circle cx="2.70" cy="281.21" r="0.69" fill="white" opacity="0.52"/>
+  <circle cx="810.44" cy="114.43" r="0.35" fill="white" opacity="0.12"/>
+  <circle cx="905.70" cy="71.63" r="0.94" fill="white" opacity="0.15"/>
+  <circle cx="425.66" cy="290.35" r="0.82" fill="white" opacity="0.11"/>
+  <circle cx="429.52" cy="382.48" r="1.10" fill="white" opacity="0.46"/>
+  <circle cx="604.92" cy="548.40" r="1.05" fill="white" opacity="0.42"/>
+  <circle cx="279.26" cy="762.71" r="0.30" fill="white" opacity="0.34"/>
+  <circle cx="81.48" cy="144.99" r="1.03" fill="white" opacity="0.15"/>
+  <circle cx="246.35" cy="904.91" r="0.67" fill="white" opacity="0.16"/>
+  <circle cx="682.28" cy="449.87" r="0.63" fill="white" opacity="0.49"/>
+  <circle cx="881.52" cy="329.77" r="0.57" fill="white" opacity="0.37"/>
+  <circle cx="304.56" cy="767.37" r="0.85" fill="white" opacity="0.51"/>
+  <circle cx="490.74" cy="854.00" r="0.55" fill="white" opacity="0.30"/>
+  <circle cx="421.75" cy="547.72" r="0.26" fill="white" opacity="0.54"/>
+  <circle cx="241.40" cy="170.84" r="0.71" fill="white" opacity="0.20"/>
+  <circle cx="458.67" cy="874.70" r="0.78" fill="white" opacity="0.26"/>
+  <circle cx="571.16" cy="439.66" r="1.13" fill="white" opacity="0.31"/>
+  <circle cx="261.17" cy="643.86" r="0.77" fill="white" opacity="0.29"/>
+  <circle cx="293.17" cy="997.68" r="0.81" fill="white" opacity="0.28"/>
+  <circle cx="15.19" cy="87.78" r="1.18" fill="white" opacity="0.30"/>
+  <circle cx="314.32" cy="971.92" r="0.84" fill="white" opacity="0.50"/>
+  <circle cx="32.49" cy="558.79" r="1.07" fill="white" opacity="0.48"/>
+  <circle cx="544.16" cy="81.58" r="0.54" fill="white" opacity="0.48"/>
+  <circle cx="746.72" cy="3.49" r="0.44" fill="white" opacity="0.53"/>
+  <circle cx="358.85" cy="658.35" r="0.34" fill="white" opacity="0.43"/>
+  <circle cx="268.33" cy="1066.13" r="1.03" fill="white" opacity="0.33"/>
+  <circle cx="431.97" cy="941.35" r="0.84" fill="white" opacity="0.13"/>
+  <circle cx="29.76" cy="522.04" r="0.84" fill="white" opacity="0.19"/>
+  <circle cx="643.69" cy="53.39" r="0.81" fill="white" opacity="0.19"/>
+  <circle cx="266.51" cy="920.31" r="0.83" fill="white" opacity="0.17"/>
+  <circle cx="810.06" cy="773.20" r="0.22" fill="white" opacity="0.11"/>
+  <circle cx="321.01" cy="734.07" r="1.09" fill="white" opacity="0.40"/>
+  <circle cx="622.09" cy="525.77" r="0.95" fill="white" opacity="0.34"/>
+  <circle cx="119.37" cy="476.89" r="1.02" fill="white" opacity="0.31"/>
+  <circle cx="916.99" cy="106.61" r="0.77" fill="white" opacity="0.16"/>
+  <circle cx="594.64" cy="40.48" r="1.10" fill="white" opacity="0.52"/>
+  <circle cx="802.61" cy="589.24" r="0.73" fill="white" opacity="0.46"/>
+  <circle cx="904.42" cy="1001.11" r="0.87" fill="white" opacity="0.25"/>
+  <circle cx="324.34" cy="143.27" r="0.35" fill="white" opacity="0.42"/>
+  <circle cx="446.31" cy="263.05" r="0.90" fill="white" opacity="0.48"/>
+  <circle cx="362.83" cy="844.96" r="0.92" fill="white" opacity="0.17"/>
+  <circle cx="6.12" cy="900.02" r="0.40" fill="white" opacity="0.13"/>
+  <circle cx="849.51" cy="391.86" r="0.21" fill="white" opacity="0.45"/>
+  <circle cx="723.34" cy="392.64" r="0.56" fill="white" opacity="0.35"/>
+  <circle cx="228.23" cy="485.90" r="0.33" fill="white" opacity="0.29"/>
+  <circle cx="262.05" cy="285.84" r="1.19" fill="white" opacity="0.41"/>
+  <circle cx="814.51" cy="35.25" r="0.50" fill="white" opacity="0.33"/>
+  <circle cx="764.39" cy="146.16" r="0.28" fill="white" opacity="0.10"/>
+  <circle cx="223.85" cy="705.90" r="1.09" fill="white" opacity="0.14"/>
+  <circle cx="250.33" cy="979.86" r="0.22" fill="white" opacity="0.48"/>
+  <circle cx="541.83" cy="486.11" r="1.15" fill="white" opacity="0.22"/>
+  <circle cx="899.81" cy="256.99" r="0.94" fill="white" opacity="0.25"/>
+  <circle cx="42.74" cy="323.10" r="0.65" fill="white" opacity="0.42"/>
+  <circle cx="70.98" cy="1030.95" r="0.20" fill="white" opacity="0.28"/>
+  <circle cx="178.80" cy="294.90" r="0.86" fill="white" opacity="0.36"/>
+  <circle cx="93.93" cy="244.63" r="1.05" fill="white" opacity="0.50"/>
+  <circle cx="53.26" cy="561.54" r="0.68" fill="white" opacity="0.17"/>
+  <circle cx="867.85" cy="655.05" r="1.13" fill="white" opacity="0.36"/>
+  <circle cx="590.33" cy="522.23" r="1.12" fill="white" opacity="0.53"/>
+  <circle cx="276.32" cy="218.44" r="0.69" fill="white" opacity="0.33"/>
+  <circle cx="865.18" cy="195.24" r="1.15" fill="white" opacity="0.28"/>
+  <circle cx="250.88" cy="84.19" r="0.62" fill="white" opacity="0.11"/>
+  <circle cx="600.17" cy="732.08" r="0.37" fill="white" opacity="0.45"/>
+  <circle cx="943.96" cy="994.05" r="0.44" fill="white" opacity="0.23"/>
+  <circle cx="641.30" cy="1010.01" r="0.92" fill="white" opacity="0.29"/>
+  <circle cx="286.99" cy="730.35" r="1.06" fill="white" opacity="0.46"/>
+  <circle cx="304.82" cy="561.92" r="0.76" fill="white" opacity="0.27"/>
+  <circle cx="885.75" cy="962.13" r="0.93" fill="white" opacity="0.44"/>
+  <circle cx="572.98" cy="253.78" r="0.45" fill="white" opacity="0.11"/>
+  <circle cx="250.44" cy="359.26" r="0.26" fill="white" opacity="0.28"/>
+  <circle cx="516.55" cy="731.81" r="0.25" fill="white" opacity="0.50"/>
+  <circle cx="190.70" cy="754.89" r="1.00" fill="white" opacity="0.48"/>
+  <circle cx="229.18" cy="696.94" r="0.25" fill="white" opacity="0.38"/>
+  <circle cx="930.61" cy="318.83" r="1.10" fill="white" opacity="0.47"/>
+  <circle cx="887.87" cy="482.71" r="0.64" fill="white" opacity="0.40"/>
+  <circle cx="936.86" cy="43.68" r="0.45" fill="white" opacity="0.20"/>
+  <circle cx="913.90" cy="125.18" r="0.55" fill="white" opacity="0.16"/>
+  <circle cx="725.34" cy="818.71" r="0.93" fill="white" opacity="0.41"/>
+  <circle cx="867.90" cy="588.73" r="0.77" fill="white" opacity="0.45"/>
+  <circle cx="441.34" cy="494.24" r="0.90" fill="white" opacity="0.44"/>
+  <circle cx="299.35" cy="729.87" r="0.86" fill="white" opacity="0.52"/>
+  <circle cx="300.24" cy="211.06" r="0.55" fill="white" opacity="0.29"/>
+  <circle cx="207.14" cy="393.93" r="0.53" fill="white" opacity="0.32"/>
+  <circle cx="414.17" cy="340.97" r="1.16" fill="white" opacity="0.37"/>
+  <circle cx="651.03" cy="1021.66" r="1.17" fill="white" opacity="0.13"/>
+  <circle cx="188.33" cy="940.67" r="0.89" fill="white" opacity="0.54"/>
+  <circle cx="68.89" cy="24.69" r="0.29" fill="white" opacity="0.45"/>
+  <circle cx="264.14" cy="787.09" r="0.22" fill="white" opacity="0.51"/>
+  <circle cx="732.32" cy="142.67" r="0.64" fill="white" opacity="0.25"/>
+  <circle cx="940.48" cy="68.95" r="0.59" fill="white" opacity="0.53"/>
+  <circle cx="494.47" cy="488.15" r="0.89" fill="white" opacity="0.36"/>
+  <circle cx="635.40" cy="245.05" r="1.04" fill="white" opacity="0.18"/>
+  <circle cx="650.59" cy="130.33" r="0.77" fill="white" opacity="0.50"/>
+  <circle cx="386.98" cy="359.52" r="1.05" fill="white" opacity="0.50"/>
+  <circle cx="72.54" cy="268.19" r="0.21" fill="white" opacity="0.10"/>
+  <circle cx="205.13" cy="938.92" r="0.56" fill="white" opacity="0.18"/>
+  <circle cx="357.02" cy="618.69" r="0.89" fill="white" opacity="0.41"/>
+  <circle cx="684.14" cy="531.99" r="0.33" fill="white" opacity="0.40"/>
+  <circle cx="295.62" cy="839.04" r="1.17" fill="white" opacity="0.42"/>
+  <circle cx="449.61" cy="551.99" r="0.67" fill="white" opacity="0.52"/>
+  <circle cx="564.46" cy="343.26" r="0.64" fill="white" opacity="0.30"/>
+  <circle cx="824.99" cy="844.50" r="0.27" fill="white" opacity="0.14"/>
+  <circle cx="864.77" cy="213.59" r="0.80" fill="white" opacity="0.27"/>
+  <circle cx="99.23" cy="981.53" r="0.26" fill="white" opacity="0.29"/>
+  <circle cx="678.67" cy="77.41" r="0.82" fill="white" opacity="0.51"/>
+  <circle cx="695.33" cy="634.50" r="1.08" fill="white" opacity="0.18"/>
+  <circle cx="183.48" cy="158.37" r="0.80" fill="white" opacity="0.51"/>
+  <circle cx="496.74" cy="299.82" r="0.51" fill="white" opacity="0.43"/>
+  <circle cx="146.37" cy="549.38" r="0.35" fill="white" opacity="0.26"/>
+  <circle cx="900.36" cy="448.07" r="0.82" fill="white" opacity="0.22"/>
+  <circle cx="894.04" cy="412.84" r="1.19" fill="white" opacity="0.29"/>
+  <circle cx="227.71" cy="656.69" r="0.33" fill="white" opacity="0.27"/>
+  <circle cx="910.43" cy="43.88" r="0.57" fill="white" opacity="0.38"/>
+  <circle cx="828.70" cy="381.21" r="0.61" fill="white" opacity="0.33"/>
+  <circle cx="516.34" cy="580.01" r="0.30" fill="white" opacity="0.48"/>
+  <circle cx="764.83" cy="772.10" r="0.91" fill="white" opacity="0.41"/>
+  <circle cx="421.13" cy="194.44" r="0.83" fill="white" opacity="0.40"/>
+  <circle cx="232.48" cy="123.26" r="0.38" fill="white" opacity="0.41"/>
+  <circle cx="10.39" cy="402.60" r="0.67" fill="white" opacity="0.23"/>
+  <circle cx="692.78" cy="556.62" r="0.94" fill="white" opacity="0.51"/>
+  <circle cx="247.27" cy="317.61" r="0.48" fill="white" opacity="0.35"/>
+  <circle cx="491.11" cy="794.40" r="0.58" fill="white" opacity="0.12"/>
+  <circle cx="604.77" cy="657.56" r="0.67" fill="white" opacity="0.12"/>
+  <circle cx="443.71" cy="742.62" r="0.28" fill="white" opacity="0.20"/>
+  <circle cx="90.32" cy="376.61" r="0.85" fill="white" opacity="0.24"/>
+  <circle cx="302.29" cy="487.68" r="0.27" fill="white" opacity="0.52"/>
+  <circle cx="656.99" cy="239.82" r="0.88" fill="white" opacity="0.39"/>
+  <circle cx="198.25" cy="561.56" r="1.10" fill="white" opacity="0.16"/>
+  <circle cx="942.13" cy="301.84" r="0.78" fill="white" opacity="0.37"/>
+  <circle cx="667.72" cy="632.70" r="0.81" fill="white" opacity="0.35"/>
+  <circle cx="903.25" cy="896.59" r="1.19" fill="white" opacity="0.17"/>
+  <circle cx="39.20" cy="967.92" r="0.99" fill="white" opacity="0.29"/>
+  <circle cx="292.51" cy="522.03" r="1.19" fill="white" opacity="0.39"/>
+  <circle cx="571.27" cy="786.16" r="0.22" fill="white" opacity="0.20"/>
+  <circle cx="655.48" cy="764.30" r="0.78" fill="white" opacity="0.14"/>
+  <circle cx="246.38" cy="623.38" r="1.11" fill="white" opacity="0.29"/>
+  <circle cx="497.01" cy="302.00" r="0.73" fill="white" opacity="0.42"/>
+  <circle cx="628.78" cy="475.59" r="0.52" fill="white" opacity="0.35"/>
+  <circle cx="62.68" cy="1061.89" r="0.36" fill="white" opacity="0.54"/>
+  <circle cx="602.83" cy="170.66" r="1.15" fill="white" opacity="0.15"/>
+  <circle cx="1.20" cy="814.78" r="1.02" fill="white" opacity="0.16"/>
+  <circle cx="541.37" cy="376.29" r="0.64" fill="white" opacity="0.13"/>
+  <circle cx="821.71" cy="426.12" r="0.65" fill="white" opacity="0.36"/>
+  <circle cx="174.57" cy="377.11" r="0.49" fill="white" opacity="0.18"/>
+  <circle cx="766.45" cy="1049.21" r="0.86" fill="white" opacity="0.17"/>
+  <circle cx="256.06" cy="455.40" r="0.71" fill="white" opacity="0.53"/>
+  <circle cx="69.39" cy="751.11" r="0.67" fill="white" opacity="0.31"/>
+  <circle cx="138.11" cy="901.46" r="0.28" fill="white" opacity="0.23"/>
+  <circle cx="31.07" cy="463.50" r="1.11" fill="white" opacity="0.10"/>
+  <circle cx="900.68" cy="655.78" r="1.11" fill="white" opacity="0.47"/>
+  <circle cx="426.66" cy="99.67" r="0.40" fill="white" opacity="0.47"/>
+  <circle cx="354.12" cy="572.32" r="0.62" fill="white" opacity="0.52"/>
+  <circle cx="380.91" cy="975.44" r="0.86" fill="white" opacity="0.45"/>
+  <circle cx="878.73" cy="1065.36" r="1.16" fill="white" opacity="0.40"/>
+  <circle cx="554.87" cy="357.96" r="0.76" fill="white" opacity="0.20"/>
+  <circle cx="478.37" cy="632.17" r="0.53" fill="white" opacity="0.46"/>
+  <circle cx="665.03" cy="505.19" r="1.12" fill="white" opacity="0.22"/>
+  <circle cx="558.51" cy="194.22" r="0.36" fill="white" opacity="0.17"/>
+  <circle cx="322.98" cy="220.53" r="1.03" fill="white" opacity="0.25"/>
+  <circle cx="92.55" cy="263.00" r="0.66" fill="white" opacity="0.43"/>
+  <circle cx="326.25" cy="757.69" r="0.82" fill="white" opacity="0.13"/>
+  <circle cx="88.83" cy="1.07" r="0.70" fill="white" opacity="0.28"/>
+  <circle cx="126.08" cy="262.43" r="0.23" fill="white" opacity="0.12"/>
+  <circle cx="731.04" cy="1059.65" r="0.81" fill="white" opacity="0.24"/>
+  <circle cx="897.35" cy="457.91" r="1.02" fill="white" opacity="0.15"/>
+  <circle cx="369.23" cy="35.43" r="0.57" fill="white" opacity="0.46"/>
+  <circle cx="892.76" cy="668.22" r="0.22" fill="white" opacity="0.50"/>
+  <circle cx="843.45" cy="649.22" r="0.59" fill="white" opacity="0.14"/>
+  <circle cx="232.85" cy="604.41" r="0.65" fill="white" opacity="0.11"/>
+  <circle cx="848.07" cy="851.34" r="0.98" fill="white" opacity="0.30"/>
+  <circle cx="901.42" cy="157.52" r="0.97" fill="white" opacity="0.21"/>
+  <circle cx="606.82" cy="932.56" r="0.57" fill="white" opacity="0.30"/>
+  <circle cx="183.89" cy="512.94" r="1.09" fill="white" opacity="0.53"/>
+  <circle cx="451.93" cy="942.62" r="0.27" fill="white" opacity="0.52"/>
+  <circle cx="632.24" cy="584.13" r="0.29" fill="white" opacity="0.31"/>
+  <circle cx="419.18" cy="1026.01" r="0.21" fill="white" opacity="0.53"/>
+  <circle cx="94.31" cy="713.56" r="0.37" fill="white" opacity="0.21"/>
+  <circle cx="589.10" cy="81.29" r="0.74" fill="white" opacity="0.23"/>
+  <circle cx="176.65" cy="598.96" r="1.14" fill="white" opacity="0.49"/>
+  <circle cx="832.65" cy="854.74" r="0.64" fill="white" opacity="0.44"/>
+  <circle cx="656.78" cy="591.88" r="0.48" fill="white" opacity="0.21"/>
+  <circle cx="901.61" cy="607.39" r="0.25" fill="white" opacity="0.40"/>
+  <circle cx="874.76" cy="973.74" r="1.09" fill="white" opacity="0.31"/>
+  <circle cx="704.43" cy="95.96" r="0.99" fill="white" opacity="0.52"/>
+  <circle cx="347.46" cy="563.28" r="0.77" fill="white" opacity="0.40"/>
+  <circle cx="253.44" cy="1055.69" r="0.98" fill="white" opacity="0.14"/>
+  <circle cx="294.31" cy="590.01" r="1.03" fill="white" opacity="0.25"/>
+  <circle cx="496.66" cy="247.46" r="0.30" fill="white" opacity="0.40"/>
+  <circle cx="487.37" cy="133.33" r="0.89" fill="white" opacity="0.55"/>
+  <circle cx="580.86" cy="651.39" r="0.52" fill="white" opacity="0.44"/>
+  <circle cx="493.51" cy="490.34" r="0.64" fill="white" opacity="0.24"/>
+  <circle cx="537.73" cy="531.38" r="0.90" fill="white" opacity="0.32"/>
+  <circle cx="555.37" cy="788.25" r="0.21" fill="white" opacity="0.14"/>
+  <circle cx="793.35" cy="259.30" r="0.63" fill="white" opacity="0.43"/>
+  <circle cx="62.01" cy="495.37" r="0.92" fill="white" opacity="0.13"/>
+  <circle cx="798.97" cy="564.90" r="0.47" fill="white" opacity="0.36"/>
   <style>
     .hex { cursor: pointer; transition: stroke 0.15s ease, fill 0.15s ease; }
     .hex-label { pointer-events: none; font-family: sans-serif; }
     .hex:hover { stroke: #ffffff; stroke-width: 3; }
   </style>
-  <g id="hex-group-A3" data-hex="A3" data-col="A" data-row="3" data-world-type="Fringe">
-    <polygon
-      id="hex-A3"
-      class="hex fringe"
-      points="148.00,253.28 116.00,308.70 52.00,308.70 20.00,253.28 52.00,197.85 116.00,197.85"
-      fill="url(#world-fringe)"
-      stroke="#000"
-      stroke-width="2"
-    />
-    <text
-      id="label-A3"
-      class="hex-label"
-      x="84"
-      y="257.2768775266122"
-      text-anchor="middle"
-      font-size="11"
-      fill="#111"
-    >A3</text>
-  </g>
-  <g id="hex-group-A5" data-hex="A5" data-col="A" data-row="5" data-world-type="Homeworld">
-    <polygon
-      id="hex-A5"
-      class="hex homeworld"
-      points="148.00,366.13 116.00,421.55 52.00,421.55 20.00,366.13 52.00,310.70 116.00,310.70"
-      fill="url(#world-home)"
-      stroke="#000"
-      stroke-width="2"
-    />
-    <text
-      id="label-A5"
-      class="hex-label"
-      x="84"
-      y="370.12812921102034"
-      text-anchor="middle"
-      font-size="11"
-      fill="#111"
-    >A5</text>
-  </g>
   <g id="hex-group-A7" data-hex="A7" data-col="A" data-row="7" data-world-type="Fringe">
     <polygon
       id="hex-A7"
       class="hex fringe"
-      points="148.00,478.98 116.00,534.41 52.00,534.41 20.00,478.98 52.00,423.55 116.00,423.55"
+      points="148.00,422.55 116.00,477.98 52.00,477.98 20.00,422.55 52.00,367.13 116.00,367.13"
       fill="url(#world-fringe)"
       stroke="#000"
       stroke-width="2"
@@ -95,17 +501,36 @@
       id="label-A7"
       class="hex-label"
       x="84"
-      y="482.9793808954285"
+      y="426.55375505322445"
       text-anchor="middle"
       font-size="11"
       fill="#111"
     >A7</text>
   </g>
+  <g id="hex-group-A9" data-hex="A9" data-col="A" data-row="9" data-world-type="Homeworld">
+    <polygon
+      id="hex-A9"
+      class="hex homeworld"
+      points="148.00,535.41 116.00,590.83 52.00,590.83 20.00,535.41 52.00,479.98 116.00,479.98"
+      fill="url(#world-home)"
+      stroke="#000"
+      stroke-width="2"
+    />
+    <text
+      id="label-A9"
+      class="hex-label"
+      x="84"
+      y="539.4050067376326"
+      text-anchor="middle"
+      font-size="11"
+      fill="#111"
+    >A9</text>
+  </g>
   <g id="hex-group-A11" data-hex="A11" data-col="A" data-row="11" data-world-type="Fringe">
     <polygon
       id="hex-A11"
       class="hex fringe"
-      points="148.00,704.68 116.00,760.11 52.00,760.11 20.00,704.68 52.00,649.26 116.00,649.26"
+      points="148.00,648.26 116.00,703.68 52.00,703.68 20.00,648.26 52.00,592.83 116.00,592.83"
       fill="url(#world-fringe)"
       stroke="#000"
       stroke-width="2"
@@ -114,74 +539,17 @@
       id="label-A11"
       class="hex-label"
       x="84"
-      y="708.6818842642448"
+      y="652.2562584220407"
       text-anchor="middle"
       font-size="11"
       fill="#111"
     >A11</text>
   </g>
-  <g id="hex-group-A13" data-hex="A13" data-col="A" data-row="13" data-world-type="Homeworld">
-    <polygon
-      id="hex-A13"
-      class="hex homeworld"
-      points="148.00,817.53 116.00,872.96 52.00,872.96 20.00,817.53 52.00,762.11 116.00,762.11"
-      fill="url(#world-home)"
-      stroke="#000"
-      stroke-width="2"
-    />
-    <text
-      id="label-A13"
-      class="hex-label"
-      x="84"
-      y="821.5331359486529"
-      text-anchor="middle"
-      font-size="11"
-      fill="#111"
-    >A13</text>
-  </g>
-  <g id="hex-group-A15" data-hex="A15" data-col="A" data-row="15" data-world-type="Fringe">
-    <polygon
-      id="hex-A15"
-      class="hex fringe"
-      points="148.00,930.38 116.00,985.81 52.00,985.81 20.00,930.38 52.00,874.96 116.00,874.96"
-      fill="url(#world-fringe)"
-      stroke="#000"
-      stroke-width="2"
-    />
-    <text
-      id="label-A15"
-      class="hex-label"
-      x="84"
-      y="934.384387633061"
-      text-anchor="middle"
-      font-size="11"
-      fill="#111"
-    >A15</text>
-  </g>
-  <g id="hex-group-B4" data-hex="B4" data-col="B" data-row="4" data-world-type="Outer">
-    <polygon
-      id="hex-B4"
-      class="hex outer"
-      points="245.00,309.70 213.00,365.13 149.00,365.13 117.00,309.70 149.00,254.28 213.00,254.28"
-      fill="url(#world-outer)"
-      stroke="#000"
-      stroke-width="2"
-    />
-    <text
-      id="label-B4"
-      class="hex-label"
-      x="181"
-      y="313.7025033688163"
-      text-anchor="middle"
-      font-size="11"
-      fill="#111"
-    >B4</text>
-  </g>
   <g id="hex-group-B6" data-hex="B6" data-col="B" data-row="6" data-world-type="Outer">
     <polygon
       id="hex-B6"
       class="hex outer"
-      points="245.00,422.55 213.00,477.98 149.00,477.98 117.00,422.55 149.00,367.13 213.00,367.13"
+      points="245.00,366.13 213.00,421.55 149.00,421.55 117.00,366.13 149.00,310.70 213.00,310.70"
       fill="url(#world-outer)"
       stroke="#000"
       stroke-width="2"
@@ -190,7 +558,7 @@
       id="label-B6"
       class="hex-label"
       x="181"
-      y="426.55375505322445"
+      y="370.1281292110204"
       text-anchor="middle"
       font-size="11"
       fill="#111"
@@ -200,7 +568,7 @@
     <polygon
       id="hex-B8"
       class="hex outer"
-      points="245.00,535.41 213.00,590.83 149.00,590.83 117.00,535.41 149.00,479.98 213.00,479.98"
+      points="245.00,478.98 213.00,534.41 149.00,534.41 117.00,478.98 149.00,423.55 213.00,423.55"
       fill="url(#world-outer)"
       stroke="#000"
       stroke-width="2"
@@ -209,7 +577,7 @@
       id="label-B8"
       class="hex-label"
       x="181"
-      y="539.4050067376326"
+      y="482.9793808954285"
       text-anchor="middle"
       font-size="11"
       fill="#111"
@@ -219,7 +587,7 @@
     <polygon
       id="hex-B10"
       class="hex outer"
-      points="245.00,648.26 213.00,703.68 149.00,703.68 117.00,648.26 149.00,592.83 213.00,592.83"
+      points="245.00,591.83 213.00,647.26 149.00,647.26 117.00,591.83 149.00,536.41 213.00,536.41"
       fill="url(#world-outer)"
       stroke="#000"
       stroke-width="2"
@@ -228,7 +596,7 @@
       id="label-B10"
       class="hex-label"
       x="181"
-      y="652.2562584220407"
+      y="595.8306325798366"
       text-anchor="middle"
       font-size="11"
       fill="#111"
@@ -238,7 +606,7 @@
     <polygon
       id="hex-B12"
       class="hex outer"
-      points="245.00,761.11 213.00,816.53 149.00,816.53 117.00,761.11 149.00,705.68 213.00,705.68"
+      points="245.00,704.68 213.00,760.11 149.00,760.11 117.00,704.68 149.00,649.26 213.00,649.26"
       fill="url(#world-outer)"
       stroke="#000"
       stroke-width="2"
@@ -247,36 +615,36 @@
       id="label-B12"
       class="hex-label"
       x="181"
-      y="765.1075101064489"
+      y="708.6818842642448"
       text-anchor="middle"
       font-size="11"
       fill="#111"
     >B12</text>
   </g>
-  <g id="hex-group-B14" data-hex="B14" data-col="B" data-row="14" data-world-type="Outer">
+  <g id="hex-group-C3" data-hex="C3" data-col="C" data-row="3" data-world-type="Fringe">
     <polygon
-      id="hex-B14"
-      class="hex outer"
-      points="245.00,873.96 213.00,929.38 149.00,929.38 117.00,873.96 149.00,818.53 213.00,818.53"
-      fill="url(#world-outer)"
+      id="hex-C3"
+      class="hex fringe"
+      points="342.00,196.85 310.00,252.28 246.00,252.28 214.00,196.85 246.00,141.43 310.00,141.43"
+      fill="url(#world-fringe)"
       stroke="#000"
       stroke-width="2"
     />
     <text
-      id="label-B14"
+      id="label-C3"
       class="hex-label"
-      x="181"
-      y="877.958761790857"
+      x="278"
+      y="200.85125168440817"
       text-anchor="middle"
       font-size="11"
       fill="#111"
-    >B14</text>
+    >C3</text>
   </g>
   <g id="hex-group-C5" data-hex="C5" data-col="C" data-row="5" data-world-type="Outer">
     <polygon
       id="hex-C5"
       class="hex outer"
-      points="342.00,366.13 310.00,421.55 246.00,421.55 214.00,366.13 246.00,310.70 310.00,310.70"
+      points="342.00,309.70 310.00,365.13 246.00,365.13 214.00,309.70 246.00,254.28 310.00,254.28"
       fill="url(#world-outer)"
       stroke="#000"
       stroke-width="2"
@@ -285,7 +653,7 @@
       id="label-C5"
       class="hex-label"
       x="278"
-      y="370.12812921102034"
+      y="313.7025033688163"
       text-anchor="middle"
       font-size="11"
       fill="#111"
@@ -295,7 +663,7 @@
     <polygon
       id="hex-C7"
       class="hex outer"
-      points="342.00,478.98 310.00,534.41 246.00,534.41 214.00,478.98 246.00,423.55 310.00,423.55"
+      points="342.00,422.55 310.00,477.98 246.00,477.98 214.00,422.55 246.00,367.13 310.00,367.13"
       fill="url(#world-outer)"
       stroke="#000"
       stroke-width="2"
@@ -304,7 +672,7 @@
       id="label-C7"
       class="hex-label"
       x="278"
-      y="482.9793808954285"
+      y="426.55375505322445"
       text-anchor="middle"
       font-size="11"
       fill="#111"
@@ -314,7 +682,7 @@
     <polygon
       id="hex-C9"
       class="hex outer"
-      points="342.00,591.83 310.00,647.26 246.00,647.26 214.00,591.83 246.00,536.41 310.00,536.41"
+      points="342.00,535.41 310.00,590.83 246.00,590.83 214.00,535.41 246.00,479.98 310.00,479.98"
       fill="url(#world-outer)"
       stroke="#000"
       stroke-width="2"
@@ -323,7 +691,7 @@
       id="label-C9"
       class="hex-label"
       x="278"
-      y="595.8306325798367"
+      y="539.4050067376326"
       text-anchor="middle"
       font-size="11"
       fill="#111"
@@ -333,7 +701,7 @@
     <polygon
       id="hex-C11"
       class="hex outer"
-      points="342.00,704.68 310.00,760.11 246.00,760.11 214.00,704.68 246.00,649.26 310.00,649.26"
+      points="342.00,648.26 310.00,703.68 246.00,703.68 214.00,648.26 246.00,592.83 310.00,592.83"
       fill="url(#world-outer)"
       stroke="#000"
       stroke-width="2"
@@ -342,7 +710,7 @@
       id="label-C11"
       class="hex-label"
       x="278"
-      y="708.6818842642448"
+      y="652.2562584220407"
       text-anchor="middle"
       font-size="11"
       fill="#111"
@@ -352,7 +720,7 @@
     <polygon
       id="hex-C13"
       class="hex outer"
-      points="342.00,817.53 310.00,872.96 246.00,872.96 214.00,817.53 246.00,762.11 310.00,762.11"
+      points="342.00,761.11 310.00,816.53 246.00,816.53 214.00,761.11 246.00,705.68 310.00,705.68"
       fill="url(#world-outer)"
       stroke="#000"
       stroke-width="2"
@@ -361,18 +729,37 @@
       id="label-C13"
       class="hex-label"
       x="278"
-      y="821.5331359486529"
+      y="765.1075101064488"
       text-anchor="middle"
       font-size="11"
       fill="#111"
     >C13</text>
   </g>
-  <g id="hex-group-D2" data-hex="D2" data-col="D" data-row="2" data-world-type="Fringe">
+  <g id="hex-group-C15" data-hex="C15" data-col="C" data-row="15" data-world-type="Fringe">
+    <polygon
+      id="hex-C15"
+      class="hex fringe"
+      points="342.00,873.96 310.00,929.38 246.00,929.38 214.00,873.96 246.00,818.53 310.00,818.53"
+      fill="url(#world-fringe)"
+      stroke="#000"
+      stroke-width="2"
+    />
+    <text
+      id="label-C15"
+      class="hex-label"
+      x="278"
+      y="877.9587617908569"
+      text-anchor="middle"
+      font-size="11"
+      fill="#111"
+    >C15</text>
+  </g>
+  <g id="hex-group-D2" data-hex="D2" data-col="D" data-row="2" data-world-type="Homeworld">
     <polygon
       id="hex-D2"
-      class="hex fringe"
-      points="439.00,196.85 407.00,252.28 343.00,252.28 311.00,196.85 343.00,141.43 407.00,141.43"
-      fill="url(#world-fringe)"
+      class="hex homeworld"
+      points="439.00,140.43 407.00,195.85 343.00,195.85 311.00,140.43 343.00,85.00 407.00,85.00"
+      fill="url(#world-home)"
       stroke="#000"
       stroke-width="2"
     />
@@ -380,7 +767,7 @@
       id="label-D2"
       class="hex-label"
       x="375"
-      y="200.85125168440814"
+      y="144.42562584220406"
       text-anchor="middle"
       font-size="11"
       fill="#111"
@@ -390,7 +777,7 @@
     <polygon
       id="hex-D4"
       class="hex outer"
-      points="439.00,309.70 407.00,365.13 343.00,365.13 311.00,309.70 343.00,254.28 407.00,254.28"
+      points="439.00,253.28 407.00,308.70 343.00,308.70 311.00,253.28 343.00,197.85 407.00,197.85"
       fill="url(#world-outer)"
       stroke="#000"
       stroke-width="2"
@@ -399,7 +786,7 @@
       id="label-D4"
       class="hex-label"
       x="375"
-      y="313.7025033688163"
+      y="257.2768775266122"
       text-anchor="middle"
       font-size="11"
       fill="#111"
@@ -409,7 +796,7 @@
     <polygon
       id="hex-D6"
       class="hex outer"
-      points="439.00,422.55 407.00,477.98 343.00,477.98 311.00,422.55 343.00,367.13 407.00,367.13"
+      points="439.00,366.13 407.00,421.55 343.00,421.55 311.00,366.13 343.00,310.70 407.00,310.70"
       fill="url(#world-outer)"
       stroke="#000"
       stroke-width="2"
@@ -418,7 +805,7 @@
       id="label-D6"
       class="hex-label"
       x="375"
-      y="426.55375505322445"
+      y="370.1281292110204"
       text-anchor="middle"
       font-size="11"
       fill="#111"
@@ -428,7 +815,7 @@
     <polygon
       id="hex-D8"
       class="hex inner"
-      points="439.00,535.41 407.00,590.83 343.00,590.83 311.00,535.41 343.00,479.98 407.00,479.98"
+      points="439.00,478.98 407.00,534.41 343.00,534.41 311.00,478.98 343.00,423.55 407.00,423.55"
       fill="url(#world-inner)"
       stroke="#000"
       stroke-width="2"
@@ -437,7 +824,7 @@
       id="label-D8"
       class="hex-label"
       x="375"
-      y="539.4050067376326"
+      y="482.9793808954285"
       text-anchor="middle"
       font-size="11"
       fill="#111"
@@ -447,7 +834,7 @@
     <polygon
       id="hex-D10"
       class="hex inner"
-      points="439.00,648.26 407.00,703.68 343.00,703.68 311.00,648.26 343.00,592.83 407.00,592.83"
+      points="439.00,591.83 407.00,647.26 343.00,647.26 311.00,591.83 343.00,536.41 407.00,536.41"
       fill="url(#world-inner)"
       stroke="#000"
       stroke-width="2"
@@ -456,7 +843,7 @@
       id="label-D10"
       class="hex-label"
       x="375"
-      y="652.2562584220407"
+      y="595.8306325798366"
       text-anchor="middle"
       font-size="11"
       fill="#111"
@@ -466,7 +853,7 @@
     <polygon
       id="hex-D12"
       class="hex outer"
-      points="439.00,761.11 407.00,816.53 343.00,816.53 311.00,761.11 343.00,705.68 407.00,705.68"
+      points="439.00,704.68 407.00,760.11 343.00,760.11 311.00,704.68 343.00,649.26 407.00,649.26"
       fill="url(#world-outer)"
       stroke="#000"
       stroke-width="2"
@@ -475,7 +862,7 @@
       id="label-D12"
       class="hex-label"
       x="375"
-      y="765.1075101064489"
+      y="708.6818842642448"
       text-anchor="middle"
       font-size="11"
       fill="#111"
@@ -485,7 +872,7 @@
     <polygon
       id="hex-D14"
       class="hex outer"
-      points="439.00,873.96 407.00,929.38 343.00,929.38 311.00,873.96 343.00,818.53 407.00,818.53"
+      points="439.00,817.53 407.00,872.96 343.00,872.96 311.00,817.53 343.00,762.11 407.00,762.11"
       fill="url(#world-outer)"
       stroke="#000"
       stroke-width="2"
@@ -494,18 +881,18 @@
       id="label-D14"
       class="hex-label"
       x="375"
-      y="877.958761790857"
+      y="821.5331359486529"
       text-anchor="middle"
       font-size="11"
       fill="#111"
     >D14</text>
   </g>
-  <g id="hex-group-D16" data-hex="D16" data-col="D" data-row="16" data-world-type="Outer">
+  <g id="hex-group-D16" data-hex="D16" data-col="D" data-row="16" data-world-type="Homeworld">
     <polygon
       id="hex-D16"
-      class="hex outer"
-      points="439.00,986.81 407.00,1042.24 343.00,1042.24 311.00,986.81 343.00,931.38 407.00,931.38"
-      fill="url(#world-outer)"
+      class="hex homeworld"
+      points="439.00,930.38 407.00,985.81 343.00,985.81 311.00,930.38 343.00,874.96 407.00,874.96"
+      fill="url(#world-home)"
       stroke="#000"
       stroke-width="2"
     />
@@ -513,37 +900,18 @@
       id="label-D16"
       class="hex-label"
       x="375"
-      y="990.8100134752651"
+      y="934.384387633061"
       text-anchor="middle"
       font-size="11"
       fill="#111"
     >D16</text>
   </g>
-  <g id="hex-group-D18" data-hex="D18" data-col="D" data-row="18" data-world-type="Fringe">
-    <polygon
-      id="hex-D18"
-      class="hex fringe"
-      points="439.00,1099.66 407.00,1155.09 343.00,1155.09 311.00,1099.66 343.00,1044.24 407.00,1044.24"
-      fill="url(#world-fringe)"
-      stroke="#000"
-      stroke-width="2"
-    />
-    <text
-      id="label-D18"
-      class="hex-label"
-      x="375"
-      y="1103.6612651596733"
-      text-anchor="middle"
-      font-size="11"
-      fill="#111"
-    >D18</text>
-  </g>
-  <g id="hex-group-E1" data-hex="E1" data-col="E" data-row="1" data-world-type="Homeworld">
+  <g id="hex-group-E1" data-hex="E1" data-col="E" data-row="1" data-world-type="Fringe">
     <polygon
       id="hex-E1"
-      class="hex homeworld"
-      points="536.00,140.43 504.00,195.85 440.00,195.85 408.00,140.43 440.00,85.00 504.00,85.00"
-      fill="url(#world-home)"
+      class="hex fringe"
+      points="536.00,84.00 504.00,139.43 440.00,139.43 408.00,84.00 440.00,28.57 504.00,28.57"
+      fill="url(#world-fringe)"
       stroke="#000"
       stroke-width="2"
     />
@@ -551,7 +919,7 @@
       id="label-E1"
       class="hex-label"
       x="472"
-      y="144.42562584220406"
+      y="88"
       text-anchor="middle"
       font-size="11"
       fill="#111"
@@ -561,7 +929,7 @@
     <polygon
       id="hex-E3"
       class="hex outer"
-      points="536.00,253.28 504.00,308.70 440.00,308.70 408.00,253.28 440.00,197.85 504.00,197.85"
+      points="536.00,196.85 504.00,252.28 440.00,252.28 408.00,196.85 440.00,141.43 504.00,141.43"
       fill="url(#world-outer)"
       stroke="#000"
       stroke-width="2"
@@ -570,7 +938,7 @@
       id="label-E3"
       class="hex-label"
       x="472"
-      y="257.2768775266122"
+      y="200.85125168440817"
       text-anchor="middle"
       font-size="11"
       fill="#111"
@@ -580,7 +948,7 @@
     <polygon
       id="hex-E5"
       class="hex outer"
-      points="536.00,366.13 504.00,421.55 440.00,421.55 408.00,366.13 440.00,310.70 504.00,310.70"
+      points="536.00,309.70 504.00,365.13 440.00,365.13 408.00,309.70 440.00,254.28 504.00,254.28"
       fill="url(#world-outer)"
       stroke="#000"
       stroke-width="2"
@@ -589,7 +957,7 @@
       id="label-E5"
       class="hex-label"
       x="472"
-      y="370.12812921102034"
+      y="313.7025033688163"
       text-anchor="middle"
       font-size="11"
       fill="#111"
@@ -599,7 +967,7 @@
     <polygon
       id="hex-E7"
       class="hex inner"
-      points="536.00,478.98 504.00,534.41 440.00,534.41 408.00,478.98 440.00,423.55 504.00,423.55"
+      points="536.00,422.55 504.00,477.98 440.00,477.98 408.00,422.55 440.00,367.13 504.00,367.13"
       fill="url(#world-inner)"
       stroke="#000"
       stroke-width="2"
@@ -608,7 +976,7 @@
       id="label-E7"
       class="hex-label"
       x="472"
-      y="482.9793808954285"
+      y="426.55375505322445"
       text-anchor="middle"
       font-size="11"
       fill="#111"
@@ -618,7 +986,7 @@
     <polygon
       id="hex-E9"
       class="hex throneworld"
-      points="536.00,591.83 504.00,647.26 440.00,647.26 408.00,591.83 440.00,536.41 504.00,536.41"
+      points="536.00,535.41 504.00,590.83 440.00,590.83 408.00,535.41 440.00,479.98 504.00,479.98"
       fill="url(#world-throne)"
       stroke="#000"
       stroke-width="2"
@@ -627,7 +995,7 @@
       id="label-E9"
       class="hex-label"
       x="472"
-      y="595.8306325798367"
+      y="539.4050067376326"
       text-anchor="middle"
       font-size="11"
       fill="#111"
@@ -637,7 +1005,7 @@
     <polygon
       id="hex-E11"
       class="hex inner"
-      points="536.00,704.68 504.00,760.11 440.00,760.11 408.00,704.68 440.00,649.26 504.00,649.26"
+      points="536.00,648.26 504.00,703.68 440.00,703.68 408.00,648.26 440.00,592.83 504.00,592.83"
       fill="url(#world-inner)"
       stroke="#000"
       stroke-width="2"
@@ -646,7 +1014,7 @@
       id="label-E11"
       class="hex-label"
       x="472"
-      y="708.6818842642448"
+      y="652.2562584220407"
       text-anchor="middle"
       font-size="11"
       fill="#111"
@@ -656,7 +1024,7 @@
     <polygon
       id="hex-E13"
       class="hex outer"
-      points="536.00,817.53 504.00,872.96 440.00,872.96 408.00,817.53 440.00,762.11 504.00,762.11"
+      points="536.00,761.11 504.00,816.53 440.00,816.53 408.00,761.11 440.00,705.68 504.00,705.68"
       fill="url(#world-outer)"
       stroke="#000"
       stroke-width="2"
@@ -665,7 +1033,7 @@
       id="label-E13"
       class="hex-label"
       x="472"
-      y="821.5331359486529"
+      y="765.1075101064488"
       text-anchor="middle"
       font-size="11"
       fill="#111"
@@ -675,7 +1043,7 @@
     <polygon
       id="hex-E15"
       class="hex outer"
-      points="536.00,930.38 504.00,985.81 440.00,985.81 408.00,930.38 440.00,874.96 504.00,874.96"
+      points="536.00,873.96 504.00,929.38 440.00,929.38 408.00,873.96 440.00,818.53 504.00,818.53"
       fill="url(#world-outer)"
       stroke="#000"
       stroke-width="2"
@@ -684,18 +1052,18 @@
       id="label-E15"
       class="hex-label"
       x="472"
-      y="934.384387633061"
+      y="877.9587617908569"
       text-anchor="middle"
       font-size="11"
       fill="#111"
     >E15</text>
   </g>
-  <g id="hex-group-E17" data-hex="E17" data-col="E" data-row="17" data-world-type="Homeworld">
+  <g id="hex-group-E17" data-hex="E17" data-col="E" data-row="17" data-world-type="Fringe">
     <polygon
       id="hex-E17"
-      class="hex homeworld"
-      points="536.00,1043.24 504.00,1098.66 440.00,1098.66 408.00,1043.24 440.00,987.81 504.00,987.81"
-      fill="url(#world-home)"
+      class="hex fringe"
+      points="536.00,986.81 504.00,1042.24 440.00,1042.24 408.00,986.81 440.00,931.38 504.00,931.38"
+      fill="url(#world-fringe)"
       stroke="#000"
       stroke-width="2"
     />
@@ -703,36 +1071,17 @@
       id="label-E17"
       class="hex-label"
       x="472"
-      y="1047.2356393174691"
+      y="990.8100134752651"
       text-anchor="middle"
       font-size="11"
       fill="#111"
     >E17</text>
   </g>
-  <g id="hex-group-F0" data-hex="F0" data-col="F" data-row="0" data-world-type="Fringe">
-    <polygon
-      id="hex-F0"
-      class="hex fringe"
-      points="633.00,84.00 601.00,139.43 537.00,139.43 505.00,84.00 537.00,28.57 601.00,28.57"
-      fill="url(#world-fringe)"
-      stroke="#000"
-      stroke-width="2"
-    />
-    <text
-      id="label-F0"
-      class="hex-label"
-      x="569"
-      y="88"
-      text-anchor="middle"
-      font-size="11"
-      fill="#111"
-    >F0</text>
-  </g>
   <g id="hex-group-F2" data-hex="F2" data-col="F" data-row="2" data-world-type="Outer">
     <polygon
       id="hex-F2"
       class="hex outer"
-      points="633.00,196.85 601.00,252.28 537.00,252.28 505.00,196.85 537.00,141.43 601.00,141.43"
+      points="633.00,140.43 601.00,195.85 537.00,195.85 505.00,140.43 537.00,85.00 601.00,85.00"
       fill="url(#world-outer)"
       stroke="#000"
       stroke-width="2"
@@ -741,7 +1090,7 @@
       id="label-F2"
       class="hex-label"
       x="569"
-      y="200.85125168440814"
+      y="144.42562584220406"
       text-anchor="middle"
       font-size="11"
       fill="#111"
@@ -751,7 +1100,7 @@
     <polygon
       id="hex-F4"
       class="hex outer"
-      points="633.00,309.70 601.00,365.13 537.00,365.13 505.00,309.70 537.00,254.28 601.00,254.28"
+      points="633.00,253.28 601.00,308.70 537.00,308.70 505.00,253.28 537.00,197.85 601.00,197.85"
       fill="url(#world-outer)"
       stroke="#000"
       stroke-width="2"
@@ -760,18 +1109,18 @@
       id="label-F4"
       class="hex-label"
       x="569"
-      y="313.7025033688163"
+      y="257.2768775266122"
       text-anchor="middle"
       font-size="11"
       fill="#111"
     >F4</text>
   </g>
-  <g id="hex-group-F6" data-hex="F6" data-col="F" data-row="6" data-world-type="Outer">
+  <g id="hex-group-F6" data-hex="F6" data-col="F" data-row="6" data-world-type="Inner">
     <polygon
       id="hex-F6"
-      class="hex outer"
-      points="633.00,422.55 601.00,477.98 537.00,477.98 505.00,422.55 537.00,367.13 601.00,367.13"
-      fill="url(#world-outer)"
+      class="hex inner"
+      points="633.00,366.13 601.00,421.55 537.00,421.55 505.00,366.13 537.00,310.70 601.00,310.70"
+      fill="url(#world-inner)"
       stroke="#000"
       stroke-width="2"
     />
@@ -779,7 +1128,7 @@
       id="label-F6"
       class="hex-label"
       x="569"
-      y="426.55375505322445"
+      y="370.1281292110204"
       text-anchor="middle"
       font-size="11"
       fill="#111"
@@ -789,7 +1138,7 @@
     <polygon
       id="hex-F8"
       class="hex inner"
-      points="633.00,535.41 601.00,590.83 537.00,590.83 505.00,535.41 537.00,479.98 601.00,479.98"
+      points="633.00,478.98 601.00,534.41 537.00,534.41 505.00,478.98 537.00,423.55 601.00,423.55"
       fill="url(#world-inner)"
       stroke="#000"
       stroke-width="2"
@@ -798,7 +1147,7 @@
       id="label-F8"
       class="hex-label"
       x="569"
-      y="539.4050067376326"
+      y="482.9793808954285"
       text-anchor="middle"
       font-size="11"
       fill="#111"
@@ -808,7 +1157,7 @@
     <polygon
       id="hex-F10"
       class="hex inner"
-      points="633.00,648.26 601.00,703.68 537.00,703.68 505.00,648.26 537.00,592.83 601.00,592.83"
+      points="633.00,591.83 601.00,647.26 537.00,647.26 505.00,591.83 537.00,536.41 601.00,536.41"
       fill="url(#world-inner)"
       stroke="#000"
       stroke-width="2"
@@ -817,18 +1166,18 @@
       id="label-F10"
       class="hex-label"
       x="569"
-      y="652.2562584220407"
+      y="595.8306325798366"
       text-anchor="middle"
       font-size="11"
       fill="#111"
     >F10</text>
   </g>
-  <g id="hex-group-F12" data-hex="F12" data-col="F" data-row="12" data-world-type="Outer">
+  <g id="hex-group-F12" data-hex="F12" data-col="F" data-row="12" data-world-type="Inner">
     <polygon
       id="hex-F12"
-      class="hex outer"
-      points="633.00,761.11 601.00,816.53 537.00,816.53 505.00,761.11 537.00,705.68 601.00,705.68"
-      fill="url(#world-outer)"
+      class="hex inner"
+      points="633.00,704.68 601.00,760.11 537.00,760.11 505.00,704.68 537.00,649.26 601.00,649.26"
+      fill="url(#world-inner)"
       stroke="#000"
       stroke-width="2"
     />
@@ -836,7 +1185,7 @@
       id="label-F12"
       class="hex-label"
       x="569"
-      y="765.1075101064489"
+      y="708.6818842642448"
       text-anchor="middle"
       font-size="11"
       fill="#111"
@@ -846,7 +1195,7 @@
     <polygon
       id="hex-F14"
       class="hex outer"
-      points="633.00,873.96 601.00,929.38 537.00,929.38 505.00,873.96 537.00,818.53 601.00,818.53"
+      points="633.00,817.53 601.00,872.96 537.00,872.96 505.00,817.53 537.00,762.11 601.00,762.11"
       fill="url(#world-outer)"
       stroke="#000"
       stroke-width="2"
@@ -855,18 +1204,18 @@
       id="label-F14"
       class="hex-label"
       x="569"
-      y="877.958761790857"
+      y="821.5331359486529"
       text-anchor="middle"
       font-size="11"
       fill="#111"
     >F14</text>
   </g>
-  <g id="hex-group-F16" data-hex="F16" data-col="F" data-row="16" data-world-type="Fringe">
+  <g id="hex-group-F16" data-hex="F16" data-col="F" data-row="16" data-world-type="Outer">
     <polygon
       id="hex-F16"
-      class="hex fringe"
-      points="633.00,986.81 601.00,1042.24 537.00,1042.24 505.00,986.81 537.00,931.38 601.00,931.38"
-      fill="url(#world-fringe)"
+      class="hex outer"
+      points="633.00,930.38 601.00,985.81 537.00,985.81 505.00,930.38 537.00,874.96 601.00,874.96"
+      fill="url(#world-outer)"
       stroke="#000"
       stroke-width="2"
     />
@@ -874,17 +1223,36 @@
       id="label-F16"
       class="hex-label"
       x="569"
-      y="990.8100134752651"
+      y="934.384387633061"
       text-anchor="middle"
       font-size="11"
       fill="#111"
     >F16</text>
   </g>
+  <g id="hex-group-G3" data-hex="G3" data-col="G" data-row="3" data-world-type="Outer">
+    <polygon
+      id="hex-G3"
+      class="hex outer"
+      points="730.00,196.85 698.00,252.28 634.00,252.28 602.00,196.85 634.00,141.43 698.00,141.43"
+      fill="url(#world-outer)"
+      stroke="#000"
+      stroke-width="2"
+    />
+    <text
+      id="label-G3"
+      class="hex-label"
+      x="666"
+      y="200.85125168440817"
+      text-anchor="middle"
+      font-size="11"
+      fill="#111"
+    >G3</text>
+  </g>
   <g id="hex-group-G5" data-hex="G5" data-col="G" data-row="5" data-world-type="Outer">
     <polygon
       id="hex-G5"
       class="hex outer"
-      points="730.00,366.13 698.00,421.55 634.00,421.55 602.00,366.13 634.00,310.70 698.00,310.70"
+      points="730.00,309.70 698.00,365.13 634.00,365.13 602.00,309.70 634.00,254.28 698.00,254.28"
       fill="url(#world-outer)"
       stroke="#000"
       stroke-width="2"
@@ -893,7 +1261,7 @@
       id="label-G5"
       class="hex-label"
       x="666"
-      y="370.12812921102034"
+      y="313.7025033688163"
       text-anchor="middle"
       font-size="11"
       fill="#111"
@@ -903,7 +1271,7 @@
     <polygon
       id="hex-G7"
       class="hex outer"
-      points="730.00,478.98 698.00,534.41 634.00,534.41 602.00,478.98 634.00,423.55 698.00,423.55"
+      points="730.00,422.55 698.00,477.98 634.00,477.98 602.00,422.55 634.00,367.13 698.00,367.13"
       fill="url(#world-outer)"
       stroke="#000"
       stroke-width="2"
@@ -912,18 +1280,18 @@
       id="label-G7"
       class="hex-label"
       x="666"
-      y="482.9793808954285"
+      y="426.55375505322445"
       text-anchor="middle"
       font-size="11"
       fill="#111"
     >G7</text>
   </g>
-  <g id="hex-group-G9" data-hex="G9" data-col="G" data-row="9" data-world-type="Outer">
+  <g id="hex-group-G9" data-hex="G9" data-col="G" data-row="9" data-world-type="Inner">
     <polygon
       id="hex-G9"
-      class="hex outer"
-      points="730.00,591.83 698.00,647.26 634.00,647.26 602.00,591.83 634.00,536.41 698.00,536.41"
-      fill="url(#world-outer)"
+      class="hex inner"
+      points="730.00,535.41 698.00,590.83 634.00,590.83 602.00,535.41 634.00,479.98 698.00,479.98"
+      fill="url(#world-inner)"
       stroke="#000"
       stroke-width="2"
     />
@@ -931,7 +1299,7 @@
       id="label-G9"
       class="hex-label"
       x="666"
-      y="595.8306325798367"
+      y="539.4050067376326"
       text-anchor="middle"
       font-size="11"
       fill="#111"
@@ -941,7 +1309,7 @@
     <polygon
       id="hex-G11"
       class="hex outer"
-      points="730.00,704.68 698.00,760.11 634.00,760.11 602.00,704.68 634.00,649.26 698.00,649.26"
+      points="730.00,648.26 698.00,703.68 634.00,703.68 602.00,648.26 634.00,592.83 698.00,592.83"
       fill="url(#world-outer)"
       stroke="#000"
       stroke-width="2"
@@ -950,7 +1318,7 @@
       id="label-G11"
       class="hex-label"
       x="666"
-      y="708.6818842642448"
+      y="652.2562584220407"
       text-anchor="middle"
       font-size="11"
       fill="#111"
@@ -960,7 +1328,7 @@
     <polygon
       id="hex-G13"
       class="hex outer"
-      points="730.00,817.53 698.00,872.96 634.00,872.96 602.00,817.53 634.00,762.11 698.00,762.11"
+      points="730.00,761.11 698.00,816.53 634.00,816.53 602.00,761.11 634.00,705.68 698.00,705.68"
       fill="url(#world-outer)"
       stroke="#000"
       stroke-width="2"
@@ -969,17 +1337,55 @@
       id="label-G13"
       class="hex-label"
       x="666"
-      y="821.5331359486529"
+      y="765.1075101064488"
       text-anchor="middle"
       font-size="11"
       fill="#111"
     >G13</text>
   </g>
+  <g id="hex-group-G15" data-hex="G15" data-col="G" data-row="15" data-world-type="Outer">
+    <polygon
+      id="hex-G15"
+      class="hex outer"
+      points="730.00,873.96 698.00,929.38 634.00,929.38 602.00,873.96 634.00,818.53 698.00,818.53"
+      fill="url(#world-outer)"
+      stroke="#000"
+      stroke-width="2"
+    />
+    <text
+      id="label-G15"
+      class="hex-label"
+      x="666"
+      y="877.9587617908569"
+      text-anchor="middle"
+      font-size="11"
+      fill="#111"
+    >G15</text>
+  </g>
+  <g id="hex-group-H2" data-hex="H2" data-col="H" data-row="2" data-world-type="Outer">
+    <polygon
+      id="hex-H2"
+      class="hex outer"
+      points="827.00,140.43 795.00,195.85 731.00,195.85 699.00,140.43 731.00,85.00 795.00,85.00"
+      fill="url(#world-outer)"
+      stroke="#000"
+      stroke-width="2"
+    />
+    <text
+      id="label-H2"
+      class="hex-label"
+      x="763"
+      y="144.42562584220406"
+      text-anchor="middle"
+      font-size="11"
+      fill="#111"
+    >H2</text>
+  </g>
   <g id="hex-group-H4" data-hex="H4" data-col="H" data-row="4" data-world-type="Outer">
     <polygon
       id="hex-H4"
       class="hex outer"
-      points="827.00,309.70 795.00,365.13 731.00,365.13 699.00,309.70 731.00,254.28 795.00,254.28"
+      points="827.00,253.28 795.00,308.70 731.00,308.70 699.00,253.28 731.00,197.85 795.00,197.85"
       fill="url(#world-outer)"
       stroke="#000"
       stroke-width="2"
@@ -988,7 +1394,7 @@
       id="label-H4"
       class="hex-label"
       x="763"
-      y="313.7025033688163"
+      y="257.2768775266122"
       text-anchor="middle"
       font-size="11"
       fill="#111"
@@ -998,7 +1404,7 @@
     <polygon
       id="hex-H6"
       class="hex outer"
-      points="827.00,422.55 795.00,477.98 731.00,477.98 699.00,422.55 731.00,367.13 795.00,367.13"
+      points="827.00,366.13 795.00,421.55 731.00,421.55 699.00,366.13 731.00,310.70 795.00,310.70"
       fill="url(#world-outer)"
       stroke="#000"
       stroke-width="2"
@@ -1007,7 +1413,7 @@
       id="label-H6"
       class="hex-label"
       x="763"
-      y="426.55375505322445"
+      y="370.1281292110204"
       text-anchor="middle"
       font-size="11"
       fill="#111"
@@ -1017,7 +1423,7 @@
     <polygon
       id="hex-H8"
       class="hex outer"
-      points="827.00,535.41 795.00,590.83 731.00,590.83 699.00,535.41 731.00,479.98 795.00,479.98"
+      points="827.00,478.98 795.00,534.41 731.00,534.41 699.00,478.98 731.00,423.55 795.00,423.55"
       fill="url(#world-outer)"
       stroke="#000"
       stroke-width="2"
@@ -1026,7 +1432,7 @@
       id="label-H8"
       class="hex-label"
       x="763"
-      y="539.4050067376326"
+      y="482.9793808954285"
       text-anchor="middle"
       font-size="11"
       fill="#111"
@@ -1036,7 +1442,7 @@
     <polygon
       id="hex-H10"
       class="hex outer"
-      points="827.00,648.26 795.00,703.68 731.00,703.68 699.00,648.26 731.00,592.83 795.00,592.83"
+      points="827.00,591.83 795.00,647.26 731.00,647.26 699.00,591.83 731.00,536.41 795.00,536.41"
       fill="url(#world-outer)"
       stroke="#000"
       stroke-width="2"
@@ -1045,7 +1451,7 @@
       id="label-H10"
       class="hex-label"
       x="763"
-      y="652.2562584220407"
+      y="595.8306325798366"
       text-anchor="middle"
       font-size="11"
       fill="#111"
@@ -1055,7 +1461,7 @@
     <polygon
       id="hex-H12"
       class="hex outer"
-      points="827.00,761.11 795.00,816.53 731.00,816.53 699.00,761.11 731.00,705.68 795.00,705.68"
+      points="827.00,704.68 795.00,760.11 731.00,760.11 699.00,704.68 731.00,649.26 795.00,649.26"
       fill="url(#world-outer)"
       stroke="#000"
       stroke-width="2"
@@ -1064,7 +1470,7 @@
       id="label-H12"
       class="hex-label"
       x="763"
-      y="765.1075101064489"
+      y="708.6818842642448"
       text-anchor="middle"
       font-size="11"
       fill="#111"
@@ -1074,7 +1480,7 @@
     <polygon
       id="hex-H14"
       class="hex outer"
-      points="827.00,873.96 795.00,929.38 731.00,929.38 699.00,873.96 731.00,818.53 795.00,818.53"
+      points="827.00,817.53 795.00,872.96 731.00,872.96 699.00,817.53 731.00,762.11 795.00,762.11"
       fill="url(#world-outer)"
       stroke="#000"
       stroke-width="2"
@@ -1083,17 +1489,36 @@
       id="label-H14"
       class="hex-label"
       x="763"
-      y="877.958761790857"
+      y="821.5331359486529"
       text-anchor="middle"
       font-size="11"
       fill="#111"
     >H14</text>
   </g>
+  <g id="hex-group-H16" data-hex="H16" data-col="H" data-row="16" data-world-type="Outer">
+    <polygon
+      id="hex-H16"
+      class="hex outer"
+      points="827.00,930.38 795.00,985.81 731.00,985.81 699.00,930.38 731.00,874.96 795.00,874.96"
+      fill="url(#world-outer)"
+      stroke="#000"
+      stroke-width="2"
+    />
+    <text
+      id="label-H16"
+      class="hex-label"
+      x="763"
+      y="934.384387633061"
+      text-anchor="middle"
+      font-size="11"
+      fill="#111"
+    >H16</text>
+  </g>
   <g id="hex-group-I3" data-hex="I3" data-col="I" data-row="3" data-world-type="Fringe">
     <polygon
       id="hex-I3"
       class="hex fringe"
-      points="924.00,253.28 892.00,308.70 828.00,308.70 796.00,253.28 828.00,197.85 892.00,197.85"
+      points="924.00,196.85 892.00,252.28 828.00,252.28 796.00,196.85 828.00,141.43 892.00,141.43"
       fill="url(#world-fringe)"
       stroke="#000"
       stroke-width="2"
@@ -1102,7 +1527,7 @@
       id="label-I3"
       class="hex-label"
       x="860"
-      y="257.2768775266122"
+      y="200.85125168440817"
       text-anchor="middle"
       font-size="11"
       fill="#111"
@@ -1112,7 +1537,7 @@
     <polygon
       id="hex-I5"
       class="hex homeworld"
-      points="924.00,366.13 892.00,421.55 828.00,421.55 796.00,366.13 828.00,310.70 892.00,310.70"
+      points="924.00,309.70 892.00,365.13 828.00,365.13 796.00,309.70 828.00,254.28 892.00,254.28"
       fill="url(#world-home)"
       stroke="#000"
       stroke-width="2"
@@ -1121,7 +1546,7 @@
       id="label-I5"
       class="hex-label"
       x="860"
-      y="370.12812921102034"
+      y="313.7025033688163"
       text-anchor="middle"
       font-size="11"
       fill="#111"
@@ -1131,7 +1556,7 @@
     <polygon
       id="hex-I7"
       class="hex fringe"
-      points="924.00,478.98 892.00,534.41 828.00,534.41 796.00,478.98 828.00,423.55 892.00,423.55"
+      points="924.00,422.55 892.00,477.98 828.00,477.98 796.00,422.55 828.00,367.13 892.00,367.13"
       fill="url(#world-fringe)"
       stroke="#000"
       stroke-width="2"
@@ -1140,7 +1565,7 @@
       id="label-I7"
       class="hex-label"
       x="860"
-      y="482.9793808954285"
+      y="426.55375505322445"
       text-anchor="middle"
       font-size="11"
       fill="#111"
@@ -1150,7 +1575,7 @@
     <polygon
       id="hex-I11"
       class="hex fringe"
-      points="924.00,704.68 892.00,760.11 828.00,760.11 796.00,704.68 828.00,649.26 892.00,649.26"
+      points="924.00,648.26 892.00,703.68 828.00,703.68 796.00,648.26 828.00,592.83 892.00,592.83"
       fill="url(#world-fringe)"
       stroke="#000"
       stroke-width="2"
@@ -1159,7 +1584,7 @@
       id="label-I11"
       class="hex-label"
       x="860"
-      y="708.6818842642448"
+      y="652.2562584220407"
       text-anchor="middle"
       font-size="11"
       fill="#111"
@@ -1169,7 +1594,7 @@
     <polygon
       id="hex-I13"
       class="hex homeworld"
-      points="924.00,817.53 892.00,872.96 828.00,872.96 796.00,817.53 828.00,762.11 892.00,762.11"
+      points="924.00,761.11 892.00,816.53 828.00,816.53 796.00,761.11 828.00,705.68 892.00,705.68"
       fill="url(#world-home)"
       stroke="#000"
       stroke-width="2"
@@ -1178,7 +1603,7 @@
       id="label-I13"
       class="hex-label"
       x="860"
-      y="821.5331359486529"
+      y="765.1075101064488"
       text-anchor="middle"
       font-size="11"
       fill="#111"
@@ -1188,7 +1613,7 @@
     <polygon
       id="hex-I15"
       class="hex fringe"
-      points="924.00,930.38 892.00,985.81 828.00,985.81 796.00,930.38 828.00,874.96 892.00,874.96"
+      points="924.00,873.96 892.00,929.38 828.00,929.38 796.00,873.96 828.00,818.53 892.00,818.53"
       fill="url(#world-fringe)"
       stroke="#000"
       stroke-width="2"
@@ -1197,7 +1622,7 @@
       id="label-I15"
       class="hex-label"
       x="860"
-      y="934.384387633061"
+      y="877.9587617908569"
       text-anchor="middle"
       font-size="11"
       fill="#111"

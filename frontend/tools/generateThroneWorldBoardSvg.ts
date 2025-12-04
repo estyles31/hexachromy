@@ -102,7 +102,7 @@ function generateSvgForPlayerCount(playerCount: number): string {
   const shiftY = -minY + MARGIN;
 
   const defs = buildDefs();
-  const bg = getBackgroundRects();
+  const bg = getBackgroundRects(width, height);
   const styles = getBaseStyles();
 
   const elements: string[] = [];
