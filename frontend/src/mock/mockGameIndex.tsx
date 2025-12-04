@@ -1,4 +1,6 @@
-export const mockGames = [
+import type { GameSummary } from "../../../shared/models/GameSummary";
+
+export const mockGames: GameSummary[] = [
   {
     id: "game1",
     name: "Throne World #1",

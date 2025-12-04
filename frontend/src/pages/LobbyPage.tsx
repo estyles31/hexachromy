@@ -3,16 +3,10 @@ import { useEffect, useState } from "react";
 import LoginProfile from "../components/LoginProfile";
 import { useNavigate } from "react-router-dom";
 import { mockGames } from "../mock/mockGameIndex";
-
-interface Game {
-  id: string;
-  name: string;
-  players: string[];
-  status: "waiting" | "in-progress" | "completed";
-}
+import type { GameSummary } from "../../../shared/models/GameSummary";
 
 export default function LobbyPage() {
-  const [games, setGames] = useState<Game[]>([]);
+  const [games, setGames] = useState<GameSummary[]>([]);
   const navigate = useNavigate();
 
   useEffect(() => {
