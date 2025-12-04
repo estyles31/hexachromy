@@ -1,18 +1,77 @@
-rules_version='2'
+rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && request.auth.token.admin == true;
+    }
+
+    function uidInList(listField) {
+      return listField is list && request.auth.uid in listField;
+    }
+
+    function uidInMap(mapField) {
+      return mapField is map && mapField[request.auth.uid] != null;
+    }
+
+    function isListed(field) {
+      return uidInList(field) || uidInMap(field);
+    }
+
+    function gameIsPublic(gameData) {
+      return (gameData.visibility is map && gameData.visibility.public == true)
+          || gameData.public == true;
+    }
+
+    function isPlayer(gameData) {
+      return isListed(gameData.players);
+    }
+
+    function isParticipant(gameData) {
+      return isListed(gameData.players) || isListed(gameData.observers);
+    }
+
+    function canReadGame(gameData) {
+      return isAdmin() || (isSignedIn() && (gameIsPublic(gameData) || isParticipant(gameData)));
+    }
+
+    function canReadView(gameData, playerId) {
+      return isAdmin()
+          || (isSignedIn()
+              && request.auth.uid == playerId
+              && isPlayer(gameData));
+    }
+
+    function getGame(gameId) {
+      return get(/databases/$(database)/documents/games/$(gameId));
+    }
+
+    match /games/{gameId} {
+      allow read: if canReadGame(resource.data);
+      allow write, update, delete: if isAdmin();
+
+      // Per-player fogged overlays keyed by player UID. These documents should only
+      // contain information that the specified player is allowed to see until it
+      // becomes public.
+      match /views/{playerId} {
+        allow read: if getGame(gameId).exists && canReadView(getGame(gameId).data, playerId);
+        allow write, update, delete: if isAdmin();
+      }
+
+      // Append-only action history for timeline navigation.
+      match /actions/{actionId} {
+        allow read: if getGame(gameId).exists && canReadGame(getGame(gameId).data);
+        allow write, update, delete: if isAdmin();
+      }
+    }
+
+    // Deny everything else by default.
     match /{document=**} {
-      // This rule allows anyone with your database reference to view, edit,
-      // and delete all data in your database. It is useful for getting
-      // started, but it is configured to expire after 30 days because it
-      // leaves your app open to attackers. At that time, all client
-      // requests to your database will be denied.
-      //
-      // Make sure to write security rules for your app before that time, or
-      // else all client requests to your database will be denied until you
-      // update your rules.
-      allow read, write: if request.time < timestamp.date(2026, 1, 2);
+      allow read, write: if false;
     }
   }
 }
