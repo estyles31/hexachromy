@@ -1,0 +1,82 @@
+{
+  "background": {
+    "gradient": {
+      "id": "spaceGlow",
+      "radial": true,
+      "stops": [
+        { "offset": "0%", "color": "#0b1530" },
+        { "offset": "100%", "color": "#030710" }
+      ]
+    },
+    "stars": {
+      "id": "stars",
+      "enabled": false,
+      "width": 120,
+      "height": 120,
+      "circles": [
+        { "cx": 20, "cy": 30, "r": 1,   "opacity": 0.6 },
+        { "cx": 80, "cy": 70, "r": 1.2, "opacity": 0.4 },
+        { "cx": 60, "cy": 20, "r": 0.8, "opacity": 0.5 },
+        { "cx": 100,"cy": 40, "r": 0.6, "opacity": 0.4 }
+      ]
+    },
+    "randomStars": {
+      "enabled": true,
+      "deterministic": false,
+      "seed": 42,
+      "count": 450,
+      "minRadius": 0.2,
+      "maxRadius": 1.2,
+      "minOpacity": 0.1,
+      "maxOpacity": 0.50
+    },
+    "noise": {
+      "enabled": false,
+      "deterministic": false,
+      "seed": 7,
+      "baseFrequency": 0.8,
+      "octaves": 10,
+      "opacity": 0.05
+    }
+  },
+  "hexBorder": {
+    "color": "#000"
+  },
+  "worldGradients": {
+    "Homeworld": {
+        "id": "world-home",
+        "stops": [
+            { "offset": "0%", "color": "rgba(255,255,127,0.30)" },
+            { "offset": "100%", "color": "rgba(255,255,255,0.60)" }
+        ]
+    },
+    "Throneworld": {
+      "id": "world-throne",
+      "stops": [
+        { "offset": "0%", "color": "rgba(255,255,255,0.25)" },
+        { "offset": "100%", "color": "rgba(255,255,255,0.60)" }
+      ]
+    },
+    "Inner": {
+      "id": "world-inner",
+      "stops": [
+        { "offset": "0%", "color": "rgba(20,20,190,0.25)" },
+        { "offset": "100%", "color": "rgba(93,93,210,0.35)" }
+      ]
+    },
+    "Outer": {
+      "id": "world-outer",
+      "stops": [
+        { "offset": "0%", "color": "rgba(100,100,100,0.25)" },
+        { "offset": "100%", "color": "rgba(200,200,200,0.35)" }
+      ]
+    },
+    "Fringe": {
+      "id": "world-fringe",
+      "stops": [
+        { "offset": "0%", "color": "rgba(127,127,0,0.25)" },
+        { "offset": "100%", "color": "rgba(190,190,70,0.35)" }
+      ]
+    }
+  }
+}
