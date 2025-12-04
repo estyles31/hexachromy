@@ -5,9 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "prebuild": "npm run gen:boards",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "gen:boards": "ts-node tools/generateThroneWorldBoardSvg.ts"
   },
   "dependencies": {
     "firebase": "^12.6.0",

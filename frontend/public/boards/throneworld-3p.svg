@@ -1,0 +1,1206 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  width="944"
+  height="1183.6612651596733"
+  viewBox="0 0 944 1183.6612651596733"
+>
+  <defs>
+    <radialGradient id="spaceGlow" cx="50%" cy="50%" r="70%">
+      <stop offset="0%" stop-color="#0b1530"/>
+      <stop offset="100%" stop-color="#030710"/>
+    </radialGradient>
+    <pattern id="stars" width="120" height="120" patternUnits="userSpaceOnUse">
+      <circle cx="20" cy="30" r="1" fill="white" opacity="0.6"/>
+      <circle cx="80" cy="70" r="1.2" fill="white" opacity="0.4"/>
+      <circle cx="60" cy="20" r="0.8" fill="white" opacity="0.5"/>
+      <circle cx="100" cy="40" r="0.6" fill="white" opacity="0.4"/>
+    </pattern>
+    <linearGradient id="world-home" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="rgba(255,255,127,0.30)"/>
+      <stop offset="100%" stop-color="rgba(255,255,255,0.60)"/>
+    </linearGradient>
+    <linearGradient id="world-throne" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="rgba(255,255,255,0.25)"/>
+      <stop offset="100%" stop-color="rgba(255,255,255,0.60)"/>
+    </linearGradient>
+    <linearGradient id="world-inner" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="rgba(20,20,190,0.25)"/>
+      <stop offset="100%" stop-color="rgba(93,93,210,0.35)"/>
+    </linearGradient>
+    <linearGradient id="world-outer" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="rgba(100,100,100,0.25)"/>
+      <stop offset="100%" stop-color="rgba(200,200,200,0.35)"/>
+    </linearGradient>
+    <linearGradient id="world-fringe" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="rgba(127,127,0,0.25)"/>
+      <stop offset="100%" stop-color="rgba(190,190,70,0.35)"/>
+    </linearGradient>
+  </defs>
+  <rect x="0" y="0" width="100%" height="100%" fill="url(#spaceGlow)" />
+  <rect x="0" y="0" width="100%" height="100%" fill="url(#stars)" />
+  <style>
+    .hex { cursor: pointer; transition: stroke 0.15s ease, fill 0.15s ease; }
+    .hex-label { pointer-events: none; font-family: sans-serif; }
+    .hex:hover { stroke: #ffffff; stroke-width: 3; }
+  </style>
+  <g id="hex-group-A3" data-hex="A3" data-col="A" data-row="3" data-world-type="Fringe">
+    <polygon
+      id="hex-A3"
+      class="hex fringe"
+      points="148.00,253.28 116.00,308.70 52.00,308.70 20.00,253.28 52.00,197.85 116.00,197.85"
+      fill="url(#world-fringe)"
+      stroke="#000"
+      stroke-width="2"
+    />
+    <text
+      id="label-A3"
+      class="hex-label"
+      x="84"
+      y="257.2768775266122"
+      text-anchor="middle"
+      font-size="11"
+      fill="#111"
+    >A3</text>
+  </g>
+  <g id="hex-group-A5" data-hex="A5" data-col="A" data-row="5" data-world-type="Homeworld">
+    <polygon
+      id="hex-A5"
+      class="hex homeworld"
+      points="148.00,366.13 116.00,421.55 52.00,421.55 20.00,366.13 52.00,310.70 116.00,310.70"
+      fill="url(#world-home)"
+      stroke="#000"
+      stroke-width="2"
+    />
+    <text
+      id="label-A5"
+      class="hex-label"
+      x="84"
+      y="370.12812921102034"
+      text-anchor="middle"
+      font-size="11"
+      fill="#111"
+    >A5</text>
+  </g>
+  <g id="hex-group-A7" data-hex="A7" data-col="A" data-row="7" data-world-type="Fringe">
+    <polygon
+      id="hex-A7"
+      class="hex fringe"
+      points="148.00,478.98 116.00,534.41 52.00,534.41 20.00,478.98 52.00,423.55 116.00,423.55"
+      fill="url(#world-fringe)"
+      stroke="#000"
+      stroke-width="2"
+    />
+    <text
+      id="label-A7"
+      class="hex-label"
+      x="84"
+      y="482.9793808954285"
+      text-anchor="middle"
+      font-size="11"
+      fill="#111"
+    >A7</text>
+  </g>
+  <g id="hex-group-A11" data-hex="A11" data-col="A" data-row="11" data-world-type="Fringe">
+    <polygon
+      id="hex-A11"
+      class="hex fringe"
+      points="148.00,704.68 116.00,760.11 52.00,760.11 20.00,704.68 52.00,649.26 116.00,649.26"
+      fill="url(#world-fringe)"
+      stroke="#000"
+      stroke-width="2"
+    />
+    <text
+      id="label-A11"
+      class="hex-label"
+      x="84"
+      y="708.6818842642448"
+      text-anchor="middle"
+      font-size="11"
+      fill="#111"
+    >A11</text>
+  </g>
+  <g id="hex-group-A13" data-hex="A13" data-col="A" data-row="13" data-world-type="Homeworld">
+    <polygon
+      id="hex-A13"
+      class="hex homeworld"
+      points="148.00,817.53 116.00,872.96 52.00,872.96 20.00,817.53 52.00,762.11 116.00,762.11"
+      fill="url(#world-home)"
+      stroke="#000"
+      stroke-width="2"
+    />
+    <text
+      id="label-A13"
+      class="hex-label"
+      x="84"
+      y="821.5331359486529"
+      text-anchor="middle"
+      font-size="11"
+      fill="#111"
+    >A13</text>
+  </g>
+  <g id="hex-group-A15" data-hex="A15" data-col="A" data-row="15" data-world-type="Fringe">
+    <polygon
+      id="hex-A15"
+      class="hex fringe"
+      points="148.00,930.38 116.00,985.81 52.00,985.81 20.00,930.38 52.00,874.96 116.00,874.96"
+      fill="url(#world-fringe)"
+      stroke="#000"
+      stroke-width="2"
+    />
+    <text
+      id="label-A15"
+      class="hex-label"
+      x="84"
+      y="934.384387633061"
+      text-anchor="middle"
+      font-size="11"
+      fill="#111"
+    >A15</text>
+  </g>
+  <g id="hex-group-B4" data-hex="B4" data-col="B" data-row="4" data-world-type="Outer">
+    <polygon
+      id="hex-B4"
+      class="hex outer"
+      points="245.00,309.70 213.00,365.13 149.00,365.13 117.00,309.70 149.00,254.28 213.00,254.28"
+      fill="url(#world-outer)"
+      stroke="#000"
+      stroke-width="2"
+    />
+    <text
+      id="label-B4"
+      class="hex-label"
+      x="181"
+      y="313.7025033688163"
+      text-anchor="middle"
+      font-size="11"
+      fill="#111"
+    >B4</text>
+  </g>
+  <g id="hex-group-B6" data-hex="B6" data-col="B" data-row="6" data-world-type="Outer">
+    <polygon
+      id="hex-B6"
+      class="hex outer"
+      points="245.00,422.55 213.00,477.98 149.00,477.98 117.00,422.55 149.00,367.13 213.00,367.13"
+      fill="url(#world-outer)"
+      stroke="#000"
+      stroke-width="2"
+    />
+    <text
+      id="label-B6"
+      class="hex-label"
+      x="181"
+      y="426.55375505322445"
+      text-anchor="middle"
+      font-size="11"
+      fill="#111"
+    >B6</text>
+  </g>
+  <g id="hex-group-B8" data-hex="B8" data-col="B" data-row="8" data-world-type="Outer">
+    <polygon
+      id="hex-B8"
+      class="hex outer"
+      points="245.00,535.41 213.00,590.83 149.00,590.83 117.00,535.41 149.00,479.98 213.00,479.98"
+      fill="url(#world-outer)"
+      stroke="#000"
+      stroke-width="2"
+    />
+    <text
+      id="label-B8"
+      class="hex-label"
+      x="181"
+      y="539.4050067376326"
+      text-anchor="middle"
+      font-size="11"
+      fill="#111"
+    >B8</text>
+  </g>
+  <g id="hex-group-B10" data-hex="B10" data-col="B" data-row="10" data-world-type="Outer">
+    <polygon
+      id="hex-B10"
+      class="hex outer"
+      points="245.00,648.26 213.00,703.68 149.00,703.68 117.00,648.26 149.00,592.83 213.00,592.83"
+      fill="url(#world-outer)"
+      stroke="#000"
+      stroke-width="2"
+    />
+    <text
+      id="label-B10"
+      class="hex-label"
+      x="181"
+      y="652.2562584220407"
+      text-anchor="middle"
+      font-size="11"
+      fill="#111"
+    >B10</text>
+  </g>
+  <g id="hex-group-B12" data-hex="B12" data-col="B" data-row="12" data-world-type="Outer">
+    <polygon
+      id="hex-B12"
+      class="hex outer"
+      points="245.00,761.11 213.00,816.53 149.00,816.53 117.00,761.11 149.00,705.68 213.00,705.68"
+      fill="url(#world-outer)"
+      stroke="#000"
+      stroke-width="2"
+    />
+    <text
+      id="label-B12"
+      class="hex-label"
+      x="181"
+      y="765.1075101064489"
+      text-anchor="middle"
+      font-size="11"
+      fill="#111"
+    >B12</text>
+  </g>
+  <g id="hex-group-B14" data-hex="B14" data-col="B" data-row="14" data-world-type="Outer">
+    <polygon
+      id="hex-B14"
+      class="hex outer"
+      points="245.00,873.96 213.00,929.38 149.00,929.38 117.00,873.96 149.00,818.53 213.00,818.53"
+      fill="url(#world-outer)"
+      stroke="#000"
+      stroke-width="2"
+    />
+    <text
+      id="label-B14"
+      class="hex-label"
+      x="181"
+      y="877.958761790857"
+      text-anchor="middle"
+      font-size="11"
+      fill="#111"
+    >B14</text>
+  </g>
+  <g id="hex-group-C5" data-hex="C5" data-col="C" data-row="5" data-world-type="Outer">
+    <polygon
+      id="hex-C5"
+      class="hex outer"
+      points="342.00,366.13 310.00,421.55 246.00,421.55 214.00,366.13 246.00,310.70 310.00,310.70"
+      fill="url(#world-outer)"
+      stroke="#000"
+      stroke-width="2"
+    />
+    <text
+      id="label-C5"
+      class="hex-label"
+      x="278"
+      y="370.12812921102034"
+      text-anchor="middle"
+      font-size="11"
+      fill="#111"
+    >C5</text>
+  </g>
+  <g id="hex-group-C7" data-hex="C7" data-col="C" data-row="7" data-world-type="Outer">
+    <polygon
+      id="hex-C7"
+      class="hex outer"
+      points="342.00,478.98 310.00,534.41 246.00,534.41 214.00,478.98 246.00,423.55 310.00,423.55"
+      fill="url(#world-outer)"
+      stroke="#000"
+      stroke-width="2"
+    />
+    <text
+      id="label-C7"
+      class="hex-label"
+      x="278"
+      y="482.9793808954285"
+      text-anchor="middle"
+      font-size="11"
+      fill="#111"
+    >C7</text>
+  </g>
+  <g id="hex-group-C9" data-hex="C9" data-col="C" data-row="9" data-world-type="Outer">
+    <polygon
+      id="hex-C9"
+      class="hex outer"
+      points="342.00,591.83 310.00,647.26 246.00,647.26 214.00,591.83 246.00,536.41 310.00,536.41"
+      fill="url(#world-outer)"
+      stroke="#000"
+      stroke-width="2"
+    />
+    <text
+      id="label-C9"
+      class="hex-label"
+      x="278"
+      y="595.8306325798367"
+      text-anchor="middle"
+      font-size="11"
+      fill="#111"
+    >C9</text>
+  </g>
+  <g id="hex-group-C11" data-hex="C11" data-col="C" data-row="11" data-world-type="Outer">
+    <polygon
+      id="hex-C11"
+      class="hex outer"
+      points="342.00,704.68 310.00,760.11 246.00,760.11 214.00,704.68 246.00,649.26 310.00,649.26"
+      fill="url(#world-outer)"
+      stroke="#000"
+      stroke-width="2"
+    />
+    <text
+      id="label-C11"
+      class="hex-label"
+      x="278"
+      y="708.6818842642448"
+      text-anchor="middle"
+      font-size="11"
+      fill="#111"
+    >C11</text>
+  </g>
+  <g id="hex-group-C13" data-hex="C13" data-col="C" data-row="13" data-world-type="Outer">
+    <polygon
+      id="hex-C13"
+      class="hex outer"
+      points="342.00,817.53 310.00,872.96 246.00,872.96 214.00,817.53 246.00,762.11 310.00,762.11"
+      fill="url(#world-outer)"
+      stroke="#000"
+      stroke-width="2"
+    />
+    <text
+      id="label-C13"
+      class="hex-label"
+      x="278"
+      y="821.5331359486529"
+      text-anchor="middle"
+      font-size="11"
+      fill="#111"
+    >C13</text>
+  </g>
+  <g id="hex-group-D2" data-hex="D2" data-col="D" data-row="2" data-world-type="Fringe">
+    <polygon
+      id="hex-D2"
+      class="hex fringe"
+      points="439.00,196.85 407.00,252.28 343.00,252.28 311.00,196.85 343.00,141.43 407.00,141.43"
+      fill="url(#world-fringe)"
+      stroke="#000"
+      stroke-width="2"
+    />
+    <text
+      id="label-D2"
+      class="hex-label"
+      x="375"
+      y="200.85125168440814"
+      text-anchor="middle"
+      font-size="11"
+      fill="#111"
+    >D2</text>
+  </g>
+  <g id="hex-group-D4" data-hex="D4" data-col="D" data-row="4" data-world-type="Outer">
+    <polygon
+      id="hex-D4"
+      class="hex outer"
+      points="439.00,309.70 407.00,365.13 343.00,365.13 311.00,309.70 343.00,254.28 407.00,254.28"
+      fill="url(#world-outer)"
+      stroke="#000"
+      stroke-width="2"
+    />
+    <text
+      id="label-D4"
+      class="hex-label"
+      x="375"
+      y="313.7025033688163"
+      text-anchor="middle"
+      font-size="11"
+      fill="#111"
+    >D4</text>
+  </g>
+  <g id="hex-group-D6" data-hex="D6" data-col="D" data-row="6" data-world-type="Outer">
+    <polygon
+      id="hex-D6"
+      class="hex outer"
+      points="439.00,422.55 407.00,477.98 343.00,477.98 311.00,422.55 343.00,367.13 407.00,367.13"
+      fill="url(#world-outer)"
+      stroke="#000"
+      stroke-width="2"
+    />
+    <text
+      id="label-D6"
+      class="hex-label"
+      x="375"
+      y="426.55375505322445"
+      text-anchor="middle"
+      font-size="11"
+      fill="#111"
+    >D6</text>
+  </g>
+  <g id="hex-group-D8" data-hex="D8" data-col="D" data-row="8" data-world-type="Inner">
+    <polygon
+      id="hex-D8"
+      class="hex inner"
+      points="439.00,535.41 407.00,590.83 343.00,590.83 311.00,535.41 343.00,479.98 407.00,479.98"
+      fill="url(#world-inner)"
+      stroke="#000"
+      stroke-width="2"
+    />
+    <text
+      id="label-D8"
+      class="hex-label"
+      x="375"
+      y="539.4050067376326"
+      text-anchor="middle"
+      font-size="11"
+      fill="#111"
+    >D8</text>
+  </g>
+  <g id="hex-group-D10" data-hex="D10" data-col="D" data-row="10" data-world-type="Inner">
+    <polygon
+      id="hex-D10"
+      class="hex inner"
+      points="439.00,648.26 407.00,703.68 343.00,703.68 311.00,648.26 343.00,592.83 407.00,592.83"
+      fill="url(#world-inner)"
+      stroke="#000"
+      stroke-width="2"
+    />
+    <text
+      id="label-D10"
+      class="hex-label"
+      x="375"
+      y="652.2562584220407"
+      text-anchor="middle"
+      font-size="11"
+      fill="#111"
+    >D10</text>
+  </g>
+  <g id="hex-group-D12" data-hex="D12" data-col="D" data-row="12" data-world-type="Outer">
+    <polygon
+      id="hex-D12"
+      class="hex outer"
+      points="439.00,761.11 407.00,816.53 343.00,816.53 311.00,761.11 343.00,705.68 407.00,705.68"
+      fill="url(#world-outer)"
+      stroke="#000"
+      stroke-width="2"
+    />
+    <text
+      id="label-D12"
+      class="hex-label"
+      x="375"
+      y="765.1075101064489"
+      text-anchor="middle"
+      font-size="11"
+      fill="#111"
+    >D12</text>
+  </g>
+  <g id="hex-group-D14" data-hex="D14" data-col="D" data-row="14" data-world-type="Outer">
+    <polygon
+      id="hex-D14"
+      class="hex outer"
+      points="439.00,873.96 407.00,929.38 343.00,929.38 311.00,873.96 343.00,818.53 407.00,818.53"
+      fill="url(#world-outer)"
+      stroke="#000"
+      stroke-width="2"
+    />
+    <text
+      id="label-D14"
+      class="hex-label"
+      x="375"
+      y="877.958761790857"
+      text-anchor="middle"
+      font-size="11"
+      fill="#111"
+    >D14</text>
+  </g>
+  <g id="hex-group-D16" data-hex="D16" data-col="D" data-row="16" data-world-type="Outer">
+    <polygon
+      id="hex-D16"
+      class="hex outer"
+      points="439.00,986.81 407.00,1042.24 343.00,1042.24 311.00,986.81 343.00,931.38 407.00,931.38"
+      fill="url(#world-outer)"
+      stroke="#000"
+      stroke-width="2"
+    />
+    <text
+      id="label-D16"
+      class="hex-label"
+      x="375"
+      y="990.8100134752651"
+      text-anchor="middle"
+      font-size="11"
+      fill="#111"
+    >D16</text>
+  </g>
+  <g id="hex-group-D18" data-hex="D18" data-col="D" data-row="18" data-world-type="Fringe">
+    <polygon
+      id="hex-D18"
+      class="hex fringe"
+      points="439.00,1099.66 407.00,1155.09 343.00,1155.09 311.00,1099.66 343.00,1044.24 407.00,1044.24"
+      fill="url(#world-fringe)"
+      stroke="#000"
+      stroke-width="2"
+    />
+    <text
+      id="label-D18"
+      class="hex-label"
+      x="375"
+      y="1103.6612651596733"
+      text-anchor="middle"
+      font-size="11"
+      fill="#111"
+    >D18</text>
+  </g>
+  <g id="hex-group-E1" data-hex="E1" data-col="E" data-row="1" data-world-type="Homeworld">
+    <polygon
+      id="hex-E1"
+      class="hex homeworld"
+      points="536.00,140.43 504.00,195.85 440.00,195.85 408.00,140.43 440.00,85.00 504.00,85.00"
+      fill="url(#world-home)"
+      stroke="#000"
+      stroke-width="2"
+    />
+    <text
+      id="label-E1"
+      class="hex-label"
+      x="472"
+      y="144.42562584220406"
+      text-anchor="middle"
+      font-size="11"
+      fill="#111"
+    >E1</text>
+  </g>
+  <g id="hex-group-E3" data-hex="E3" data-col="E" data-row="3" data-world-type="Outer">
+    <polygon
+      id="hex-E3"
+      class="hex outer"
+      points="536.00,253.28 504.00,308.70 440.00,308.70 408.00,253.28 440.00,197.85 504.00,197.85"
+      fill="url(#world-outer)"
+      stroke="#000"
+      stroke-width="2"
+    />
+    <text
+      id="label-E3"
+      class="hex-label"
+      x="472"
+      y="257.2768775266122"
+      text-anchor="middle"
+      font-size="11"
+      fill="#111"
+    >E3</text>
+  </g>
+  <g id="hex-group-E5" data-hex="E5" data-col="E" data-row="5" data-world-type="Outer">
+    <polygon
+      id="hex-E5"
+      class="hex outer"
+      points="536.00,366.13 504.00,421.55 440.00,421.55 408.00,366.13 440.00,310.70 504.00,310.70"
+      fill="url(#world-outer)"
+      stroke="#000"
+      stroke-width="2"
+    />
+    <text
+      id="label-E5"
+      class="hex-label"
+      x="472"
+      y="370.12812921102034"
+      text-anchor="middle"
+      font-size="11"
+      fill="#111"
+    >E5</text>
+  </g>
+  <g id="hex-group-E7" data-hex="E7" data-col="E" data-row="7" data-world-type="Inner">
+    <polygon
+      id="hex-E7"
+      class="hex inner"
+      points="536.00,478.98 504.00,534.41 440.00,534.41 408.00,478.98 440.00,423.55 504.00,423.55"
+      fill="url(#world-inner)"
+      stroke="#000"
+      stroke-width="2"
+    />
+    <text
+      id="label-E7"
+      class="hex-label"
+      x="472"
+      y="482.9793808954285"
+      text-anchor="middle"
+      font-size="11"
+      fill="#111"
+    >E7</text>
+  </g>
+  <g id="hex-group-E9" data-hex="E9" data-col="E" data-row="9" data-world-type="Throneworld">
+    <polygon
+      id="hex-E9"
+      class="hex throneworld"
+      points="536.00,591.83 504.00,647.26 440.00,647.26 408.00,591.83 440.00,536.41 504.00,536.41"
+      fill="url(#world-throne)"
+      stroke="#000"
+      stroke-width="2"
+    />
+    <text
+      id="label-E9"
+      class="hex-label"
+      x="472"
+      y="595.8306325798367"
+      text-anchor="middle"
+      font-size="11"
+      fill="#111"
+    >E9</text>
+  </g>
+  <g id="hex-group-E11" data-hex="E11" data-col="E" data-row="11" data-world-type="Inner">
+    <polygon
+      id="hex-E11"
+      class="hex inner"
+      points="536.00,704.68 504.00,760.11 440.00,760.11 408.00,704.68 440.00,649.26 504.00,649.26"
+      fill="url(#world-inner)"
+      stroke="#000"
+      stroke-width="2"
+    />
+    <text
+      id="label-E11"
+      class="hex-label"
+      x="472"
+      y="708.6818842642448"
+      text-anchor="middle"
+      font-size="11"
+      fill="#111"
+    >E11</text>
+  </g>
+  <g id="hex-group-E13" data-hex="E13" data-col="E" data-row="13" data-world-type="Outer">
+    <polygon
+      id="hex-E13"
+      class="hex outer"
+      points="536.00,817.53 504.00,872.96 440.00,872.96 408.00,817.53 440.00,762.11 504.00,762.11"
+      fill="url(#world-outer)"
+      stroke="#000"
+      stroke-width="2"
+    />
+    <text
+      id="label-E13"
+      class="hex-label"
+      x="472"
+      y="821.5331359486529"
+      text-anchor="middle"
+      font-size="11"
+      fill="#111"
+    >E13</text>
+  </g>
+  <g id="hex-group-E15" data-hex="E15" data-col="E" data-row="15" data-world-type="Outer">
+    <polygon
+      id="hex-E15"
+      class="hex outer"
+      points="536.00,930.38 504.00,985.81 440.00,985.81 408.00,930.38 440.00,874.96 504.00,874.96"
+      fill="url(#world-outer)"
+      stroke="#000"
+      stroke-width="2"
+    />
+    <text
+      id="label-E15"
+      class="hex-label"
+      x="472"
+      y="934.384387633061"
+      text-anchor="middle"
+      font-size="11"
+      fill="#111"
+    >E15</text>
+  </g>
+  <g id="hex-group-E17" data-hex="E17" data-col="E" data-row="17" data-world-type="Homeworld">
+    <polygon
+      id="hex-E17"
+      class="hex homeworld"
+      points="536.00,1043.24 504.00,1098.66 440.00,1098.66 408.00,1043.24 440.00,987.81 504.00,987.81"
+      fill="url(#world-home)"
+      stroke="#000"
+      stroke-width="2"
+    />
+    <text
+      id="label-E17"
+      class="hex-label"
+      x="472"
+      y="1047.2356393174691"
+      text-anchor="middle"
+      font-size="11"
+      fill="#111"
+    >E17</text>
+  </g>
+  <g id="hex-group-F0" data-hex="F0" data-col="F" data-row="0" data-world-type="Fringe">
+    <polygon
+      id="hex-F0"
+      class="hex fringe"
+      points="633.00,84.00 601.00,139.43 537.00,139.43 505.00,84.00 537.00,28.57 601.00,28.57"
+      fill="url(#world-fringe)"
+      stroke="#000"
+      stroke-width="2"
+    />
+    <text
+      id="label-F0"
+      class="hex-label"
+      x="569"
+      y="88"
+      text-anchor="middle"
+      font-size="11"
+      fill="#111"
+    >F0</text>
+  </g>
+  <g id="hex-group-F2" data-hex="F2" data-col="F" data-row="2" data-world-type="Outer">
+    <polygon
+      id="hex-F2"
+      class="hex outer"
+      points="633.00,196.85 601.00,252.28 537.00,252.28 505.00,196.85 537.00,141.43 601.00,141.43"
+      fill="url(#world-outer)"
+      stroke="#000"
+      stroke-width="2"
+    />
+    <text
+      id="label-F2"
+      class="hex-label"
+      x="569"
+      y="200.85125168440814"
+      text-anchor="middle"
+      font-size="11"
+      fill="#111"
+    >F2</text>
+  </g>
+  <g id="hex-group-F4" data-hex="F4" data-col="F" data-row="4" data-world-type="Outer">
+    <polygon
+      id="hex-F4"
+      class="hex outer"
+      points="633.00,309.70 601.00,365.13 537.00,365.13 505.00,309.70 537.00,254.28 601.00,254.28"
+      fill="url(#world-outer)"
+      stroke="#000"
+      stroke-width="2"
+    />
+    <text
+      id="label-F4"
+      class="hex-label"
+      x="569"
+      y="313.7025033688163"
+      text-anchor="middle"
+      font-size="11"
+      fill="#111"
+    >F4</text>
+  </g>
+  <g id="hex-group-F6" data-hex="F6" data-col="F" data-row="6" data-world-type="Outer">
+    <polygon
+      id="hex-F6"
+      class="hex outer"
+      points="633.00,422.55 601.00,477.98 537.00,477.98 505.00,422.55 537.00,367.13 601.00,367.13"
+      fill="url(#world-outer)"
+      stroke="#000"
+      stroke-width="2"
+    />
+    <text
+      id="label-F6"
+      class="hex-label"
+      x="569"
+      y="426.55375505322445"
+      text-anchor="middle"
+      font-size="11"
+      fill="#111"
+    >F6</text>
+  </g>
+  <g id="hex-group-F8" data-hex="F8" data-col="F" data-row="8" data-world-type="Inner">
+    <polygon
+      id="hex-F8"
+      class="hex inner"
+      points="633.00,535.41 601.00,590.83 537.00,590.83 505.00,535.41 537.00,479.98 601.00,479.98"
+      fill="url(#world-inner)"
+      stroke="#000"
+      stroke-width="2"
+    />
+    <text
+      id="label-F8"
+      class="hex-label"
+      x="569"
+      y="539.4050067376326"
+      text-anchor="middle"
+      font-size="11"
+      fill="#111"
+    >F8</text>
+  </g>
+  <g id="hex-group-F10" data-hex="F10" data-col="F" data-row="10" data-world-type="Inner">
+    <polygon
+      id="hex-F10"
+      class="hex inner"
+      points="633.00,648.26 601.00,703.68 537.00,703.68 505.00,648.26 537.00,592.83 601.00,592.83"
+      fill="url(#world-inner)"
+      stroke="#000"
+      stroke-width="2"
+    />
+    <text
+      id="label-F10"
+      class="hex-label"
+      x="569"
+      y="652.2562584220407"
+      text-anchor="middle"
+      font-size="11"
+      fill="#111"
+    >F10</text>
+  </g>
+  <g id="hex-group-F12" data-hex="F12" data-col="F" data-row="12" data-world-type="Outer">
+    <polygon
+      id="hex-F12"
+      class="hex outer"
+      points="633.00,761.11 601.00,816.53 537.00,816.53 505.00,761.11 537.00,705.68 601.00,705.68"
+      fill="url(#world-outer)"
+      stroke="#000"
+      stroke-width="2"
+    />
+    <text
+      id="label-F12"
+      class="hex-label"
+      x="569"
+      y="765.1075101064489"
+      text-anchor="middle"
+      font-size="11"
+      fill="#111"
+    >F12</text>
+  </g>
+  <g id="hex-group-F14" data-hex="F14" data-col="F" data-row="14" data-world-type="Outer">
+    <polygon
+      id="hex-F14"
+      class="hex outer"
+      points="633.00,873.96 601.00,929.38 537.00,929.38 505.00,873.96 537.00,818.53 601.00,818.53"
+      fill="url(#world-outer)"
+      stroke="#000"
+      stroke-width="2"
+    />
+    <text
+      id="label-F14"
+      class="hex-label"
+      x="569"
+      y="877.958761790857"
+      text-anchor="middle"
+      font-size="11"
+      fill="#111"
+    >F14</text>
+  </g>
+  <g id="hex-group-F16" data-hex="F16" data-col="F" data-row="16" data-world-type="Fringe">
+    <polygon
+      id="hex-F16"
+      class="hex fringe"
+      points="633.00,986.81 601.00,1042.24 537.00,1042.24 505.00,986.81 537.00,931.38 601.00,931.38"
+      fill="url(#world-fringe)"
+      stroke="#000"
+      stroke-width="2"
+    />
+    <text
+      id="label-F16"
+      class="hex-label"
+      x="569"
+      y="990.8100134752651"
+      text-anchor="middle"
+      font-size="11"
+      fill="#111"
+    >F16</text>
+  </g>
+  <g id="hex-group-G5" data-hex="G5" data-col="G" data-row="5" data-world-type="Outer">
+    <polygon
+      id="hex-G5"
+      class="hex outer"
+      points="730.00,366.13 698.00,421.55 634.00,421.55 602.00,366.13 634.00,310.70 698.00,310.70"
+      fill="url(#world-outer)"
+      stroke="#000"
+      stroke-width="2"
+    />
+    <text
+      id="label-G5"
+      class="hex-label"
+      x="666"
+      y="370.12812921102034"
+      text-anchor="middle"
+      font-size="11"
+      fill="#111"
+    >G5</text>
+  </g>
+  <g id="hex-group-G7" data-hex="G7" data-col="G" data-row="7" data-world-type="Outer">
+    <polygon
+      id="hex-G7"
+      class="hex outer"
+      points="730.00,478.98 698.00,534.41 634.00,534.41 602.00,478.98 634.00,423.55 698.00,423.55"
+      fill="url(#world-outer)"
+      stroke="#000"
+      stroke-width="2"
+    />
+    <text
+      id="label-G7"
+      class="hex-label"
+      x="666"
+      y="482.9793808954285"
+      text-anchor="middle"
+      font-size="11"
+      fill="#111"
+    >G7</text>
+  </g>
+  <g id="hex-group-G9" data-hex="G9" data-col="G" data-row="9" data-world-type="Outer">
+    <polygon
+      id="hex-G9"
+      class="hex outer"
+      points="730.00,591.83 698.00,647.26 634.00,647.26 602.00,591.83 634.00,536.41 698.00,536.41"
+      fill="url(#world-outer)"
+      stroke="#000"
+      stroke-width="2"
+    />
+    <text
+      id="label-G9"
+      class="hex-label"
+      x="666"
+      y="595.8306325798367"
+      text-anchor="middle"
+      font-size="11"
+      fill="#111"
+    >G9</text>
+  </g>
+  <g id="hex-group-G11" data-hex="G11" data-col="G" data-row="11" data-world-type="Outer">
+    <polygon
+      id="hex-G11"
+      class="hex outer"
+      points="730.00,704.68 698.00,760.11 634.00,760.11 602.00,704.68 634.00,649.26 698.00,649.26"
+      fill="url(#world-outer)"
+      stroke="#000"
+      stroke-width="2"
+    />
+    <text
+      id="label-G11"
+      class="hex-label"
+      x="666"
+      y="708.6818842642448"
+      text-anchor="middle"
+      font-size="11"
+      fill="#111"
+    >G11</text>
+  </g>
+  <g id="hex-group-G13" data-hex="G13" data-col="G" data-row="13" data-world-type="Outer">
+    <polygon
+      id="hex-G13"
+      class="hex outer"
+      points="730.00,817.53 698.00,872.96 634.00,872.96 602.00,817.53 634.00,762.11 698.00,762.11"
+      fill="url(#world-outer)"
+      stroke="#000"
+      stroke-width="2"
+    />
+    <text
+      id="label-G13"
+      class="hex-label"
+      x="666"
+      y="821.5331359486529"
+      text-anchor="middle"
+      font-size="11"
+      fill="#111"
+    >G13</text>
+  </g>
+  <g id="hex-group-H4" data-hex="H4" data-col="H" data-row="4" data-world-type="Outer">
+    <polygon
+      id="hex-H4"
+      class="hex outer"
+      points="827.00,309.70 795.00,365.13 731.00,365.13 699.00,309.70 731.00,254.28 795.00,254.28"
+      fill="url(#world-outer)"
+      stroke="#000"
+      stroke-width="2"
+    />
+    <text
+      id="label-H4"
+      class="hex-label"
+      x="763"
+      y="313.7025033688163"
+      text-anchor="middle"
+      font-size="11"
+      fill="#111"
+    >H4</text>
+  </g>
+  <g id="hex-group-H6" data-hex="H6" data-col="H" data-row="6" data-world-type="Outer">
+    <polygon
+      id="hex-H6"
+      class="hex outer"
+      points="827.00,422.55 795.00,477.98 731.00,477.98 699.00,422.55 731.00,367.13 795.00,367.13"
+      fill="url(#world-outer)"
+      stroke="#000"
+      stroke-width="2"
+    />
+    <text
+      id="label-H6"
+      class="hex-label"
+      x="763"
+      y="426.55375505322445"
+      text-anchor="middle"
+      font-size="11"
+      fill="#111"
+    >H6</text>
+  </g>
+  <g id="hex-group-H8" data-hex="H8" data-col="H" data-row="8" data-world-type="Outer">
+    <polygon
+      id="hex-H8"
+      class="hex outer"
+      points="827.00,535.41 795.00,590.83 731.00,590.83 699.00,535.41 731.00,479.98 795.00,479.98"
+      fill="url(#world-outer)"
+      stroke="#000"
+      stroke-width="2"
+    />
+    <text
+      id="label-H8"
+      class="hex-label"
+      x="763"
+      y="539.4050067376326"
+      text-anchor="middle"
+      font-size="11"
+      fill="#111"
+    >H8</text>
+  </g>
+  <g id="hex-group-H10" data-hex="H10" data-col="H" data-row="10" data-world-type="Outer">
+    <polygon
+      id="hex-H10"
+      class="hex outer"
+      points="827.00,648.26 795.00,703.68 731.00,703.68 699.00,648.26 731.00,592.83 795.00,592.83"
+      fill="url(#world-outer)"
+      stroke="#000"
+      stroke-width="2"
+    />
+    <text
+      id="label-H10"
+      class="hex-label"
+      x="763"
+      y="652.2562584220407"
+      text-anchor="middle"
+      font-size="11"
+      fill="#111"
+    >H10</text>
+  </g>
+  <g id="hex-group-H12" data-hex="H12" data-col="H" data-row="12" data-world-type="Outer">
+    <polygon
+      id="hex-H12"
+      class="hex outer"
+      points="827.00,761.11 795.00,816.53 731.00,816.53 699.00,761.11 731.00,705.68 795.00,705.68"
+      fill="url(#world-outer)"
+      stroke="#000"
+      stroke-width="2"
+    />
+    <text
+      id="label-H12"
+      class="hex-label"
+      x="763"
+      y="765.1075101064489"
+      text-anchor="middle"
+      font-size="11"
+      fill="#111"
+    >H12</text>
+  </g>
+  <g id="hex-group-H14" data-hex="H14" data-col="H" data-row="14" data-world-type="Outer">
+    <polygon
+      id="hex-H14"
+      class="hex outer"
+      points="827.00,873.96 795.00,929.38 731.00,929.38 699.00,873.96 731.00,818.53 795.00,818.53"
+      fill="url(#world-outer)"
+      stroke="#000"
+      stroke-width="2"
+    />
+    <text
+      id="label-H14"
+      class="hex-label"
+      x="763"
+      y="877.958761790857"
+      text-anchor="middle"
+      font-size="11"
+      fill="#111"
+    >H14</text>
+  </g>
+  <g id="hex-group-I3" data-hex="I3" data-col="I" data-row="3" data-world-type="Fringe">
+    <polygon
+      id="hex-I3"
+      class="hex fringe"
+      points="924.00,253.28 892.00,308.70 828.00,308.70 796.00,253.28 828.00,197.85 892.00,197.85"
+      fill="url(#world-fringe)"
+      stroke="#000"
+      stroke-width="2"
+    />
+    <text
+      id="label-I3"
+      class="hex-label"
+      x="860"
+      y="257.2768775266122"
+      text-anchor="middle"
+      font-size="11"
+      fill="#111"
+    >I3</text>
+  </g>
+  <g id="hex-group-I5" data-hex="I5" data-col="I" data-row="5" data-world-type="Homeworld">
+    <polygon
+      id="hex-I5"
+      class="hex homeworld"
+      points="924.00,366.13 892.00,421.55 828.00,421.55 796.00,366.13 828.00,310.70 892.00,310.70"
+      fill="url(#world-home)"
+      stroke="#000"
+      stroke-width="2"
+    />
+    <text
+      id="label-I5"
+      class="hex-label"
+      x="860"
+      y="370.12812921102034"
+      text-anchor="middle"
+      font-size="11"
+      fill="#111"
+    >I5</text>
+  </g>
+  <g id="hex-group-I7" data-hex="I7" data-col="I" data-row="7" data-world-type="Fringe">
+    <polygon
+      id="hex-I7"
+      class="hex fringe"
+      points="924.00,478.98 892.00,534.41 828.00,534.41 796.00,478.98 828.00,423.55 892.00,423.55"
+      fill="url(#world-fringe)"
+      stroke="#000"
+      stroke-width="2"
+    />
+    <text
+      id="label-I7"
+      class="hex-label"
+      x="860"
+      y="482.9793808954285"
+      text-anchor="middle"
+      font-size="11"
+      fill="#111"
+    >I7</text>
+  </g>
+  <g id="hex-group-I11" data-hex="I11" data-col="I" data-row="11" data-world-type="Fringe">
+    <polygon
+      id="hex-I11"
+      class="hex fringe"
+      points="924.00,704.68 892.00,760.11 828.00,760.11 796.00,704.68 828.00,649.26 892.00,649.26"
+      fill="url(#world-fringe)"
+      stroke="#000"
+      stroke-width="2"
+    />
+    <text
+      id="label-I11"
+      class="hex-label"
+      x="860"
+      y="708.6818842642448"
+      text-anchor="middle"
+      font-size="11"
+      fill="#111"
+    >I11</text>
+  </g>
+  <g id="hex-group-I13" data-hex="I13" data-col="I" data-row="13" data-world-type="Homeworld">
+    <polygon
+      id="hex-I13"
+      class="hex homeworld"
+      points="924.00,817.53 892.00,872.96 828.00,872.96 796.00,817.53 828.00,762.11 892.00,762.11"
+      fill="url(#world-home)"
+      stroke="#000"
+      stroke-width="2"
+    />
+    <text
+      id="label-I13"
+      class="hex-label"
+      x="860"
+      y="821.5331359486529"
+      text-anchor="middle"
+      font-size="11"
+      fill="#111"
+    >I13</text>
+  </g>
+  <g id="hex-group-I15" data-hex="I15" data-col="I" data-row="15" data-world-type="Fringe">
+    <polygon
+      id="hex-I15"
+      class="hex fringe"
+      points="924.00,930.38 892.00,985.81 828.00,985.81 796.00,930.38 828.00,874.96 892.00,874.96"
+      fill="url(#world-fringe)"
+      stroke="#000"
+      stroke-width="2"
+    />
+    <text
+      id="label-I15"
+      class="hex-label"
+      x="860"
+      y="934.384387633061"
+      text-anchor="middle"
+      font-size="11"
+      fill="#111"
+    >I15</text>
+  </g>
+</svg>
