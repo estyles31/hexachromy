@@ -22,7 +22,7 @@
     },
     "randomStars": {
       "enabled": true,
-      "deterministic": false,
+      "deterministic": true,
       "seed": 42,
       "count": 450,
       "minRadius": 0.2,
