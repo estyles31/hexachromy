@@ -1,0 +1,33 @@
+.board-container {
+  background: #222;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.system-circle {
+  cursor: pointer;
+  transition: stroke 0.2s;
+}
+
+.system-circle.selected {
+  stroke: yellow;
+  stroke-width: 3;
+}
+
+.game-object {
+  cursor: pointer;
+}
+
+.selection-ring {
+  fill: none;
+  stroke: gold;
+  stroke-width: 3;
+}
+
+.selection-rect {
+  fill: none;
+  stroke: cyan;
+  stroke-width: 2;
+  pointer-events: none;
+}

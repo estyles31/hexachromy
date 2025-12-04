@@ -1,0 +1,12 @@
+.player-area {
+  background: #1a1a1a;
+  padding: 10px;
+  overflow-y: auto;
+}
+
+.player-panel {
+  background: #2a2a2a;
+  margin-bottom: 8px;
+  padding: 8px;
+  border-radius: 6px;
+}
