@@ -11,11 +11,15 @@ export default function BoardCanvas({
   onSelectSystem,
   onSelectObject
 }: any) {
+  const boardSvgUrl =
+    gameState.boardSvgUrl ??
+    (gameState.playerCount ? `/boards/throneworld-${gameState.playerCount}p.svg` : "/boards/throneworld-3p.svg");
+
   return (
     <div className="board-container">
       <svg width="800" height="800" viewBox="0 0 800 800">
 
-        <StaticBoardLayer />
+        <StaticBoardLayer boardSvgUrl={boardSvgUrl} />
 
         <SpaceLayer
           systems={gameState.systems}

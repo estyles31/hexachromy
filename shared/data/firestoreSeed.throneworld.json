@@ -1,0 +1,45 @@
+{
+  "gameDefinition": {
+    "id": "throneworld",
+    "name": "Throneworld",
+    "type": "throneworld",
+    "description": "Stub game definition and board layouts for Throneworld.",
+    "playerCounts": [2, 3, 4, 5, 6]
+  },
+  "games": [
+    {
+      "id": "throneworld-demo",
+      "name": "Throneworld In-Progress Demo",
+      "status": "in-progress",
+      "gameDefinitionId": "throneworld",
+      "playerCount": 3,
+      "players": ["Alice", "Bob", "Carol"],
+      "currentPlayer": "Alice",
+      "turn": 1,
+      "phase": "Expansion",
+      "stateVersion": 1,
+      "state": {
+        "phase": "Expansion",
+        "currentPlayer": "Alice",
+        "systems": [
+          { "id": "E9", "x": 400, "y": 400, "ownerColor": "red" },
+          { "id": "D8", "x": 320, "y": 320, "ownerColor": "blue" },
+          { "id": "F10", "x": 480, "y": 320, "ownerColor": "yellow" },
+          { "id": "E7", "x": 400, "y": 300, "ownerColor": "gray" }
+        ],
+        "objects": [
+          { "id": "fleet-1", "image": "/units/ship.png", "x": 380, "y": 380 },
+          { "id": "fleet-2", "image": "/units/ship.png", "x": 430, "y": 350 }
+        ],
+        "highlights": [
+          { "x": 400, "y": 400 }
+        ],
+        "players": [
+          { "id": "p1", "name": "Alice", "systems": 4, "credits": 6, "tech": ["Jump 2"] },
+          { "id": "p2", "name": "Bob", "systems": 3, "credits": 5, "tech": ["Attack 1"] },
+          { "id": "p3", "name": "Carol", "systems": 2, "credits": 4, "tech": ["Industry 1"] }
+        ]
+      }
+    }
+  ]
+}

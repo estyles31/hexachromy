@@ -1,16 +1,33 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useParams } from "react-router-dom";
+import { useEffect, useState } from "react";
 import LobbyPage from "./pages/LobbyPage";
-
-import { useParams } from "react-router-dom";
-import { mockGameStates } from "./mock/mockGameStates";
 import GamePage from "./pages/GamePage";
+import { fetchGameState } from "./api/gameState";
 
 function GamePageWrapper() {
   const { gameId } = useParams();
-  const gameState = mockGameStates[gameId!];
+  const [gameState, setGameState] = useState<any | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
 
-  if (!gameState) {
-    return <div>Game not found.</div>;
+  useEffect(() => {
+    if (!gameId) return;
+
+    setLoading(true);
+    setError(null);
+
+    fetchGameState(gameId)
+      .then(data => setGameState(data))
+      .catch((err: Error) => setError(err.message))
+      .finally(() => setLoading(false));
+  }, [gameId]);
+
+  if (loading) {
+    return <div>Loading game state...</div>;
+  }
+
+  if (error || !gameState) {
+    return <div>{error ?? "Game not found."}</div>;
   }
 
   return <GamePage gameState={gameState} />;

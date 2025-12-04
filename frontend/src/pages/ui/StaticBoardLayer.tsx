@@ -1,7 +1,7 @@
-export default function StaticBoardLayer() {
+export default function StaticBoardLayer({ boardSvgUrl }: { boardSvgUrl: string }) {
   return (
     <image
-      href="/board/throneworld-board.svg"
+      href={boardSvgUrl}
       x={0}
       y={0}
       width={800}

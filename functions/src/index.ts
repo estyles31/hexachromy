@@ -7,26 +7,59 @@
  * See a full list of supported triggers at https://firebase.google.com/docs/functions
  */
 
-import {setGlobalOptions} from "firebase-functions";
-import {onRequest} from "firebase-functions/https";
+import express from "express";
+import { initializeApp, getApps } from "firebase-admin/app";
+import { getFirestore } from "firebase-admin/firestore";
+import { setGlobalOptions } from "firebase-functions";
+import { onRequest } from "firebase-functions/https";
 import * as logger from "firebase-functions/logger";
+import { getGameModule, seedGameModules } from "./games";
 
-// Start writing functions
-// https://firebase.google.com/docs/functions/typescript
-
-// For cost control, you can set the maximum number of containers that can be
-// running at the same time. This helps mitigate the impact of unexpected
-// traffic spikes by instead downgrading performance. This limit is a
-// per-function limit. You can override the limit for each function using the
-// `maxInstances` option in the function's options, e.g.
-// `onRequest({ maxInstances: 5 }, (req, res) => { ... })`.
-// NOTE: setGlobalOptions does not apply to functions using the v1 API. V1
-// functions should each use functions.runWith({ maxInstances: 10 }) instead.
-// In the v1 API, each function can only serve one request per container, so
-// this will be the maximum concurrent request count.
 setGlobalOptions({ maxInstances: 10 });
 
-// export const helloWorld = onRequest((request, response) => {
-//   logger.info("Hello logs!", {structuredData: true});
-//   response.send("Hello from Firebase!");
-// });
+const app = getApps().length ? getApps()[0] : initializeApp();
+const db = getFirestore(app);
+
+seedGameModules(db).catch(error => {
+  logger.error("Failed to seed game modules", error as Error);
+});
+
+const apiApp = express();
+
+apiApp.get("/gameState", async (request, response) => {
+  const gameId = (request.query.gameId as string | undefined)?.trim();
+
+  if (!gameId) {
+    response.status(400).json({ error: "Missing gameId" });
+    return;
+  }
+
+  try {
+    const gameSnapshot = await db.doc(`games/${gameId}`).get();
+    if (!gameSnapshot.exists) {
+      response.status(404).json({ error: "Game not found" });
+      return;
+    }
+
+    const gameData = gameSnapshot.data() ?? {};
+    const definitionId = (gameData.gameDefinitionId as string | undefined) ?? "throneworld";
+
+    const definitionSnap = await db.doc(`gameDefinitions/${definitionId}`).get();
+    const definitionData = definitionSnap.exists ? definitionSnap.data() : undefined;
+    const gameType = (definitionData?.type as string | undefined) ?? definitionId;
+
+    const handler = getGameModule(gameType);
+    if (!handler) {
+      response.status(404).json({ error: `Unsupported game type: ${gameType}` });
+      return;
+    }
+
+    const payload = await handler.getGameState({ db, gameId, gameData, definitionData });
+    response.json(payload);
+  } catch (err) {
+    logger.error("Failed to load game", err as Error);
+    response.status(500).json({ error: "Failed to load game" });
+  }
+});
+
+export const api = onRequest(apiApp);
