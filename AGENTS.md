@@ -132,7 +132,9 @@ Agents MUST:
 
 Games are implemented as:
 
-- Phase classes
+- separate modules, in their own folder
+- base api determines which module to call by game id
+- game has separate classes for each phase, and keeps a concept of the current phase and controls phase transistions
 - Game-specific logic in backend
 - Shared models define structure, not behavior
 
