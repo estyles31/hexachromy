@@ -1,11 +1,20 @@
 import { randomInt } from "crypto";
 import { BOARD_HEXES, getWorldType, isInPlay, type WorldType } from "../shared/models/BoardLayout.ThroneWorld.ts";
 import type { ThroneworldGameState, ThroneworldSystemState } from "../shared/models/GameState.Throneworld.ts";
-import type { SystemPool } from "../shared/models/Systems.ThroneWorld.ts";
+import type { SystemDefinition, SystemPool } from "../shared/models/Systems.ThroneWorld.ts";
 import systemsJson from "../shared/data/systems.throneworld.json" with { type: "json" };
 import { parsePlayerCountFromScenario } from "../shared/utils/scenario.ts";
 
 const SYSTEM_POOLS = systemsJson as SystemPool;
+type SystemTile = { systemId: string; definition: SystemDefinition };
+
+const HOMEWORLD_BASE: SystemDefinition = {
+  dev: 0,
+  spaceTech: 0,
+  groundTech: 0,
+  spaceUnits: {},
+  groundUnits: {},
+};
 
 type PoolKey = keyof SystemPool;
 type NormalizedWorldType = PoolKey | "homeworld" | "notinplay";
@@ -24,14 +33,17 @@ function normalizeWorldType(worldType: WorldType): NormalizedWorldType {
   return "notinplay";
 }
 
-function buildSystemPoolIds(poolKey: PoolKey): string[] {
-  return SYSTEM_POOLS[poolKey].map((_, idx) => `${poolKey}-${idx}`);
+function buildSystemPool(poolKey: PoolKey): SystemTile[] {
+  return SYSTEM_POOLS[poolKey].map((definition, idx) => ({
+    systemId: `${poolKey}-${idx}`,
+    definition,
+  }));
 }
 
-function drawRandomSystemId(pool: string[]): string {
+function drawRandomSystem(pool: SystemTile[]): SystemTile {
   const index = randomInt(0, pool.length);
-  const [systemId] = pool.splice(index, 1);
-  return systemId;
+  const [tile] = pool.splice(index, 1);
+  return tile;
 }
 
 export function buildInitialGameState(params: {
@@ -45,11 +57,11 @@ export function buildInitialGameState(params: {
 
   const homeworldQueue = [...playerIds];
 
-  const pools: Record<PoolKey, string[]> = {
-    outer: buildSystemPoolIds("outer"),
-    inner: buildSystemPoolIds("inner"),
-    fringe: buildSystemPoolIds("fringe"),
-    throneworld: buildSystemPoolIds("throneworld"),
+  const pools: Record<PoolKey, SystemTile[]> = {
+    outer: buildSystemPool("outer"),
+    inner: buildSystemPool("inner"),
+    fringe: buildSystemPool("fringe"),
+    throneworld: buildSystemPool("throneworld"),
   };
 
   const systems: Record<string, ThroneworldSystemState> = {};
@@ -70,6 +82,7 @@ export function buildInitialGameState(params: {
         systemId: `homeworld-${playerId}`,
         revealed: true,
         owner: playerId,
+        ...HOMEWORLD_BASE,
       };
       continue;
     }
@@ -79,12 +92,13 @@ export function buildInitialGameState(params: {
     if (!pool || pool.length === 0) {
       throw new Error(`No remaining systems in pool '${poolKey}' for hex ${hex.id}`);
     }
-    const systemId = drawRandomSystemId(pool);
+    const { systemId, definition } = drawRandomSystem(pool);
 
     systems[hex.id] = {
       systemId,
       revealed: false,
       owner: null,
+      ...definition,
     };
   }
 
