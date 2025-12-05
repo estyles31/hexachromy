@@ -2,10 +2,27 @@ import { randomUUID } from "crypto";
 import { onRequest, type Response } from "firebase-functions/v2/https";
 import admin from "firebase-admin";
 import { getFirestore } from "firebase-admin/firestore";
-import { buildInitialGameState } from "../../modules/throneworld/functions/throneworldGame.js";
+import { gameModules } from "../../modules/index.js";
+import type { GameDatabaseAdapter, GameModuleManifest } from "../../modules/types.js";
 
 const app = admin.apps.length ? admin.app() : admin.initializeApp();
 const db = getFirestore(app);
+
+const dbAdapter: GameDatabaseAdapter = {
+  async getDocument(path) {
+    const snapshot = await db.doc(path).get();
+    return snapshot.exists ? (snapshot.data() as unknown) : null;
+  },
+  async setDocument(path, data) {
+    await db.doc(path).set(data as Record<string, unknown>);
+  },
+  async updateDocument(path, data) {
+    await db.doc(path).set(data, { merge: true });
+  },
+  async deleteDocument(path) {
+    await db.doc(path).delete();
+  },
+};
 
 function applyCors(res: Response) {
   res.set("Access-Control-Allow-Origin", "*");
@@ -19,15 +36,12 @@ type CreateGameRequest = {
   scenario?: unknown;
 };
 
-type GameCreator = (params: { gameId: string; playerIds: string[]; scenario?: string }) => unknown;
-
-const GAME_CREATORS: Record<string, GameCreator> = {
-  throneworld: ({ gameId, playerIds, scenario }) =>
-    buildInitialGameState({ gameId, playerIds, scenario }),
-};
-
 function isStringArray(value: unknown): value is string[] {
   return Array.isArray(value) && value.every(item => typeof item === "string");
+}
+
+function getModule(gameType: string): GameModuleManifest | undefined {
+  return gameModules[gameType];
 }
 
 export const api = onRequest(async (req, res) => {
@@ -47,12 +61,12 @@ export const api = onRequest(async (req, res) => {
     }
 
     const normalizedType = typeof gameType === "string" && gameType.trim().length > 0
-      ? gameType.trim()
+      ? gameType.trim().toLowerCase()
       : "throneworld";
 
-    const creator = GAME_CREATORS[normalizedType];
+    const module = getModule(normalizedType);
 
-    if (!creator) {
+    if (!module?.backend) {
       res.status(400).json({ error: `Unsupported game type: ${normalizedType}` });
       return;
     }
@@ -60,13 +74,25 @@ export const api = onRequest(async (req, res) => {
     const gameId = randomUUID();
 
     try {
-      const state = creator({
+      let createdState: unknown;
+
+      const state = await module.backend.createGame({
         gameId,
         playerIds,
         scenario: typeof scenario === "string" ? scenario : undefined,
+        db: dbAdapter,
+        returnState: value => {
+          createdState = value;
+        },
       });
 
-      await db.doc(`games/${gameId}/state`).set(state);
+      const resolvedState = createdState ?? state;
+
+      if (!resolvedState) {
+        throw new Error("Game module did not return an initial state");
+      }
+
+      await dbAdapter.setDocument(`games/${gameId}/state`, resolvedState);
 
       res.status(200).json({ gameId });
     } catch (err) {
@@ -86,14 +112,14 @@ export const api = onRequest(async (req, res) => {
       return;
     }
 
-    const snapshot = await db.doc(`games/${gameId}/state`).get();
+    const state = await dbAdapter.getDocument(`games/${gameId}/state`);
 
-    if (!snapshot.exists) {
+    if (!state) {
       res.status(404).json({ error: "Game not found" });
       return;
     }
 
-    res.status(200).json(snapshot.data());
+    res.status(200).json(state);
     return;
   }
 
