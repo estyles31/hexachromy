@@ -46,36 +46,36 @@
     "Homeworld": {
         "id": "world-home",
         "stops": [
-            { "offset": "0%", "color": "rgba(255,255,127,0.30)" },
-            { "offset": "100%", "color": "rgba(255,255,255,0.60)" }
+            { "offset": "0%", "color": "rgba(255,255,127,0.5)" },
+            { "offset": "100%", "color": "rgba(255,255,255,0.7)" }
         ]
     },
     "Throneworld": {
       "id": "world-throne",
       "stops": [
-        { "offset": "0%", "color": "rgba(255,255,255,0.25)" },
-        { "offset": "100%", "color": "rgba(255,255,255,0.60)" }
+        { "offset": "0%", "color": "rgba(255,255,255,0.5)" },
+        { "offset": "100%", "color": "rgba(255,255,255,0.7)" }
       ]
     },
     "Inner": {
       "id": "world-inner",
       "stops": [
         { "offset": "0%", "color": "rgba(20,20,190,0.25)" },
-        { "offset": "100%", "color": "rgba(93,93,210,0.35)" }
+        { "offset": "100%", "color": "rgba(93,93,210,0.6)" }
       ]
     },
     "Outer": {
       "id": "world-outer",
       "stops": [
         { "offset": "0%", "color": "rgba(100,100,100,0.25)" },
-        { "offset": "100%", "color": "rgba(200,200,200,0.35)" }
+        { "offset": "100%", "color": "rgba(200,200,200,0.6)" }
       ]
     },
     "Fringe": {
       "id": "world-fringe",
       "stops": [
         { "offset": "0%", "color": "rgba(127,127,0,0.25)" },
-        { "offset": "100%", "color": "rgba(190,190,70,0.35)" }
+        { "offset": "100%", "color": "rgba(190,190,70,0.6)" }
       ]
     }
   }

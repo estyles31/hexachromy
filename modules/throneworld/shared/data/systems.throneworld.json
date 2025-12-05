@@ -1,0 +1,93 @@
+{
+  "outer": [
+    {"dev":0,"spaceTech":0,"groundTech":0,"spaceUnits":{},"groundUnits":{}},
+    {"dev":0,"spaceTech":0,"groundTech":0,"spaceUnits":{},"groundUnits":{}},
+    {"dev":0,"spaceTech":0,"groundTech":0,"spaceUnits":{},"groundUnits":{}},
+
+    {"dev":1,"spaceTech":0,"groundTech":3,"spaceUnits":{},"groundUnits":{"H":1}},
+    {"dev":1,"spaceTech":1,"groundTech":1,"spaceUnits":{"Sh":2,"P":1},"groundUnits":{"L":1}},
+    {"dev":1,"spaceTech":1,"groundTech":1,"spaceUnits":{"P":2,"F":4},"groundUnits":{"L":1}},
+    {"dev":1,"spaceTech":1,"groundTech":2,"spaceUnits":{"B":2},"groundUnits":{"L":3}},
+
+    {"dev":2,"spaceTech":0,"groundTech":4,"spaceUnits":{},"groundUnits":{"C":1,"A":2}},
+    {"dev":2,"spaceTech":3,"groundTech":3,"spaceUnits":{"P":2,"F":1},"groundUnits":{"H":1,"L":1}},
+    {"dev":2,"spaceTech":1,"groundTech":1,"spaceUnits":{"P":2,"M":1,"F":6},"groundUnits":{"H":3,"L":3}},
+    {"dev":2,"spaceTech":2,"groundTech":1,"spaceUnits":{"B":1,"M":1,"F":5},"groundUnits":{"H":2,"L":2}},
+    {"dev":2,"spaceTech":2,"groundTech":2,"spaceUnits":{"Sh":1,"P":1,"F":2},"groundUnits":{"C":1,"A":1}},
+    {"dev":2,"spaceTech":4,"groundTech":4,"spaceUnits":{"B":2},"groundUnits":{"L":2}},
+
+    {"dev":3,"spaceTech":0,"groundTech":2,"spaceUnits":{},"groundUnits":{"C":2,"A":2,"L":2}},
+    {"dev":3,"spaceTech":0,"groundTech":5,"spaceUnits":{},"groundUnits":{"H":3}},
+    {"dev":3,"spaceTech":5,"groundTech":2,"spaceUnits":{"P":1,"F":2},"groundUnits":{"H":1}},
+    {"dev":3,"spaceTech":2,"groundTech":2,"spaceUnits":{"Sh":3,"B":2},"groundUnits":{"C":1,"H":2}},
+    {"dev":3,"spaceTech":1,"groundTech":1,"spaceUnits":{"Sh":2,"P":1,"F":1},"groundUnits":{"C":1,"A":2}},
+    {"dev":3,"spaceTech":1,"groundTech":5,"spaceUnits":{"Sh":2,"P":2,"F":2},"groundUnits":{"L":2}},
+    {"dev":3,"spaceTech":2,"groundTech":5,"spaceUnits":{"Sh":2,"P":2,"F":2},"groundUnits":{"H":1,"L":1}},
+    {"dev":3,"spaceTech":3,"groundTech":4,"spaceUnits":{"B":4},"groundUnits":{"L":3}},
+    {"dev":3,"spaceTech":4,"groundTech":2,"spaceUnits":{"P":2,"F":2},"groundUnits":{"C":1,"A":2,"L":1}},
+    {"dev":3,"spaceTech":1,"groundTech":3,"spaceUnits":{"P":2,"F":2},"groundUnits":{"C":1,"A":2,"L":1}},
+
+    {"dev":4,"spaceTech":0,"groundTech":4,"spaceUnits":{},"groundUnits":{"H":5}},
+    {"dev":4,"spaceTech":0,"groundTech":2,"spaceUnits":{},"groundUnits":{"C":1,"A":2,"H":2}},
+    {"dev":4,"spaceTech":5,"groundTech":1,"spaceUnits":{"M":1,"F":5},"groundUnits":{"C":2,"A":2,"L":1}},
+    {"dev":4,"spaceTech":4,"groundTech":4,"spaceUnits":{"Sh":1,"P":1,"F":2},"groundUnits":{"C":1,"A":1}},
+    {"dev":4,"spaceTech":4,"groundTech":2,"spaceUnits":{"M":1,"F":5},"groundUnits":{"C":2,"A":2,"L":2}},
+    {"dev":4,"spaceTech":2,"groundTech":3,"spaceUnits":{"Sh":3,"P":3},"groundUnits":{"H":4}},
+    {"dev":4,"spaceTech":3,"groundTech":2,"spaceUnits":{"Sh":2,"P":2},"groundUnits":{"C":2,"A":2,"L":2}},
+    {"dev":4,"spaceTech":3,"groundTech":3,"spaceUnits":{"Sh":2,"B":2,"P":1},"groundUnits":{"C":3}},
+    {"dev":4,"spaceTech":3,"groundTech":3,"spaceUnits":{"P":3,"F":6},"groundUnits":{"H":3,"L":3}},
+    {"dev":4,"spaceTech":3,"groundTech":1,"spaceUnits":{"Sh":2,"M":1,"F":5},"groundUnits":{"H":2}},
+
+    {"dev":5,"spaceTech":0,"groundTech":5,"spaceUnits":{},"groundUnits":{"H":2,"L":4}},
+    {"dev":5,"spaceTech":0,"groundTech":4,"spaceUnits":{},"groundUnits":{"C":2,"A":2}},
+    {"dev":5,"spaceTech":4,"groundTech":3,"spaceUnits":{"P":4,"F":2},"groundUnits":{"L":4}},
+
+    {"dev":6,"spaceTech":0,"groundTech":5,"spaceUnits":{},"groundUnits":{"C":1,"A":2,"H":1}}
+  ],
+  "fringe": [
+    {"dev":1,"spaceTech":0,"groundTech":2,"spaceUnits":{},"groundUnits":{"L":2}},
+    {"dev":1,"spaceTech":0,"groundTech":1,"spaceUnits":{},"groundUnits":{"H":1}},
+    {"dev":1,"spaceTech":0,"groundTech":3,"spaceUnits":{},"groundUnits":{"L":1}},
+    {"dev":1,"spaceTech":1,"groundTech":1,"spaceUnits":{"Sh":1},"groundUnits":{"L":1}},
+
+    {"dev":2,"spaceTech":0,"groundTech":1,"spaceUnits":{},"groundUnits":{"C":1,"A":1}},
+    {"dev":2,"spaceTech":0,"groundTech":2,"spaceUnits":{},"groundUnits":{"H":1}},
+    {"dev":2,"spaceTech":0,"groundTech":3,"spaceUnits":{},"groundUnits":{"L":2}},
+    {"dev":2,"spaceTech":1,"groundTech":1,"spaceUnits":{"M":1,"F":5},"groundUnits":{"L":1}},
+    {"dev":2,"spaceTech":2,"groundTech":1,"spaceUnits":{"Sh":1},"groundUnits":{"L":1}},
+    {"dev":2,"spaceTech":1,"groundTech":1,"spaceUnits":{"B":1},"groundUnits":{"L":2}},
+
+    {"dev":3,"spaceTech":1,"groundTech":1,"spaceUnits":{"P":2,"F":1},"groundUnits":{"H":1,"L":1}},
+    {"dev":3,"spaceTech":1,"groundTech":2,"spaceUnits":{"M":1,"F":5},"groundUnits":{"L":2}},
+    {"dev":3,"spaceTech":2,"groundTech":1,"spaceUnits":{"P":2,"F":1},"groundUnits":{"H":1,"L":1}},
+
+    {"dev":4,"spaceTech":3,"groundTech":3,"spaceUnits":{"P":2,"F":2},"groundUnits":{"L":2}},
+    {"dev":5,"spaceTech":4,"groundTech":4,"spaceUnits":{"P":2,"M":1,"F":5},"groundUnits":{"H":2}},
+
+    {"dev":6,"spaceTech":3,"groundTech":1,"spaceUnits":{"B":4},"groundUnits":{"C":1,"A":2}},
+    {"dev":6,"spaceTech":5,"groundTech":4,"spaceUnits":{"Sh":2,"P":2,"F":4},"groundUnits":{"L":1}}
+  ],
+  "inner": [
+   {"dev":5,"spaceTech":5,"groundTech":4,"spaceUnits":{"P":1,"M":2,"F":5},"groundUnits":{"H":2}},
+    {"dev":5,"spaceTech":5,"groundTech":2,"spaceUnits":{"M":1,"F":5},"groundUnits":{"C":1,"A":2,"H":2}},
+    {"dev":5,"spaceTech":4,"groundTech":4,"spaceUnits":{"B":4,"P":2},"groundUnits":{"H":2,"L":2}},
+    {"dev":5,"spaceTech":4,"groundTech":5,"spaceUnits":{"Sh":3,"P":1},"groundUnits":{"L":4}},
+    {"dev":5,"spaceTech":4,"groundTech":3,"spaceUnits":{"Sh":2,"B":3},"groundUnits":{"C":1}},
+    {"dev":5,"spaceTech":3,"groundTech":5,"spaceUnits":{"B":4,"P":2,"F":2},"groundUnits":{"L":5}},
+
+    {"dev":6,"spaceTech":4,"groundTech":4,"spaceUnits":{"Sh":2,"P":2,"F":2},"groundUnits":{"C":2,"A":2,"L":2}},
+    {"dev":6,"spaceTech":5,"groundTech":3,"spaceUnits":{"P":2,"M":1,"F":5},"groundUnits":{"L":4}},
+    {"dev":6,"spaceTech":5,"groundTech":4,"spaceUnits":{"B":4,"P":2,"F":2},"groundUnits":{"H":2,"L":1}},
+    {"dev":6,"spaceTech":5,"groundTech":3,"spaceUnits":{"Sh":2,"P":2,"F":2},"groundUnits":{"H":1}},
+    {"dev":6,"spaceTech":3,"groundTech":4,"spaceUnits":{"Sh":2,"P":2,"M":1,"F":6},"groundUnits":{"C":2,"A":2}},
+    {"dev":6,"spaceTech":3,"groundTech":5,"spaceUnits":{"Sh":2,"B":2},"groundUnits":{"H":2,"L":1}}
+  ],
+  "throneworld": [
+    {"dev":10,"spaceTech":4,"groundTech":4,"spaceUnits":{"B":10,"P":5},"groundUnits":{"H":10,"L":5}},
+    {"dev":10,"spaceTech":5,"groundTech":5,"spaceUnits":{"Sh":3,"P":3,"F":6},"groundUnits":{"C":3,"A":3,"H":1}},
+    {"dev":10,"spaceTech":6,"groundTech":4,"spaceUnits":{"Sh":4,"B":4},"groundUnits":{"C":4,"A":4}},
+    {"dev":10,"spaceTech":4,"groundTech":6,"spaceUnits":{"Sh":1,"P":2,"M":1,"F":5},"groundUnits":{"C":5,"A":5}},
+    {"dev":10,"spaceTech":4,"groundTech":7,"spaceUnits":{"B":3},"groundUnits":{"C":2,"A":4,"H":4}},
+    {"dev":10,"spaceTech":7,"groundTech":6,"spaceUnits":{"Sh":3,"P":2,"F":4},"groundUnits":{"H":2}}
+  ]
+}

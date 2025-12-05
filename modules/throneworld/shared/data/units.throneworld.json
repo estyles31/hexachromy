@@ -1,0 +1,182 @@
+{
+	"Sv": {
+		"id": "Sv",
+		"Name": "Survey Team",
+		"Symbol": "🏴",
+		"Type": "Space",
+		"Cost": 1,
+		"Explore": true
+	},
+	"B": {
+		"id": "B",
+		"Name": "Blaster",
+		"Symbol": "💥",
+		"Type": "Space",
+		"Cost": 4,
+		"Attack": 3,
+		"Defense": 2,
+		"HP": 1
+	},
+	"P": {
+		"id": "P",
+		"Name": "Protector",
+		"Symbol": "🛡",
+		"Type": "Space",
+		"Cost": 5,
+		"Attack": 2,
+		"Defense": 3,
+		"HP": 1,
+		"Cargo": 2
+	},
+	"M": {
+		"id": "M",
+		"Name": "Mothership",
+		"Symbol": "🛸",
+		"Type": "Space",
+		"Cost": 6,
+		"Attack": 0,
+		"Defense": 1,
+		"HP": 1,
+		"Cargo": 5
+	},
+	"F": {
+		"id": "F",
+		"Name": "Fighter",
+		"Symbol": "⯈",
+		"Type": "Space",
+		"Cost": 2,
+		"Attack": 1,
+		"Defense": 1,
+		"HP": 1,
+		"Cargo": -1
+	},
+	"Sh": {
+		"id": "Sh",
+		"Name": "Shield",
+		"Symbol": "◔",
+		"Type": "Space",
+		"Cost": 5,
+		"Attack": 0,
+		"Defense": 1,
+		"HP": 1,
+		"Absorb": 1,
+		"Static": true
+	},
+	"pF": {
+		"id": "pF",
+		"Name": "Pasha Fighter",
+		"Symbol": "✦",
+		"Type": "Space",
+		"Cost": 2,
+		"Attack": 2,
+		"Defense": 1,
+		"HP": 1,
+		"Cargo": -1,
+		"Restricted": true
+	},
+	"A": {
+		"id": "A",
+		"Name": "Assault Troops",
+		"Symbol": "✹",
+		"Type": "Ground",
+		"Cost": 3,
+		"Attack": 3,
+		"Defense": 1,
+		"HP": 1,
+		"Cargo": -1,
+		"DefenseBonus": {
+			"CombinedArms": {
+				"C" : 1,
+				"qC" : 1
+			}
+		}
+	},
+	"H": {
+		"id": "H",
+		"Name": "Heavy Infantry",
+		"Symbol": "⛒",
+		"Type": "Ground",
+		"Cost": 3,
+		"Attack": 1,
+		"Defense": 3,
+		"HP": 2,
+		"Cargo": -1
+	},
+	"L": {
+		"id": "L",
+		"Name": "Light Infantry",
+		"Symbol": "⦿",
+		"Type": "Ground",
+		"Cost": 2,
+		"Attack": 2,
+		"Defense": 1,
+		"HP": 1,
+		"Cargo": -1
+	},
+	"D": {
+		"id": "D",
+		"Name": "Drop Infantry",
+		"Symbol": "⤓",
+		"Type": "Ground",
+		"Cost": 3,
+		"Attack": 2,
+		"Defense": 1,
+		"HP": 1,
+		"Cargo": -1,
+		"DropAttack": true,
+		"FirstFire": true
+	},
+	"C": {
+		"id": "C",
+		"Name": "Command Bunker",
+		"Symbol": "⛬",
+		"Type": "Ground",
+		"Cost": 10,
+		"Attack": 0,
+		"Defense": 2,
+		"HP": 3,
+		"Cargo": 0,
+		"Static": true,
+		"Command": true,
+		"FirstDefend": true
+	},
+	"bH": {
+		"id": "bH",
+		"Name": "Buralti Heavy Infantry",
+		"Symbol": "❖",
+		"Type": "Ground",
+		"Cost": 3,
+		"Attack": 2,
+		"Defense": 3,
+		"HP": 2,
+		"Cargo": -1,
+		"Restricted": true
+	},
+	"tL": {
+		"id": "tL",
+		"Name": "Trill Light Infantry",
+		"Symbol": "❧",
+		"Type": "Ground",
+		"Cost": 2,
+		"Attack": 2,
+		"Defense": 1,
+		"HP": 1,
+		"Cargo": -1,
+		"DropAttack": true,
+		"Restricted": true
+	},
+	"qC": {
+		"id": "qC",
+		"Name": "Q'teni Command Bunker",
+		"Symbol": "🜁",
+		"Type": "Ground",
+		"Cost": 5,
+		"Attack": 0,
+		"Defense": 2,
+		"HP": 3,
+		"Cargo": 0,
+		"Static": true,
+		"Command": true,
+		"FirstDefend": true
+	}
+}
