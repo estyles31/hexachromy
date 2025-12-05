@@ -2,8 +2,8 @@ import { randomUUID } from "crypto";
 import { onRequest, type Response } from "firebase-functions/v2/https";
 import admin from "firebase-admin";
 import { getFirestore } from "firebase-admin/firestore";
-import { gameModules } from "../../modules/index.js";
-import type { GameDatabaseAdapter, GameModuleManifest } from "../../modules/types.js";
+import { backendModules } from "../../modules/backend.js";
+import type { GameDatabaseAdapter } from "../../modules/types.js";
 
 const app = admin.apps.length ? admin.app() : admin.initializeApp();
 const db = getFirestore(app);
@@ -40,9 +40,7 @@ function isStringArray(value: unknown): value is string[] {
   return Array.isArray(value) && value.every(item => typeof item === "string");
 }
 
-function getModule(gameType: string): GameModuleManifest | undefined {
-  return gameModules[gameType];
-}
+const backendRegistry = backendModules;
 
 export const api = onRequest(async (req, res) => {
   applyCors(res);
@@ -64,7 +62,7 @@ export const api = onRequest(async (req, res) => {
       ? gameType.trim().toLowerCase()
       : "throneworld";
 
-    const module = getModule(normalizedType);
+    const module = backendRegistry[normalizedType];
 
     if (!module?.backend) {
       res.status(400).json({ error: `Unsupported game type: ${normalizedType}` });

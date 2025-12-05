@@ -10,14 +10,14 @@ Implement the interfaces from `modules/types.ts`:
   - `createGame(CreateGameContext)`
   - `commitMove(CommitMoveContext)`
   - `getLegalMoves(GetLegalMovesContext)`
-- `GameModuleManifest` must include `backend: GameBackendModule` (plus optional `frontend`).
+- `GameModuleManifest` only describes module metadata (IDs and entry file paths). Do **not** store frontend or backend code here.
 - Modules interact with Firestore **only** through the provided `GameDatabaseAdapter` callbacks.
 
 ## Usage Rules
 
 1. **Do not import Firebase directly** inside modules. Use the `db` adapter from the context.
 2. **Always return an initial state** from `createGame` (or via `returnState`), so the generic API can persist it.
-3. **Register modules centrally** in `modules/index.ts`; the shared Functions API will look them up by ID.
+3. **Register module metadata only** in `modules/index.ts`. Frontend and backend layers must each import their own module entry points from `/modules/*/frontend` and `/modules/*/functions`, respectively.
 4. **Legal moves and move commits** must go through this contract; the base API should never call game-specific helpers directly.
 
 Future work on any module should verify adherence to this contract before adding new backend behavior.

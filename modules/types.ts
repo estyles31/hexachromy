@@ -44,6 +44,8 @@ export interface GameBackendModule<State = unknown, Move = unknown, LegalMoves =
 
 export interface GameModuleManifest {
   id: string;
-  frontend?: unknown;
-  backend: GameBackendModule;
+  /** Relative path to the frontend entry point for this module (no imports here). */
+  frontendEntry?: string;
+  /** Relative path to the backend entry point for this module (no imports here). */
+  backendEntry?: string;
 }
