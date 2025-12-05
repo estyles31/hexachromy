@@ -1,4 +1,4 @@
-import type { UnitId } from "./UnitTypes.ThroneWorld.ts";
+import type { UnitId } from "./UnitTypes.ThroneWorld";
 
 export type UnitCountMap = Partial<Record<UnitId, number>>;
 

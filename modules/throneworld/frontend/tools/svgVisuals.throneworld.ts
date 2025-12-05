@@ -1,6 +1,6 @@
 // /hexachromy/tools/svgVisuals.throneworld.ts
 
-import type { WorldType } from "../../shared/models/BoardLayout.ThroneWorld.ts";
+import type { WorldType } from "../../shared/models/BoardLayout.ThroneWorld";
 import visuals from "../../shared/data/boardVisuals.throneworld.json" with { type: "json" };
 
 type GradientStop = {

@@ -1,4 +1,4 @@
-import type { BoardGeometry } from "../shared/models/BoardGeometry.ThroneWorld.ts";
+import type { BoardGeometry } from "../shared/models/BoardGeometry.ThroneWorld";
 
 const BOARD_IMAGE_BASE = "/modules/throneworld/boards";
 

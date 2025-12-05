@@ -1,8 +1,8 @@
 import StaticBoardLayer from "./StaticBoardLayer";
 import { ThroneworldSystemLayer } from "./components/ThroneworldSystemLayer";
-import type { ThroneworldGameState } from "../shared/models/GameState.Throneworld.ts";
-import { computeBoardGeometry } from "../shared/models/BoardGeometry.ThroneWorld.ts";
-import { parsePlayerCountFromScenario } from "../shared/utils/scenario.ts";
+import type { ThroneworldGameState } from "../shared/models/GameState.Throneworld";
+import { computeBoardGeometry } from "../shared/models/BoardGeometry.ThroneWorld";
+import { parsePlayerCountFromScenario } from "../shared/utils/scenario";
 
 function getBoardGeometry(gameState: ThroneworldGameState) {
   const playerCount = parsePlayerCountFromScenario(

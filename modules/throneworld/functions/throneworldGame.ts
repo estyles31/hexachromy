@@ -1,9 +1,9 @@
 import { randomInt } from "crypto";
-import { BOARD_HEXES, getWorldType, isInPlay, type WorldType } from "../shared/models/BoardLayout.ThroneWorld.ts";
-import type { ThroneworldGameState, ThroneworldSystemState } from "../shared/models/GameState.Throneworld.ts";
-import type { SystemDefinition, SystemPool } from "../shared/models/Systems.ThroneWorld.ts";
-import systemsJson from "../shared/data/systems.throneworld.json" with { type: "json" };
-import { parsePlayerCountFromScenario } from "../shared/utils/scenario.ts";
+import { BOARD_HEXES, getWorldType, isInPlay, type WorldType } from "../shared/models/BoardLayout.ThroneWorld";
+import type { ThroneworldGameState, ThroneworldSystemState } from "../shared/models/GameState.Throneworld";
+import type { SystemDefinition, SystemPool } from "../shared/models/Systems.ThroneWorld";
+import systemsJson from "../shared/data/systems.throneworld.json";
+import { parsePlayerCountFromScenario } from "../shared/utils/scenario";
 
 const SYSTEM_POOLS = systemsJson as SystemPool;
 type SystemTile = { systemId: string; definition: SystemDefinition };

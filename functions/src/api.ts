@@ -1,6 +1,7 @@
-import { onRequest, type Response } from "firebase-functions/v2/https";
+import { onRequest } from "firebase-functions/v2/https";
 import admin from "firebase-admin";
 import { getFirestore } from "firebase-admin/firestore";
+import type { Request, Response } from "express";
 
 const app = admin.apps.length ? admin.app() : admin.initializeApp();
 const db = getFirestore(app);
@@ -11,7 +12,7 @@ function applyCors(res: Response) {
   res.set("Access-Control-Allow-Methods", "GET,OPTIONS");
 }
 
-export const api = onRequest(async (req, res) => {
+export const api = onRequest(async (req : Request, res : Response) => {
   applyCors(res);
 
   if (req.method === "OPTIONS") {

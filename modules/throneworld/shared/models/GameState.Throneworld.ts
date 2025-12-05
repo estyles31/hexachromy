@@ -1,4 +1,4 @@
-import type { SystemDefinition } from "./Systems.ThroneWorld.ts";
+import type { SystemDefinition } from "./Systems.ThroneWorld";
 
 export interface ThroneworldSystemState extends SystemDefinition {
   systemId: string;

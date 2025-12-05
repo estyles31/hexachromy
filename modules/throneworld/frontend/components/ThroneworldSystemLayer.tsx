@@ -1,6 +1,6 @@
 import SystemMarker from "./SystemMarker";
-import type { BoardGeometry } from "../../shared/models/BoardGeometry.ThroneWorld.ts";
-import type { ThroneworldGameState } from "../../shared/models/GameState.Throneworld.ts";
+import type { BoardGeometry } from "../../shared/models/BoardGeometry.ThroneWorld";
+import type { ThroneworldGameState } from "../../shared/models/GameState.Throneworld";
 
 interface Props {
   gameState: ThroneworldGameState;

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import type { ThroneworldGameState } from "../../shared/models/GameState.Throneworld.ts";
+import type { ThroneworldGameState } from "../../shared/models/GameState.Throneworld";
 
 interface HookState {
   state: ThroneworldGameState | null;

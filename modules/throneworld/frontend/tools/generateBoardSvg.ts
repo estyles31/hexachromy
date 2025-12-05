@@ -5,14 +5,14 @@ import { fileURLToPath } from "url";
 import path from "path";
 
 import { buildDefs, getWorldFill, getBackgroundRects, getBaseStyles, config }
-  from "./svgVisuals.throneworld.ts";
+  from "./svgVisuals.throneworld";
 
 import {
   BOARD_HEXES,
   getWorldType,
   isInPlay,
   type WorldType
-} from "../../shared/models/BoardLayout.ThroneWorld.ts";
+} from "../../shared/models/BoardLayout.ThroneWorld";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

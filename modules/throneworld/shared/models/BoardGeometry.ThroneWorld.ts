@@ -1,4 +1,4 @@
-import { BOARD_HEXES, getWorldType, isInPlay, type WorldType } from "./BoardLayout.ThroneWorld.ts";
+import { BOARD_HEXES, getWorldType, isInPlay, type WorldType } from "./BoardLayout.ThroneWorld";
 
 const HEX_RADIUS = 64;
 const HEX_PADDING = 1;
