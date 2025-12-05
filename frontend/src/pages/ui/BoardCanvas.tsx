@@ -3,8 +3,6 @@ import type { FrontendModuleDefinition } from "../../modules/types";
 import SpaceLayer from "./SpaceLayer";
 import ObjectLayer from "./ObjectLayer";
 import OverlayLayer from "./OverlayLayer";
-import { computeBoardGeometry, type BoardGeometry } from "../../../../modules/throneworld/shared/models/BoardGeometry.ThroneWorld.ts";
-import { parsePlayerCountFromScenario } from "../../../../modules/throneworld/shared/utils/scenario.ts";
 
 export default function BoardCanvas({
   gameState,
@@ -22,27 +20,18 @@ export default function BoardCanvas({
   onSelectObject: (object: any) => void;
 }) {
   const StaticBoardLayer = module?.StaticBoardLayer;
+  const ModuleSpaceLayer = module?.SpaceLayer;
 
-  let boardGeometry: BoardGeometry | undefined;
-  let boardWidth = 800;
-  let boardHeight = 800;
+  const { boardGeometry, width: moduleWidth, height: moduleHeight } =
+    module?.getBoardGeometry?.(gameState) ?? {};
 
-  if (gameState?.gameType === "throneworld") {
-    try {
-      const playerCount = parsePlayerCountFromScenario(
-        typeof gameState.scenario === "string" ? gameState.scenario : undefined,
-        Array.isArray(gameState.playerIds) ? gameState.playerIds.length : 0,
-      );
-      boardGeometry = computeBoardGeometry(playerCount);
-      boardWidth = boardGeometry.width;
-      boardHeight = boardGeometry.height;
-    } catch (err) {
-      console.error(err);
-    }
-  }
+  const boardWidth = moduleWidth ?? 800;
+  const boardHeight = moduleHeight ?? 800;
 
   const objects = Array.isArray(gameState.objects) ? gameState.objects : [];
   const overlaySystems = Array.isArray(gameState.systems) ? gameState.systems : [];
+
+  const SpaceLayerComponent = ModuleSpaceLayer ?? SpaceLayer;
 
   return (
     <div className="board-container">
@@ -50,7 +39,7 @@ export default function BoardCanvas({
 
         {StaticBoardLayer ? <StaticBoardLayer gameState={gameState} boardGeometry={boardGeometry} /> : null}
 
-        <SpaceLayer
+        <SpaceLayerComponent
           gameState={gameState}
           boardGeometry={boardGeometry}
           selectedSystem={selectedSystem}

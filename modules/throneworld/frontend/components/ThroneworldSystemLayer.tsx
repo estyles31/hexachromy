@@ -6,7 +6,7 @@ import type { SystemDefinition, SystemPool } from "../../shared/models/Systems.T
 
 interface Props {
   gameState: ThroneworldGameState;
-  boardGeometry: BoardGeometry;
+  boardGeometry?: BoardGeometry;
   selectedSystem: string | null;
   onSelectSystem: (systemId: string) => void;
 }
@@ -31,6 +31,8 @@ function getSystemDefinition(systemState: ThroneworldSystemState): SystemDefinit
 }
 
 export function ThroneworldSystemLayer({ gameState, boardGeometry, selectedSystem, onSelectSystem }: Props) {
+  if (!boardGeometry) return null;
+
   return (
     <>
       {Object.entries(gameState.systems).map(([hexId, systemState]) => {
