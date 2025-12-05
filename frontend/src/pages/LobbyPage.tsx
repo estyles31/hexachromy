@@ -20,7 +20,7 @@ export default function LobbyPage() {
       <button>Create New Game</button>
 
       <ul>
-        {games.map((game) => (
+        {games.map((game: GameSummary) => (
           <li
             key={game.id}
             style={{ cursor: "pointer" }}

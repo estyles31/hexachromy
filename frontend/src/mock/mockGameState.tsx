@@ -1,4 +1,5 @@
 export const mockGameState = {
+  gameType: "throneworld",
   phase: "Expansion",
   currentPlayer: "Alice",
 
