@@ -1,5 +1,6 @@
 import { randomUUID } from "crypto";
-import { onRequest, type Response } from "firebase-functions/v2/https";
+import { onRequest } from "firebase-functions/v2/https";
+import type { Response, Request } from "express";
 import admin from "firebase-admin";
 import { getFirestore } from "firebase-admin/firestore";
 import { buildInitialGameState } from "../../modules/throneworld/functions/throneworldGame.js";
