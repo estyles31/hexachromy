@@ -14,7 +14,6 @@ function GamePageWrapper() {
   return <GamePage gameState={state} />;
 }
 
-
 export default function App() {
   return (
     <BrowserRouter>

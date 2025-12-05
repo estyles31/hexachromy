@@ -1,7 +1,6 @@
 import SystemMarker from "./SystemMarker";
 import type { BoardGeometry } from "../../shared/models/BoardGeometry.ThroneWorld.ts";
 import type { ThroneworldGameState, ThroneworldSystemState } from "../../shared/models/GameState.Throneworld.ts";
-import systemPools from "../../shared/data/systems.throneworld.json" with { type: "json" };
 import type { SystemDefinition, SystemPool } from "../../shared/models/Systems.ThroneWorld.ts";
 
 interface Props {
