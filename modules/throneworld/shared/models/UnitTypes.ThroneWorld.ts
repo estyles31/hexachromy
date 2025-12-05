@@ -1,4 +1,4 @@
-import raw from "../data/units.throneworld.json" with { type: "json" };
+import raw from "../data/units.throneworld.json";
 import type { ThroneworldUnit } from "./UnitType.ThroneWorld";
 
 // Make the JSON strongly typed

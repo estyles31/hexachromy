@@ -13,6 +13,15 @@
   },
   "compileOnSave": true,
   "include": [
-    "src"
+    "src/**/*",
+    "../modules/*/functions/**/*",
+    "../shared/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "../frontend/*",
+    "../frontend/**/*",
+    "../modules/*/frontend/**/*",
+    "../modules/*/frontend/*"
   ]
 }

@@ -10,17 +10,17 @@ const app = admin.apps.length ? admin.app() : admin.initializeApp();
 const db = getFirestore(app);
 
 const dbAdapter: GameDatabaseAdapter = {
-  async getDocument(path) {
+  async getDocument<T = unknown>(path: string): Promise<T | null> {
     const snapshot = await db.doc(path).get();
-    return snapshot.exists ? (snapshot.data() as unknown) : null;
+    return snapshot.exists ? (snapshot.data() as T) : null;
   },
-  async setDocument(path, data) {
+  async setDocument<T = unknown>(path: string, data: T): Promise<void> {
     await db.doc(path).set(data as Record<string, unknown>);
   },
-  async updateDocument(path, data) {
+  async updateDocument(path: string, data: Record<string, unknown>): Promise<void> {
     await db.doc(path).set(data, { merge: true });
   },
-  async deleteDocument(path) {
+  async deleteDocument(path: string): Promise<void> {
     await db.doc(path).delete();
   },
 };

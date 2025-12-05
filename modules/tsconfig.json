@@ -9,8 +9,5 @@
     "strict": true,
     "target": "es2022"
   },
-  "compileOnSave": true,
-  "include": [
-    "src"
-  ]
+  "compileOnSave": true
 }
