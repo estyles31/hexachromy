@@ -1,41 +1,68 @@
 import fs from "node:fs";
 import path from "node:path";
-import { defineConfig } from "vite";
+import { fileURLToPath } from "node:url";
+
 import react from "@vitejs/plugin-react";
+import { defineConfig } from "vite";
 import { viteStaticCopy } from "vite-plugin-static-copy";
 
-function moduleAssetTargets() {
-  const modulesRoot = path.resolve(__dirname, "../modules");
-  if (!fs.existsSync(modulesRoot)) return [];
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-  return fs.readdirSync(modulesRoot, { withFileTypes: true })
-    .filter((entry) => entry.isDirectory())
-    .flatMap((entry) => {
-      const publicDir = path.join(modulesRoot, entry.name, "frontend", "public");
-      if (!fs.existsSync(publicDir)) return [];
+const modulesDir = path.resolve(__dirname, "../modules");
 
-      return [{
-        src: path.join(publicDir, "**"),
-        dest: path.posix.join("modules", entry.name)
-      }];
-    });
-}
+const moduleAssetTargets =
+  fs.existsSync(modulesDir) && fs.statSync(modulesDir).isDirectory()
+    ? fs
+        .readdirSync(modulesDir, { withFileTypes: true })
+        .filter((d) => d.isDirectory())
+        .flatMap((d) => {
+          const publicDir = path.join(modulesDir, d.name, "frontend", "public");
 
-// https://vite.dev/config/
+          if (!fs.existsSync(publicDir) || !fs.statSync(publicDir).isDirectory()) {
+            return [];
+          }
+
+          return [
+            {
+              src: publicDir.replace(/\\/g, "/") + "/**",
+              dest: path.posix.join("modules", d.name),
+            },
+          ];
+        })
+    : [];
+
 export default defineConfig({
+  root: __dirname,
+  publicDir: "public",
   plugins: [
-    react(),
+    react({
+      include: [
+        "**/*.{tsx,ts}",
+        path.resolve(__dirname, "../modules") + "/**/*.{tsx,ts}",
+        path.resolve(__dirname, "../shared") + "/**/*.{tsx,ts}",
+      ],
+    }),
     viteStaticCopy({
-      targets: moduleAssetTargets(),
-      watch: {}
-    })
+      targets: moduleAssetTargets,
+    }),
   ],
   resolve: {
     alias: {
-      "@game-modules": path.resolve(__dirname, "../modules/index.ts"),
-      "@game-modules/": `${path.resolve(__dirname, "../modules")}/`,
-      "react": path.resolve(__dirname, "node_modules/react"),
-      "react/jsx-runtime": path.resolve(__dirname, "node_modules/react/jsx-runtime.js")
-    }
-  }
+      "@game-modules": path.resolve(__dirname, "../modules"),
+      "@shared": path.resolve(__dirname, "../shared"),
+    },
+    dedupe: ['react', 'react-dom', 'react/jsx-runtime'],
+  },
+  server: {
+    fs: {
+      strict: false,
+      allow: [
+        __dirname,
+        "..",
+        path.resolve(__dirname, "../modules"),
+        path.resolve(__dirname, "../shared")
+      ],
+    },
+  },
 });
