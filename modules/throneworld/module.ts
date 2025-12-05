@@ -1,6 +1,7 @@
 const moduleDefinition = {
   id: "throneworld",
-  // add additional definitions
+  frontendEntry: "./frontend/index.ts",
+  backendEntry: "./functions/throneworldGame.ts",
 };
 
 export default moduleDefinition;
