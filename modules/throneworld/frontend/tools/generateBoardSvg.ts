@@ -1,4 +1,4 @@
-// /hexachromy/public/tools/generateThroneWorldBoardSvg.ts
+// /hexachromy/modules/throneworld/frontend/tools/generateBoardSvg.ts
 
 import fs from "fs";
 import { fileURLToPath } from "url";
@@ -44,16 +44,16 @@ type HexRender = {
 
 /* ───────── Entry point ───────── */
 
-async function main() {
+export async function generateBoardSvgs() {
   const outDir = path.resolve(__dirname, "../public/boards");
   fs.mkdirSync(outDir, { recursive: true });
 
   for (const pc of PLAYER_COUNTS) {
-    const svg = generateSvgForPlayerCount(pc);
-    const fileName = `throneworld-${pc}p.svg`;
-    const outPath = path.join(outDir, fileName);
-    fs.writeFileSync(outPath, svg, "utf-8");
-    console.log(`Wrote ${outPath}`);
+  const svg = generateSvgForPlayerCount(pc);
+  const fileName = `throneworld-${pc}p.svg`;
+  const outPath = path.join(outDir, fileName);
+  fs.writeFileSync(outPath, svg, "utf-8");
+  console.log(`Wrote ${outPath}`);
   }
 }
 
@@ -174,22 +174,11 @@ function hexagonPoints(cx: number, cy: number, r: number): string {
 
 /* ───────── Styling helpers ───────── */
 
-function worldFillColor(type: WorldType): string {
-  switch (type) {
-    case "Homeworld":   return "url(#world-home)";
-    case "Throneworld": return "url(#world-throne)";
-    case "Inner":       return "url(#world-inner)";
-    case "Outer":       return "url(#world-outer)";
-    case "Fringe":      return "url(#world-fringe)";
-    case "NotInPlay":   return "transparent";
-    default:            return "#333";
-  }
-}
-
 function cssWorldTypeClass(type: WorldType): string {
   return type.toLowerCase();
 }
 
 /* ───────── Run ───────── */
-
-main().catch(console.error);
+if (process.argv[1] && path.resolve(process.argv[1]) === __filename) {
+  generateBoardSvgs().catch(console.error);
+}

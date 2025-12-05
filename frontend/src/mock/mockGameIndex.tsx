@@ -5,12 +5,14 @@ export const mockGames: GameSummary[] = [
     id: "game1",
     name: "Throne World #1",
     players: ["Alice", "Bob"],
-    status: "in-progress"
+    status: "in-progress",
+    gameType: "throneworld"
   },
   {
     id: "game2",
     name: "Throne World #2",
     players: ["Carol"],
-    status: "waiting"
+    status: "waiting",
+    gameType: "throneworld"
   }
 ];

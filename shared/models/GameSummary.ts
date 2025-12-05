@@ -5,4 +5,5 @@ export interface GameSummary {
   name: string;
   players: string[];
   status: GameStatus;
+  gameType: string;
 }
