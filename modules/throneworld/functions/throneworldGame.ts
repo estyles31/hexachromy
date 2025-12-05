@@ -4,6 +4,12 @@ import type { ThroneworldGameState, ThroneworldSystemState } from "../shared/mod
 import type { SystemDefinition, SystemPool } from "../shared/models/Systems.ThroneWorld";
 import systemsJson from "../shared/data/systems.throneworld.json";
 import { parsePlayerCountFromScenario } from "../shared/utils/scenario";
+import type {
+  CommitMoveContext,
+  CreateGameContext,
+  GameBackendModule,
+  GetLegalMovesContext,
+} from "../../types.js";
 
 const SYSTEM_POOLS = systemsJson as SystemPool;
 type SystemTile = { systemId: string; definition: SystemDefinition };
@@ -46,11 +52,7 @@ function drawRandomSystem(pool: SystemTile[]): SystemTile {
   return tile;
 }
 
-export function buildInitialGameState(params: {
-  gameId: string;
-  playerIds: string[];
-  scenario?: string;
-}): ThroneworldGameState {
+function buildInitialGameState(params: { gameId: string; playerIds: string[]; scenario?: string }): ThroneworldGameState {
   const { gameId, playerIds } = params;
   const scenario = params.scenario ?? "6p";
   const playerCount = parsePlayerCountFromScenario(scenario, playerIds.length);
@@ -115,3 +117,40 @@ export function buildInitialGameState(params: {
     gameType: "throneworld",
   };
 }
+
+async function createGame(context: CreateGameContext<ThroneworldGameState>): Promise<ThroneworldGameState> {
+  const state = buildInitialGameState({
+    gameId: context.gameId,
+    playerIds: context.playerIds,
+    scenario: context.scenario,
+  });
+
+  context.returnState?.(state);
+
+  return state;
+}
+
+async function commitMove(context: CommitMoveContext): Promise<ThroneworldGameState> {
+  const state = await context.db.getDocument<ThroneworldGameState>(`games/${context.gameId}/state`);
+  if (!state) {
+    throw new Error(`Game ${context.gameId} not found for commitMove`);
+  }
+  return state;
+}
+
+async function getLegalMoves(context: GetLegalMovesContext<ThroneworldGameState>): Promise<unknown[]> {
+  const state =
+    context.state ??
+    (await context.db.getDocument<ThroneworldGameState>(`games/${context.gameId}/state`));
+  if (!state) {
+    throw new Error(`Game ${context.gameId} not found when requesting legal moves`);
+  }
+  return [];
+}
+
+export const throneworldBackend: GameBackendModule = {
+  id: "throneworld",
+  createGame,
+  commitMove,
+  getLegalMoves,
+};
