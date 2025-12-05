@@ -31,4 +31,5 @@ setGlobalOptions({maxInstances: 10});
 //   response.send("Hello from Firebase!");
 // });
 
+export { api } from "./api.js";
 export { throneworld } from "../../modules/throneworld/functions/http.js";
