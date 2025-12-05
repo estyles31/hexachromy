@@ -1,0 +1,14 @@
+export interface ThroneworldSystemState {
+  systemId: string;
+  revealed: boolean;
+  owner: string | null;
+}
+
+export interface ThroneworldGameState {
+  gameId: string;
+  createdAt: number;
+  scenario: string;
+  playerIds: string[];
+  systems: Record<string, ThroneworldSystemState>;
+  gameType: "throneworld";
+}

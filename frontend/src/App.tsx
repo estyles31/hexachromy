@@ -1,19 +1,17 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useParams } from "react-router-dom";
 import LobbyPage from "./pages/LobbyPage";
-
-import { useParams } from "react-router-dom";
-import { mockGameStates } from "./mock/mockGameStates";
 import GamePage from "./pages/GamePage";
+import { useThroneworldGameState } from "../modules/throneworld/frontend/hooks/useThroneworldGameState.ts";
 
 function GamePageWrapper() {
   const { gameId } = useParams();
-  const gameState = mockGameStates[gameId!];
+  const { state, loading, error } = useThroneworldGameState(gameId ?? "");
 
-  if (!gameState) {
-    return <div>Game not found.</div>;
-  }
+  if (loading) return <div>Loading game...</div>;
+  if (error) return <div>Error loading game: {error.message}</div>;
+  if (!state) return <div>Game not found.</div>;
 
-  return <GamePage gameState={gameState} />;
+  return <GamePage gameState={state} />;
 }
 
 

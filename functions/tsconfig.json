@@ -3,6 +3,8 @@
     "module": "NodeNext",
     "esModuleInterop": true,
     "moduleResolution": "nodenext",
+    "resolveJsonModule": true,
+    "allowImportingTsExtensions": true,
     "noImplicitReturns": true,
     "noUnusedLocals": true,
     "outDir": "lib",

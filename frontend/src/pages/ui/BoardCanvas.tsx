@@ -3,6 +3,8 @@ import type { FrontendModuleDefinition } from "../../modules/types";
 import SpaceLayer from "./SpaceLayer";
 import ObjectLayer from "./ObjectLayer";
 import OverlayLayer from "./OverlayLayer";
+import { computeBoardGeometry, type BoardGeometry } from "../../../../modules/throneworld/shared/models/BoardGeometry.ThroneWorld.ts";
+import { parsePlayerCountFromScenario } from "../../../../modules/throneworld/shared/utils/scenario.ts";
 
 export default function BoardCanvas({
   gameState,
@@ -21,20 +23,42 @@ export default function BoardCanvas({
 }) {
   const StaticBoardLayer = module?.StaticBoardLayer;
 
+  let boardGeometry: BoardGeometry | undefined;
+  let boardWidth = 800;
+  let boardHeight = 800;
+
+  if (gameState?.gameType === "throneworld") {
+    try {
+      const playerCount = parsePlayerCountFromScenario(
+        typeof gameState.scenario === "string" ? gameState.scenario : undefined,
+        Array.isArray(gameState.playerIds) ? gameState.playerIds.length : 0,
+      );
+      boardGeometry = computeBoardGeometry(playerCount);
+      boardWidth = boardGeometry.width;
+      boardHeight = boardGeometry.height;
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  const objects = Array.isArray(gameState.objects) ? gameState.objects : [];
+  const overlaySystems = Array.isArray(gameState.systems) ? gameState.systems : [];
+
   return (
     <div className="board-container">
-      <svg width="800" height="800" viewBox="0 0 800 800">
+      <svg width={boardWidth} height={boardHeight} viewBox={`0 0 ${boardWidth} ${boardHeight}`}>
 
-        {StaticBoardLayer ? <StaticBoardLayer /> : null}
+        {StaticBoardLayer ? <StaticBoardLayer gameState={gameState} boardGeometry={boardGeometry} /> : null}
 
         <SpaceLayer
-          systems={gameState.systems}
+          gameState={gameState}
+          boardGeometry={boardGeometry}
           selectedSystem={selectedSystem}
           onSelectSystem={onSelectSystem}
         />
 
         <ObjectLayer
-          objects={gameState.objects}
+          objects={objects}
           selectedObject={selectedObject}
           onSelectObject={onSelectObject}
         />
@@ -42,8 +66,8 @@ export default function BoardCanvas({
         <OverlayLayer
           selectedSystem={selectedSystem}
           selectedObject={selectedObject}
-          systems={gameState.systems}
-          objects={gameState.objects}
+          systems={overlaySystems}
+          objects={objects}
         />
 
       </svg>

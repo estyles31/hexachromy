@@ -30,3 +30,5 @@ setGlobalOptions({maxInstances: 10});
 //   logger.info("Hello logs!", {structuredData: true});
 //   response.send("Hello from Firebase!");
 // });
+
+export { throneworld } from "../../modules/throneworld/functions/http.js";
