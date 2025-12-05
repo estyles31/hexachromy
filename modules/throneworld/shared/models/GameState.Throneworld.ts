@@ -1,4 +1,6 @@
-export interface ThroneworldSystemState {
+import type { SystemDefinition } from "./Systems.ThroneWorld.ts";
+
+export interface ThroneworldSystemState extends SystemDefinition {
   systemId: string;
   revealed: boolean;
   owner: string | null;

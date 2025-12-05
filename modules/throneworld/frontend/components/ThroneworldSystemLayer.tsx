@@ -1,7 +1,6 @@
 import SystemMarker from "./SystemMarker";
 import type { BoardGeometry } from "../../shared/models/BoardGeometry.ThroneWorld.ts";
-import type { ThroneworldGameState, ThroneworldSystemState } from "../../shared/models/GameState.Throneworld.ts";
-import type { SystemDefinition, SystemPool } from "../../shared/models/Systems.ThroneWorld.ts";
+import type { ThroneworldGameState } from "../../shared/models/GameState.Throneworld.ts";
 
 interface Props {
   gameState: ThroneworldGameState;
@@ -9,26 +8,6 @@ interface Props {
   selectedSystem: string | null;
   onSelectSystem: (systemId: string) => void;
 }
-
-const SYSTEM_POOLS = systemPools as SystemPool;
-
-const DEFAULT_SYSTEM: SystemDefinition = {
-  dev: 0,
-  spaceTech: 0,
-  groundTech: 0,
-  spaceUnits: {},
-  groundUnits: {},
-};
-
-function getSystemDefinition(systemState: ThroneworldSystemState): SystemDefinition {
-  const [poolKey, indexStr] = systemState.systemId.split("-");
-  const pool = (SYSTEM_POOLS as Record<string, SystemDefinition[] | undefined>)[poolKey];
-  const idx = Number.parseInt(indexStr ?? "", 10);
-
-  if (!pool || Number.isNaN(idx)) return DEFAULT_SYSTEM;
-  return pool[idx] ?? DEFAULT_SYSTEM;
-}
-
 export function ThroneworldSystemLayer({ gameState, boardGeometry, selectedSystem, onSelectSystem }: Props) {
   if (!boardGeometry) return null;
 
@@ -42,8 +21,6 @@ export function ThroneworldSystemLayer({ gameState, boardGeometry, selectedSyste
         const x = hexGeometry.x - markerSize / 2;
         const y = hexGeometry.y - markerSize / 2;
 
-        const systemDefinition = getSystemDefinition(systemState);
-
         return (
           <g
             key={hexId}
@@ -52,7 +29,7 @@ export function ThroneworldSystemLayer({ gameState, boardGeometry, selectedSyste
             style={{ cursor: "pointer" }}
           >
             <SystemMarker
-              system={systemDefinition}
+              system={systemState}
               worldType={hexGeometry.worldType.toLowerCase()}
               revealed={systemState.revealed}
             />
