@@ -1,7 +1,8 @@
-import { onRequest } from "firebase-functions/v2/https";
+import { randomUUID } from "crypto";
+import { onRequest, type Response } from "firebase-functions/v2/https";
 import admin from "firebase-admin";
 import { getFirestore } from "firebase-admin/firestore";
-import type { Request, Response } from "express";
+import { buildInitialGameState } from "../../modules/throneworld/functions/throneworldGame.js";
 
 const app = admin.apps.length ? admin.app() : admin.initializeApp();
 const db = getFirestore(app);
@@ -9,7 +10,24 @@ const db = getFirestore(app);
 function applyCors(res: Response) {
   res.set("Access-Control-Allow-Origin", "*");
   res.set("Access-Control-Allow-Headers", "Content-Type");
-  res.set("Access-Control-Allow-Methods", "GET,OPTIONS");
+  res.set("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
+}
+
+type CreateGameRequest = {
+  gameType?: unknown;
+  playerIds?: unknown;
+  scenario?: unknown;
+};
+
+type GameCreator = (params: { gameId: string; playerIds: string[]; scenario?: string }) => unknown;
+
+const GAME_CREATORS: Record<string, GameCreator> = {
+  throneworld: ({ gameId, playerIds, scenario }) =>
+    buildInitialGameState({ gameId, playerIds, scenario }),
+};
+
+function isStringArray(value: unknown): value is string[] {
+  return Array.isArray(value) && value.every(item => typeof item === "string");
 }
 
 export const api = onRequest(async (req : Request, res : Response) => {
@@ -17,6 +35,45 @@ export const api = onRequest(async (req : Request, res : Response) => {
 
   if (req.method === "OPTIONS") {
     res.status(204).send("OK");
+    return;
+  }
+
+  if (req.method === "POST" && req.path === "/games") {
+    const { gameType, playerIds, scenario } = (req.body ?? {}) as CreateGameRequest;
+
+    if (!isStringArray(playerIds) || playerIds.length === 0) {
+      res.status(400).json({ error: "playerIds must be a non-empty string array" });
+      return;
+    }
+
+    const normalizedType = typeof gameType === "string" && gameType.trim().length > 0
+      ? gameType.trim()
+      : "throneworld";
+
+    const creator = GAME_CREATORS[normalizedType];
+
+    if (!creator) {
+      res.status(400).json({ error: `Unsupported game type: ${normalizedType}` });
+      return;
+    }
+
+    const gameId = randomUUID();
+
+    try {
+      const state = creator({
+        gameId,
+        playerIds,
+        scenario: typeof scenario === "string" ? scenario : undefined,
+      });
+
+      await db.doc(`games/${gameId}/state`).set(state);
+
+      res.status(200).json({ gameId });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: "Failed to create game" });
+    }
+
     return;
   }
 

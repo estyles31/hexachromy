@@ -32,4 +32,3 @@ setGlobalOptions({maxInstances: 10});
 // });
 
 export { api } from "./api.js";
-export { throneworld } from "../../modules/throneworld/functions/http.js";
