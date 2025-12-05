@@ -35,9 +35,14 @@ The system is divided into three strict layers:
 - Includes:
   - schemas
   - models
-  - board layouts
-  - JSON configuration
   - type definitions
+
+### 4. Modules (`/modules`)
+- Game specific code.
+- /modules/{gamename}/frontend
+- /modules/{gamename}/functions
+- /modules/{gamename}/shared
+- instead of putting anything game specific in the other sections, put everything here and load it dynamically
 
 ---
 
