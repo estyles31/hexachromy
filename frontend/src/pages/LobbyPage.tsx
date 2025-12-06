@@ -16,6 +16,11 @@ export default function LobbyPage() {
   const [user] = useAuthState(auth);
   const navigate = useNavigate();
 
+  const formatResponseError = async (response: Response) => {
+    const text = await response.text();
+    return `Request failed (${response.status} ${response.statusText}): ${text || "<empty body>"}`;
+  };
+
   useEffect(() => {
     let cancelled = false;
 
@@ -35,8 +40,7 @@ export default function LobbyPage() {
         const response = await authFetch(user, "/api/games", { debug: true });
 
         if (!response.ok) {
-          const message = await response.text();
-          throw new Error(message || "Failed to load games");
+          throw new Error(await formatResponseError(response));
         }
 
         const data = (await response.json()) as GameSummary[];
@@ -84,8 +88,7 @@ export default function LobbyPage() {
       });
 
       if (!response.ok) {
-        const message = await response.text();
-        throw new Error(message || "Failed to create game");
+        throw new Error(await formatResponseError(response));
       }
 
       const payload = (await response.json()) as { gameId?: string; id?: string };
@@ -112,6 +115,10 @@ export default function LobbyPage() {
       }
 
       const response = await authFetch(user, "/api/debug/auth", { debug: true });
+
+      if (!response.ok) {
+        throw new Error(await formatResponseError(response));
+      }
 
       const payload = await response.json();
 
