@@ -11,6 +11,13 @@ const __dirname = path.dirname(__filename);
 
 const modulesDir = path.resolve(__dirname, "../modules");
 
+const firebaseProjectId = process.env.FIREBASE_PROJECT_ID ?? "hexachromy";
+const functionsRegion = process.env.FIREBASE_FUNCTIONS_REGION ?? "us-central1";
+const functionsEmulatorOrigin =
+  process.env.FUNCTIONS_EMULATOR_ORIGIN ?? "http://127.0.0.1:5001";
+const functionsEmulatorTarget =
+  `${functionsEmulatorOrigin}/${firebaseProjectId}/${functionsRegion}`;
+
 const moduleAssetTargets =
   fs.existsSync(modulesDir) && fs.statSync(modulesDir).isDirectory()
     ? fs
@@ -81,6 +88,12 @@ export default defineConfig({
         path.resolve(__dirname, "../functions"),
         path.resolve(__dirname, "../modules/*/functions"),
       ],
+    },
+    proxy: {
+      "/api": {
+        target: functionsEmulatorTarget,
+        changeOrigin: true,
+      },
     },
   },
 });

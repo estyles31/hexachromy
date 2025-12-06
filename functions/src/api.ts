@@ -28,8 +28,21 @@ const dbAdapter: GameDatabaseAdapter = {
 
 function applyCors(res: Response) {
   res.set("Access-Control-Allow-Origin", "*");
-  res.set("Access-Control-Allow-Headers", "Content-Type");
+  res.set("Access-Control-Allow-Headers", "Content-Type,Authorization");
   res.set("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
+}
+
+function getBearerToken(req: Request): string | null {
+  const authorization = typeof req.headers.authorization === "string"
+    ? req.headers.authorization
+    : Array.isArray(req.headers.authorization)
+      ? req.headers.authorization[0]
+      : null;
+
+  if (!authorization) return null;
+
+  const match = authorization.match(/^Bearer\s+(.+)$/i);
+  return match?.[1] ?? null;
 }
 
 type CreateGameRequest = {
@@ -49,6 +62,21 @@ export const api = onRequest(async (req : Request, res : Response) => {
 
   if (req.method === "OPTIONS") {
     res.status(204).send("OK");
+    return;
+  }
+
+  const token = getBearerToken(req);
+
+  if (!token) {
+    res.status(401).json({ error: "Authentication required" });
+    return;
+  }
+
+  try {
+    await admin.auth().verifyIdToken(token);
+  } catch (err) {
+    console.error("Failed to verify auth token", err);
+    res.status(401).json({ error: "Invalid authentication token" });
     return;
   }
 
