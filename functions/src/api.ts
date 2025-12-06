@@ -5,6 +5,7 @@ import admin from "firebase-admin";
 import { getFirestore } from "firebase-admin/firestore";
 import { backendModules } from "../../modules/backend.js";
 import type { GameDatabaseAdapter } from "../../modules/types.js";
+import type { GameSummary } from "../../shared/models/GameSummary.js";
 
 const app = admin.apps.length ? admin.app() : admin.initializeApp();
 const db = getFirestore(app);
@@ -91,12 +92,54 @@ export const api = onRequest(async (req : Request, res : Response) => {
         throw new Error("Game module did not return an initial state");
       }
 
-      await dbAdapter.setDocument(`games/${gameId}/state`, resolvedState);
+      const summary: GameSummary = {
+        id: gameId,
+        name:
+          typeof (resolvedState as { name?: unknown })?.name === "string"
+            ? (resolvedState as { name: string }).name
+            : `Game ${gameId}`,
+        players: isStringArray(playerIds) ? playerIds : [],
+        status: "waiting",
+        gameType: normalizedType,
+      };
+
+      await Promise.all([
+        dbAdapter.setDocument(`games/${gameId}/state`, resolvedState),
+        dbAdapter.setDocument(`gameSummaries/${gameId}`, summary),
+      ]);
 
       res.status(200).json({ gameId });
     } catch (err) {
       console.error(err);
       res.status(500).json({ error: "Failed to create game" });
+    }
+
+    return;
+  }
+
+  if (req.method === "GET" && req.path === "/games") {
+    try {
+      const snapshot = await db.collection("gameSummaries").get();
+
+      const games: GameSummary[] = snapshot.docs.map(doc => {
+        const data = doc.data() as Partial<GameSummary>;
+
+        return {
+          id: data.id ?? doc.id,
+          name: data.name ?? `Game ${doc.id}`,
+          players: Array.isArray(data.players) ? data.players.map(String) : [],
+          status:
+            data?.status === "completed" || data?.status === "in-progress" || data?.status === "waiting"
+              ? data.status
+              : "waiting",
+          gameType: data.gameType ?? "unknown",
+        } satisfies GameSummary;
+      });
+
+      res.status(200).json(games);
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: "Failed to load games" });
     }
 
     return;

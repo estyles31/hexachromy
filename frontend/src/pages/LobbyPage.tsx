@@ -1,35 +1,121 @@
 import { useEffect, useState } from "react";
-// import React from "react";
+import { useAuthState } from "react-firebase-hooks/auth";
 import LoginProfile from "../components/LoginProfile";
 import { useNavigate } from "react-router-dom";
-import { mockGames } from "../mock/mockGameIndex";
+import { auth } from "../firebase";
 import type { GameSummary } from "../../../shared/models/GameSummary";
 
 export default function LobbyPage() {
   const [games, setGames] = useState<GameSummary[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [creating, setCreating] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
+  const [user] = useAuthState(auth);
   const navigate = useNavigate();
 
   useEffect(() => {
-    setGames(mockGames);
+    let cancelled = false;
+
+    setLoading(true);
+    setError(null);
+
+    fetch("/api/games")
+      .then(async response => {
+        if (!response.ok) {
+          const message = await response.text();
+          throw new Error(message || "Failed to load games");
+        }
+        return response.json() as Promise<GameSummary[]>;
+      })
+      .then(data => {
+        if (!cancelled) {
+          setGames(data);
+        }
+      })
+      .catch(err => {
+        if (!cancelled) {
+          setError(err instanceof Error ? err.message : "Unknown error");
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
+
+  const handleCreateGame = async () => {
+    setCreateError(null);
+    setCreating(true);
+
+    try {
+      const response = await fetch("/api/games", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          gameType: "throneworld",
+          scenario: "6p",
+          playerIds: [user?.uid ?? "anonymous"],
+        }),
+      });
+
+      if (!response.ok) {
+        const message = await response.text();
+        throw new Error(message || "Failed to create game");
+      }
+
+      const payload = (await response.json()) as { gameId?: string; id?: string };
+      const gameId = payload.gameId ?? payload.id;
+
+      if (!gameId) {
+        throw new Error("Response did not include a gameId");
+      }
+
+      navigate(`/game/${gameId}`);
+    } catch (err) {
+      setCreateError(err instanceof Error ? err.message : "Unknown error");
+    } finally {
+      setCreating(false);
+    }
+  };
 
   return (
     <div>
       <LoginProfile />
       <h1>Hexachromy Lobby</h1>
-      <button>Create New Game</button>
+      <button onClick={handleCreateGame} disabled={creating}>
+        {creating ? "Creating..." : "Create New Game"}
+      </button>
+      {createError ? <div style={{ color: "red" }}>{createError}</div> : null}
 
-      <ul>
-        {games.map((game: GameSummary) => (
-          <li
-            key={game.id}
-            style={{ cursor: "pointer" }}
-            onClick={() => navigate(`/game/${game.id}`)}
-          >
-            <strong>{game.name}</strong> — Players: {game.players.join(", ")} — Status: {game.status}
-          </li>
-        ))}
-      </ul>
+      {loading ? (
+        <div>Loading games...</div>
+      ) : error ? (
+        <div style={{ color: "red" }}>Error loading games: {error}</div>
+      ) : (
+        <ul>
+          {games.map((game: GameSummary) => {
+            const gameId = game.id ?? (game as { gameId?: string }).gameId;
+
+            if (!gameId) return null;
+
+            return (
+              <li
+                key={gameId}
+                style={{ cursor: "pointer" }}
+                onClick={() => navigate(`/game/${gameId}`)}
+              >
+                <strong>{game.name}</strong> — Players: {game.players.join(", ")} — Status: {game.status}
+              </li>
+            );
+          })}
+        </ul>
+      )}
     </div>
   );
 }
