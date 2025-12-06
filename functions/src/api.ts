@@ -60,6 +60,13 @@ const backendRegistry = backendModules;
 export const api = onRequest(async (req : Request, res : Response) => {
   applyCors(res);
 
+  console.info("[api] incoming request", {
+    method: req.method,
+    path: req.path,
+    origin: req.headers.origin,
+    userAgent: req.headers["user-agent"],
+  });
+
   if (req.method === "OPTIONS") {
     res.status(204).send("OK");
     return;
@@ -68,15 +75,48 @@ export const api = onRequest(async (req : Request, res : Response) => {
   const token = getBearerToken(req);
 
   if (!token) {
+    console.warn("[api] missing bearer token", {
+      method: req.method,
+      path: req.path,
+      hasAuthHeader: Boolean(req.headers.authorization),
+    });
     res.status(401).json({ error: "Authentication required" });
     return;
   }
 
+  console.info("[api] received authorization header", {
+    method: req.method,
+    path: req.path,
+    authorizationPreview: `${token.slice(0, 12)}...`,
+  });
+
+  let decoded: admin.auth.DecodedIdToken;
+
   try {
-    await admin.auth().verifyIdToken(token);
+    decoded = await admin.auth().verifyIdToken(token);
+
+    console.info("[api] authenticated request", {
+      method: req.method,
+      path: req.path,
+      uid: decoded.uid,
+      email: decoded.email,
+    });
   } catch (err) {
-    console.error("Failed to verify auth token", err);
+    console.error("[api] failed to verify auth token", err);
     res.status(401).json({ error: "Invalid authentication token" });
+    return;
+  }
+
+  if (req.method === "GET" && req.path === "/debug/auth") {
+    res.status(200).json({
+      uid: decoded.uid,
+      email: decoded.email ?? null,
+      authTime: decoded.auth_time ?? null,
+      issuedAt: decoded.iat ?? null,
+      expiresAt: decoded.exp ?? null,
+      hasAuthorizationHeader: Boolean(req.headers.authorization),
+      authorizationPreview: `${token.slice(0, 12)}...`,
+    });
     return;
   }
 
