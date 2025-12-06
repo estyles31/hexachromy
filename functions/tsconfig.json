@@ -1,27 +1,27 @@
 {
   "compilerOptions": {
-    "module": "NodeNext",
+    "module": "CommonJS",
+    "moduleResolution": "node",
     "esModuleInterop": true,
-    "moduleResolution": "nodenext",
     "resolveJsonModule": true,
     "noImplicitReturns": true,
     "noUnusedLocals": true,
     "outDir": "lib",
+    "rootDir": "..",
     "sourceMap": true,
     "strict": true,
     "target": "es2022"
   },
-  "compileOnSave": true,
   "include": [
     "src/**/*",
+    "../shared/**/*",
     "../modules/*/functions/**/*",
-    "../shared/**/*"
+    "../modules/*/shared/**/*",
+    "../modules/*/backend.ts"
   ],
   "exclude": [
     "node_modules",
-    "../frontend/*",
-    "../frontend/**/*",
-    "../modules/*/frontend/**/*",
-    "../modules/*/frontend/*"
+    "../frontend",
+    "../modules/*/frontend"
   ]
 }
