@@ -3,6 +3,7 @@ import { useAuthState } from "react-firebase-hooks/auth";
 import LoginProfile from "../components/LoginProfile";
 import { useNavigate } from "react-router-dom";
 import { auth } from "../firebase";
+import { authFetch } from "../utils/authFetch";
 import type { GameSummary } from "../../../shared/models/GameSummary";
 
 export default function LobbyPage() {
@@ -11,8 +12,14 @@ export default function LobbyPage() {
   const [error, setError] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
+  const [authDiagnostics, setAuthDiagnostics] = useState<string | null>(null);
   const [user] = useAuthState(auth);
   const navigate = useNavigate();
+
+  const formatResponseError = async (response: Response) => {
+    const text = await response.text();
+    return `Request failed (${response.status} ${response.statusText}): ${text || "<empty body>"}`;
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -30,16 +37,10 @@ export default function LobbyPage() {
       setError(null);
 
       try {
-        const token = await user.getIdToken();
-        const response = await fetch("/api/games", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const response = await authFetch(user, "/api/games", { debug: true });
 
         if (!response.ok) {
-          const message = await response.text();
-          throw new Error(message || "Failed to load games");
+          throw new Error(await formatResponseError(response));
         }
 
         const data = (await response.json()) as GameSummary[];
@@ -74,12 +75,10 @@ export default function LobbyPage() {
         throw new Error("Please sign in to create a game.");
       }
 
-      const token = await user.getIdToken();
-      const response = await fetch("/api/games", {
+      const response = await authFetch(user, "/api/games", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           gameType: "throneworld",
@@ -89,8 +88,7 @@ export default function LobbyPage() {
       });
 
       if (!response.ok) {
-        const message = await response.text();
-        throw new Error(message || "Failed to create game");
+        throw new Error(await formatResponseError(response));
       }
 
       const payload = (await response.json()) as { gameId?: string; id?: string };
@@ -105,6 +103,28 @@ export default function LobbyPage() {
       setCreateError(err instanceof Error ? err.message : "Unknown error");
     } finally {
       setCreating(false);
+    }
+  };
+
+  const handleAuthDiagnostics = async () => {
+    setAuthDiagnostics("Running diagnostics...");
+
+    try {
+      if (!user) {
+        throw new Error("No user is currently signed in.");
+      }
+
+      const response = await authFetch(user, "/api/debug/auth", { debug: true });
+
+      if (!response.ok) {
+        throw new Error(await formatResponseError(response));
+      }
+
+      const payload = await response.json();
+
+      setAuthDiagnostics(JSON.stringify(payload, null, 2));
+    } catch (err) {
+      setAuthDiagnostics(err instanceof Error ? err.message : "Unknown error");
     }
   };
 
@@ -140,6 +160,17 @@ export default function LobbyPage() {
           })}
         </ul>
       )}
+
+      <div style={{ marginTop: "1rem" }}>
+        <button onClick={handleAuthDiagnostics} disabled={creating}>
+          Run auth diagnostics
+        </button>
+        {authDiagnostics ? (
+          <pre style={{ background: "#f6f8fa", padding: "0.5rem", overflowX: "auto" }}>
+            {authDiagnostics}
+          </pre>
+        ) : null}
+      </div>
     </div>
   );
 }

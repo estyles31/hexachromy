@@ -60,6 +60,17 @@ const backendRegistry = backendModules;
 export const api = onRequest(async (req : Request, res : Response) => {
   applyCors(res);
 
+  const rawPath = req.path ?? new URL(req.url ?? "/", "http://localhost").pathname;
+  const path = rawPath.replace(/^\/api\b/, "") || "/";
+
+  console.info("[api] incoming request", {
+    method: req.method,
+    path,
+    rawPath,
+    origin: req.headers.origin,
+    userAgent: req.headers["user-agent"],
+  });
+
   if (req.method === "OPTIONS") {
     res.status(204).send("OK");
     return;
@@ -68,19 +79,52 @@ export const api = onRequest(async (req : Request, res : Response) => {
   const token = getBearerToken(req);
 
   if (!token) {
+    console.warn("[api] missing bearer token", {
+      method: req.method,
+      path,
+      hasAuthHeader: Boolean(req.headers.authorization),
+    });
     res.status(401).json({ error: "Authentication required" });
     return;
   }
 
+  console.info("[api] received authorization header", {
+    method: req.method,
+    path,
+    authorizationPreview: `${token.slice(0, 12)}...`,
+  });
+
+  let decoded: admin.auth.DecodedIdToken;
+
   try {
-    await admin.auth().verifyIdToken(token);
+    decoded = await admin.auth().verifyIdToken(token);
+
+    console.info("[api] authenticated request", {
+      method: req.method,
+      path,
+      uid: decoded.uid,
+      email: decoded.email,
+    });
   } catch (err) {
-    console.error("Failed to verify auth token", err);
+    console.error("[api] failed to verify auth token", err);
     res.status(401).json({ error: "Invalid authentication token" });
     return;
   }
 
-  if (req.method === "POST" && req.path === "/games") {
+  if (req.method === "GET" && path === "/debug/auth") {
+    res.status(200).json({
+      uid: decoded.uid,
+      email: decoded.email ?? null,
+      authTime: decoded.auth_time ?? null,
+      issuedAt: decoded.iat ?? null,
+      expiresAt: decoded.exp ?? null,
+      hasAuthorizationHeader: Boolean(req.headers.authorization),
+      authorizationPreview: `${token.slice(0, 12)}...`,
+    });
+    return;
+  }
+
+  if (req.method === "POST" && path === "/games") {
     const { gameType, playerIds, scenario } = (req.body ?? {}) as CreateGameRequest;
 
     if (!isStringArray(playerIds) || playerIds.length === 0) {
@@ -145,7 +189,7 @@ export const api = onRequest(async (req : Request, res : Response) => {
     return;
   }
 
-  if (req.method === "GET" && req.path === "/games") {
+  if (req.method === "GET" && path === "/games") {
     try {
       const snapshot = await db.collection("gameSummaries").get();
 
@@ -173,8 +217,8 @@ export const api = onRequest(async (req : Request, res : Response) => {
     return;
   }
 
-  if (req.method === "GET" && req.path.startsWith("/games/")) {
-    const [, , maybeId] = req.path.split("/");
+  if (req.method === "GET" && path.startsWith("/games/")) {
+    const [, , maybeId] = path.split("/");
     const gameId = maybeId?.trim();
 
     if (!gameId) {

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { auth } from "../firebase";
+import { authFetch } from "../utils/authFetch";
 
 interface HookState<T> {
   state: T | null;
@@ -32,11 +33,8 @@ export function useGameState<T extends BaseGameState = BaseGameState>(gameId: st
           throw new Error("Authentication required");
         }
 
-        const token = await user.getIdToken();
-
-        const response = await fetch(`/api/games/${gameId}`, {
+        const response = await authFetch(user, `/api/games/${gameId}`, {
           signal: controller.signal,
-          headers: { Authorization: `Bearer ${token}` },
         });
 
         if (!response.ok) {
