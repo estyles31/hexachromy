@@ -35,8 +35,10 @@ service cloud.firestore {
       return isListed(gameData.players) || isListed(gameData.observers);
     }
 
+    // Public game state (the core game document and action history) should be readable
+    // by any authenticated user. Hidden information stays in per-player views.
     function canReadGame(gameData) {
-      return isAdmin() || (isSignedIn() && (gameIsPublic(gameData) || isParticipant(gameData)));
+      return isAdmin() || isSignedIn();
     }
 
     function canReadView(gameData, playerId) {
