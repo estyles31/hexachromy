@@ -1,6 +1,6 @@
-import { systemStyles } from "../config/systemStyles.ts";
-import type { SystemDefinition } from "../../shared/models/Systems.ThroneWorld.ts";
-import { UNITS, type UnitId } from "../../shared/models/UnitTypes.ThroneWorld.ts";
+import { systemStyles } from "../config/systemStyles";
+import type { SystemDefinition } from "../../shared/models/Systems.ThroneWorld";
+import { UNITS, type UnitId } from "../../shared/models/UnitTypes.ThroneWorld";
 
 interface Props {
   system: SystemDefinition;
@@ -42,7 +42,7 @@ export default function SystemMarker({ system, worldType, ownerColor, size = 72,
                     fontSize={size * 0.50}
                     fill="#777"
                 >
-                    typeLabel
+                    {typeLabel}
                 </text>
             </svg>
         );

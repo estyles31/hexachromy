@@ -1,9 +1,11 @@
 import "./PlayerArea.css";
 
 export default function PlayerArea({ gameState }: any) {
+  const players = Array.isArray(gameState.players) ? gameState.players : [];
+
   return (
     <div className="player-area">
-      {gameState.players.map((p: any) => (
+      {players.map((p: any) => (
         <div className="player-panel" key={p.id}>
           <strong>{p.name}</strong>
           <div>Systems: {p.systems}</div>

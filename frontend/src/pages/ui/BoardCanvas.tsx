@@ -20,21 +20,34 @@ export default function BoardCanvas({
   onSelectObject: (object: any) => void;
 }) {
   const StaticBoardLayer = module?.StaticBoardLayer;
+  const ModuleSpaceLayer = module?.SpaceLayer;
+
+  const { boardGeometry, width: moduleWidth, height: moduleHeight } =
+    module?.getBoardGeometry?.(gameState) ?? {};
+
+  const boardWidth = moduleWidth ?? 800;
+  const boardHeight = moduleHeight ?? 800;
+
+  const objects = Array.isArray(gameState.objects) ? gameState.objects : [];
+  const overlaySystems = Array.isArray(gameState.systems) ? gameState.systems : [];
+
+  const SpaceLayerComponent = ModuleSpaceLayer ?? SpaceLayer;
 
   return (
     <div className="board-container">
-      <svg width="800" height="800" viewBox="0 0 800 800">
+      <svg width={boardWidth} height={boardHeight} viewBox={`0 0 ${boardWidth} ${boardHeight}`}>
 
-        {StaticBoardLayer ? <StaticBoardLayer /> : null}
+        {StaticBoardLayer ? <StaticBoardLayer gameState={gameState} boardGeometry={boardGeometry} /> : null}
 
-        <SpaceLayer
-          systems={gameState.systems}
+        <SpaceLayerComponent
+          gameState={gameState}
+          boardGeometry={boardGeometry}
           selectedSystem={selectedSystem}
           onSelectSystem={onSelectSystem}
         />
 
         <ObjectLayer
-          objects={gameState.objects}
+          objects={objects}
           selectedObject={selectedObject}
           onSelectObject={onSelectObject}
         />
@@ -42,8 +55,8 @@ export default function BoardCanvas({
         <OverlayLayer
           selectedSystem={selectedSystem}
           selectedObject={selectedObject}
-          systems={gameState.systems}
-          objects={gameState.objects}
+          systems={overlaySystems}
+          objects={objects}
         />
 
       </svg>

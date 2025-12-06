@@ -38,10 +38,16 @@ export default defineConfig({
   plugins: [
     react({
       include: [
-        "**/*.{tsx,ts}",
-        path.resolve(__dirname, "../modules") + "/**/*.{tsx,ts}",
+        path.resolve(__dirname, "./src") + "/**/*.{tsx,ts}",
         path.resolve(__dirname, "../shared") + "/**/*.{tsx,ts}",
+        path.resolve(__dirname, "../modules") + "/*.{tsx,ts}",
+        path.resolve(__dirname, "../modules") + "/*/frontend/**/*.{tsx,ts}",
+        path.resolve(__dirname, "../modules") + "/*/shared/**/*.{tsx,ts}",
       ],
+      exclude: [
+        path.resolve(__dirname, "../functions") + "/**",
+        path.resolve(__dirname, "../modules") + "/*/functions/**",
+      ],      
     }),
     viteStaticCopy({
       targets: moduleAssetTargets,
@@ -54,6 +60,14 @@ export default defineConfig({
     },
     dedupe: ['react', 'react-dom', 'react/jsx-runtime'],
   },
+  build: {
+    rollupOptions: {
+      external: [
+        /\/functions\//,
+        /\/modules\/[^/]+\/functions\//,
+      ],
+    },
+  },  
   server: {
     fs: {
       strict: false,
@@ -62,6 +76,10 @@ export default defineConfig({
         "..",
         path.resolve(__dirname, "../modules"),
         path.resolve(__dirname, "../shared")
+      ],
+      deny: [
+        path.resolve(__dirname, "../functions"),
+        path.resolve(__dirname, "../modules/*/functions"),
       ],
     },
   },

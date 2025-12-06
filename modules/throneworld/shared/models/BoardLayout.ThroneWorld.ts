@@ -1,4 +1,4 @@
-import data from "../data/boardLayout.throneworld.json" with { type: "json" };
+import data from "../data/boardLayout.throneworld.json";
 
 /* ───────────────────────── */
 /* Types                     */

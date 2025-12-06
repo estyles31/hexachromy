@@ -1,8 +1,15 @@
 export default function SpaceLayer({
-  systems,
+  gameState,
   selectedSystem,
   onSelectSystem
-}: any) {
+}: {
+  gameState: any;
+  boardGeometry?: unknown;
+  selectedSystem: string | null;
+  onSelectSystem: (system: string) => void;
+}) {
+  const systems = Array.isArray(gameState?.systems) ? gameState.systems : [];
+
   return (
     <>
       {systems.map((s: any) => (
@@ -19,4 +26,3 @@ export default function SpaceLayer({
     </>
   );
 }
-

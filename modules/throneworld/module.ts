@@ -1,8 +1,7 @@
-import frontend from "./frontend";
-
 const moduleDefinition = {
   id: "throneworld",
-  frontend
+  frontendEntry: "./frontend/index.ts",
+  backendEntry: "./functions/throneworldGame.ts",
 };
 
 export default moduleDefinition;
