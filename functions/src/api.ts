@@ -88,7 +88,7 @@ function isStringArray(value: unknown): value is string[] {
 
 const backendRegistry = backendModules;
 
-export const api = onRequest(async (req : Request, res : Response) => {
+export const api = onRequest({ invoker: "public" }, async (req : Request, res : Response) => {
   applyCors(res);
 
   const rawPath = req.path ?? new URL(req.url ?? "/", "http://localhost").pathname;
@@ -219,7 +219,7 @@ export const api = onRequest(async (req : Request, res : Response) => {
       };
 
       await Promise.all([
-        dbAdapter.setDocument(`games/${gameId}/state`, resolvedState),
+        dbAdapter.setDocument(`games/${gameId}`, resolvedState),
         dbAdapter.setDocument(`gameSummaries/${gameId}`, summary),
       ]);
 
@@ -269,7 +269,7 @@ export const api = onRequest(async (req : Request, res : Response) => {
       return;
     }
 
-    const state = await dbAdapter.getDocument(`games/${gameId}/state`);
+    const state = await dbAdapter.getDocument(`games/${gameId}`);
 
     if (!state) {
       res.status(404).json({ error: "Game not found" });

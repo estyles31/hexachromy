@@ -53,7 +53,7 @@
 	"Sh": {
 		"id": "Sh",
 		"Name": "Shield",
-		"Symbol": "◔",
+		"Symbol": "🌐",
 		"Type": "Space",
 		"Cost": 5,
 		"Attack": 0,
@@ -105,7 +105,7 @@
 	"L": {
 		"id": "L",
 		"Name": "Light Infantry",
-		"Symbol": "⦿",
+		"Symbol": "🞅",
 		"Type": "Ground",
 		"Cost": 2,
 		"Attack": 2,

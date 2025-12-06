@@ -1,6 +1,6 @@
 import { BOARD_HEXES, getWorldType, isInPlay, type WorldType } from "./BoardLayout.ThroneWorld";
 
-const HEX_RADIUS = 64;
+export const HEX_RADIUS = 64;
 const HEX_PADDING = 1;
 
 const HEX_WIDTH = HEX_RADIUS * 2;

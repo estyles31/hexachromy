@@ -15,7 +15,7 @@ const SYSTEM_POOLS = systemsJson as SystemPool;
 type SystemTile = { systemId: string; definition: SystemDefinition };
 
 const HOMEWORLD_BASE: SystemDefinition = {
-  dev: 0,
+  dev: 10,
   spaceTech: 0,
   groundTech: 0,
   spaceUnits: {},
@@ -77,15 +77,14 @@ function buildInitialGameState(params: { gameId: string; playerIds: string[]; sc
 
     if (worldType === "homeworld") {
       const playerId = homeworldQueue.shift();
-      if (!playerId) {
-        throw new Error("Ran out of players while assigning homeworlds");
+      if (playerId) {
+        systems[hex.id] = {
+          systemId: `homeworld-${playerId}`,
+          revealed: true,
+          owner: playerId,
+          ...HOMEWORLD_BASE,
+        };
       }
-      systems[hex.id] = {
-        systemId: `homeworld-${playerId}`,
-        revealed: true,
-        owner: playerId,
-        ...HOMEWORLD_BASE,
-      };
       continue;
     }
 
@@ -131,7 +130,7 @@ async function createGame(context: CreateGameContext<ThroneworldGameState>): Pro
 }
 
 async function commitMove(context: CommitMoveContext): Promise<ThroneworldGameState> {
-  const state = await context.db.getDocument<ThroneworldGameState>(`games/${context.gameId}/state`);
+  const state = await context.db.getDocument<ThroneworldGameState>(`games/${context.gameId}`);
   if (!state) {
     throw new Error(`Game ${context.gameId} not found for commitMove`);
   }
@@ -141,7 +140,7 @@ async function commitMove(context: CommitMoveContext): Promise<ThroneworldGameSt
 async function getLegalMoves(context: GetLegalMovesContext<ThroneworldGameState>): Promise<unknown[]> {
   const state =
     context.state ??
-    (await context.db.getDocument<ThroneworldGameState>(`games/${context.gameId}/state`));
+    (await context.db.getDocument<ThroneworldGameState>(`games/${context.gameId}`));
   if (!state) {
     throw new Error(`Game ${context.gameId} not found when requesting legal moves`);
   }

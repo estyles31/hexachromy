@@ -45,6 +45,12 @@
     {"dev":6,"spaceTech":0,"groundTech":5,"spaceUnits":{},"groundUnits":{"C":1,"A":2,"H":1}}
   ],
   "fringe": [
+    {"dev":0,"spaceTech":0,"groundTech":0,"spaceUnits":{},"groundUnits":{}},
+    {"dev":0,"spaceTech":0,"groundTech":0,"spaceUnits":{},"groundUnits":{}},
+    {"dev":0,"spaceTech":0,"groundTech":0,"spaceUnits":{},"groundUnits":{}},
+    {"dev":0,"spaceTech":0,"groundTech":0,"spaceUnits":{},"groundUnits":{}},
+    {"dev":0,"spaceTech":0,"groundTech":0,"spaceUnits":{},"groundUnits":{}},
+
     {"dev":1,"spaceTech":0,"groundTech":2,"spaceUnits":{},"groundUnits":{"L":2}},
     {"dev":1,"spaceTech":0,"groundTech":1,"spaceUnits":{},"groundUnits":{"H":1}},
     {"dev":1,"spaceTech":0,"groundTech":3,"spaceUnits":{},"groundUnits":{"L":1}},
@@ -57,18 +63,11 @@
     {"dev":2,"spaceTech":2,"groundTech":1,"spaceUnits":{"Sh":1},"groundUnits":{"L":1}},
     {"dev":2,"spaceTech":1,"groundTech":1,"spaceUnits":{"B":1},"groundUnits":{"L":2}},
 
-    {"dev":3,"spaceTech":1,"groundTech":1,"spaceUnits":{"P":2,"F":1},"groundUnits":{"H":1,"L":1}},
-    {"dev":3,"spaceTech":1,"groundTech":2,"spaceUnits":{"M":1,"F":5},"groundUnits":{"L":2}},
-    {"dev":3,"spaceTech":2,"groundTech":1,"spaceUnits":{"P":2,"F":1},"groundUnits":{"H":1,"L":1}},
-
-    {"dev":4,"spaceTech":3,"groundTech":3,"spaceUnits":{"P":2,"F":2},"groundUnits":{"L":2}},
-    {"dev":5,"spaceTech":4,"groundTech":4,"spaceUnits":{"P":2,"M":1,"F":5},"groundUnits":{"H":2}},
-
-    {"dev":6,"spaceTech":3,"groundTech":1,"spaceUnits":{"B":4},"groundUnits":{"C":1,"A":2}},
-    {"dev":6,"spaceTech":5,"groundTech":4,"spaceUnits":{"Sh":2,"P":2,"F":4},"groundUnits":{"L":1}}
+    {"dev":3,"spaceTech":1,"groundTech":1,"spaceUnits":{"P":1,"F":2},"groundUnits":{"H":1,"L":1}},
+    {"dev":3,"spaceTech":1,"groundTech":2,"spaceUnits":{"M":1,"F":5},"groundUnits":{"L":2}}
   ],
   "inner": [
-   {"dev":5,"spaceTech":5,"groundTech":4,"spaceUnits":{"P":1,"M":2,"F":5},"groundUnits":{"H":2}},
+    {"dev":5,"spaceTech":5,"groundTech":4,"spaceUnits":{"P":1,"M":2,"F":5},"groundUnits":{"H":2}},
     {"dev":5,"spaceTech":5,"groundTech":2,"spaceUnits":{"M":1,"F":5},"groundUnits":{"C":1,"A":2,"H":2}},
     {"dev":5,"spaceTech":4,"groundTech":4,"spaceUnits":{"B":4,"P":2},"groundUnits":{"H":2,"L":2}},
     {"dev":5,"spaceTech":4,"groundTech":5,"spaceUnits":{"Sh":3,"P":1},"groundUnits":{"L":4}},
