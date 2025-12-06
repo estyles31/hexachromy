@@ -1,8 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useAuthState } from "react-firebase-hooks/auth";
 import LoginProfile from "../components/LoginProfile";
 import { useNavigate } from "react-router-dom";
 import { auth } from "../firebase";
+import { authFetch } from "../utils/authFetch";
 import type { GameSummary } from "../../../shared/models/GameSummary";
 
 export default function LobbyPage() {
@@ -11,8 +12,70 @@ export default function LobbyPage() {
   const [error, setError] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
+  const [authDiagnostics, setAuthDiagnostics] = useState<string | null>(null);
+  const [tokenPreview, setTokenPreview] = useState<string | null>(null);
+  const [tokenMeta, setTokenMeta] = useState<{ issuedAt?: string; expiresAt?: string } | null>(
+    null,
+  );
   const [user] = useAuthState(auth);
   const navigate = useNavigate();
+
+  const authContextSummary = useMemo(() => {
+    if (!user) return "<no user>";
+
+    const parts = [`uid=${user.uid}`];
+
+    if (user.email) parts.push(`email=${user.email}`);
+    if (tokenPreview) parts.push(`token=${tokenPreview}`);
+    if (tokenMeta?.issuedAt) parts.push(`issuedAt=${tokenMeta.issuedAt}`);
+    if (tokenMeta?.expiresAt) parts.push(`expiresAt=${tokenMeta.expiresAt}`);
+
+    return parts.join(" | ");
+  }, [tokenMeta, tokenPreview, user]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const captureToken = async () => {
+      if (!user) {
+        setTokenPreview(null);
+        setTokenMeta(null);
+        return;
+      }
+
+      try {
+        const result = await user.getIdTokenResult();
+
+        if (cancelled) return;
+
+        setTokenPreview(`${result.token.slice(0, 12)}...`);
+        setTokenMeta({ issuedAt: result.issuedAtTime, expiresAt: result.expirationTime });
+      } catch (err) {
+        if (!cancelled) {
+          setTokenPreview("<failed to fetch token>");
+          setTokenMeta(null);
+          console.error("Failed to fetch ID token", err);
+        }
+      }
+    };
+
+    void captureToken();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [user]);
+
+  const formatResponseError = async (response: Response, requestLabel: string) => {
+    const text = await response.text();
+
+    return [
+      `${requestLabel} failed (${response.status} ${response.statusText})`,
+      `url=${response.url || "<unknown>"}`,
+      `auth=${authContextSummary}`,
+      `responseBody=${text || "<empty body>"}`,
+    ].join(" | ");
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -30,16 +93,10 @@ export default function LobbyPage() {
       setError(null);
 
       try {
-        const token = await user.getIdToken();
-        const response = await fetch("/api/games", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const response = await authFetch(user, "/api/games", { debug: true });
 
         if (!response.ok) {
-          const message = await response.text();
-          throw new Error(message || "Failed to load games");
+          throw new Error(await formatResponseError(response, "GET /api/games"));
         }
 
         const data = (await response.json()) as GameSummary[];
@@ -49,7 +106,8 @@ export default function LobbyPage() {
         }
       } catch (err) {
         if (!cancelled) {
-          setError(err instanceof Error ? err.message : "Unknown error");
+          const messagePrefix = err instanceof Error ? err.message : "Unknown error";
+          setError(`${messagePrefix} | auth=${authContextSummary}`);
         }
       } finally {
         if (!cancelled) {
@@ -74,12 +132,10 @@ export default function LobbyPage() {
         throw new Error("Please sign in to create a game.");
       }
 
-      const token = await user.getIdToken();
-      const response = await fetch("/api/games", {
+      const response = await authFetch(user, "/api/games", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           gameType: "throneworld",
@@ -89,8 +145,7 @@ export default function LobbyPage() {
       });
 
       if (!response.ok) {
-        const message = await response.text();
-        throw new Error(message || "Failed to create game");
+        throw new Error(await formatResponseError(response, "POST /api/games"));
       }
 
       const payload = (await response.json()) as { gameId?: string; id?: string };
@@ -108,6 +163,28 @@ export default function LobbyPage() {
     }
   };
 
+  const handleAuthDiagnostics = async () => {
+    setAuthDiagnostics("Running diagnostics...");
+
+    try {
+      if (!user) {
+        throw new Error("No user is currently signed in.");
+      }
+
+      const response = await authFetch(user, "/api/debug/auth", { debug: true });
+
+      if (!response.ok) {
+        throw new Error(await formatResponseError(response, "GET /api/debug/auth"));
+      }
+
+      const payload = await response.json();
+
+      setAuthDiagnostics(JSON.stringify(payload, null, 2));
+    } catch (err) {
+      setAuthDiagnostics(err instanceof Error ? err.message : "Unknown error");
+    }
+  };
+
   return (
     <div>
       <LoginProfile />
@@ -116,6 +193,14 @@ export default function LobbyPage() {
         {creating ? "Creating..." : "Create New Game"}
       </button>
       {createError ? <div style={{ color: "red" }}>{createError}</div> : null}
+
+      <div style={{ marginTop: "0.5rem", fontFamily: "monospace", fontSize: "0.9rem" }}>
+        <div><strong>Auth context:</strong> {authContextSummary}</div>
+        <div>
+          <strong>Token timing:</strong> {tokenMeta?.issuedAt ? `issued ${tokenMeta.issuedAt}` : "<unknown>"}
+          {tokenMeta?.expiresAt ? ` | expires ${tokenMeta.expiresAt}` : ""}
+        </div>
+      </div>
 
       {loading ? (
         <div>Loading games...</div>
@@ -140,6 +225,17 @@ export default function LobbyPage() {
           })}
         </ul>
       )}
+
+      <div style={{ marginTop: "1rem" }}>
+        <button onClick={handleAuthDiagnostics} disabled={creating}>
+          Run auth diagnostics
+        </button>
+        {authDiagnostics ? (
+          <pre style={{ background: "#f6f8fa", padding: "0.5rem", overflowX: "auto" }}>
+            {authDiagnostics}
+          </pre>
+        ) : null}
+      </div>
     </div>
   );
 }
