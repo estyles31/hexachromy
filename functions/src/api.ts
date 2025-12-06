@@ -45,6 +45,37 @@ function getBearerToken(req: Request): string | null {
   return match?.[1] ?? null;
 }
 
+function getAuthErrorDetails(err: unknown): {
+  name: string | null;
+  code: string | null;
+  message: string | null;
+} {
+  if (!err || typeof err !== "object") {
+    return { name: null, code: null, message: null };
+  }
+
+  const { name } = err as { name?: unknown };
+  const directCode = (err as { code?: unknown })?.code;
+  const directMessage = (err as { message?: unknown })?.message;
+  const errorInfo = (err as { errorInfo?: { code?: unknown; message?: unknown } }).errorInfo;
+
+  return {
+    name: typeof name === "string" ? name : null,
+    code:
+      typeof directCode === "string"
+        ? directCode
+        : typeof errorInfo?.code === "string"
+          ? errorInfo.code
+          : null,
+    message:
+      typeof directMessage === "string"
+        ? directMessage
+        : typeof errorInfo?.message === "string"
+          ? errorInfo.message
+          : null,
+  };
+}
+
 type CreateGameRequest = {
   gameType?: unknown;
   playerIds?: unknown;
@@ -106,8 +137,20 @@ export const api = onRequest(async (req : Request, res : Response) => {
       email: decoded.email,
     });
   } catch (err) {
-    console.error("[api] failed to verify auth token", err);
-    res.status(401).json({ error: "Invalid authentication token" });
+    const authErrorDetails = getAuthErrorDetails(err);
+
+    console.error("[api] failed to verify auth token", {
+      method: req.method,
+      path,
+      error: authErrorDetails,
+      raw: err,
+    });
+
+    res.status(401).json({
+      error: "Invalid authentication token",
+      reason: authErrorDetails.code ?? authErrorDetails.name ?? null,
+      message: authErrorDetails.message,
+    });
     return;
   }
 
