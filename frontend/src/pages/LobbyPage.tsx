@@ -12,6 +12,7 @@ export default function LobbyPage() {
   const [error, setError] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
+  const [authDiagnostics, setAuthDiagnostics] = useState<string | null>(null);
   const [user] = useAuthState(auth);
   const navigate = useNavigate();
 
@@ -31,7 +32,7 @@ export default function LobbyPage() {
       setError(null);
 
       try {
-        const response = await authFetch(user, "/api/games");
+        const response = await authFetch(user, "/api/games", { debug: true });
 
         if (!response.ok) {
           const message = await response.text();
@@ -102,6 +103,24 @@ export default function LobbyPage() {
     }
   };
 
+  const handleAuthDiagnostics = async () => {
+    setAuthDiagnostics("Running diagnostics...");
+
+    try {
+      if (!user) {
+        throw new Error("No user is currently signed in.");
+      }
+
+      const response = await authFetch(user, "/api/debug/auth", { debug: true });
+
+      const payload = await response.json();
+
+      setAuthDiagnostics(JSON.stringify(payload, null, 2));
+    } catch (err) {
+      setAuthDiagnostics(err instanceof Error ? err.message : "Unknown error");
+    }
+  };
+
   return (
     <div>
       <LoginProfile />
@@ -134,6 +153,17 @@ export default function LobbyPage() {
           })}
         </ul>
       )}
+
+      <div style={{ marginTop: "1rem" }}>
+        <button onClick={handleAuthDiagnostics} disabled={creating}>
+          Run auth diagnostics
+        </button>
+        {authDiagnostics ? (
+          <pre style={{ background: "#f6f8fa", padding: "0.5rem", overflowX: "auto" }}>
+            {authDiagnostics}
+          </pre>
+        ) : null}
+      </div>
     </div>
   );
 }
