@@ -17,46 +17,70 @@ export default function LobbyPage() {
   useEffect(() => {
     let cancelled = false;
 
-    setLoading(true);
-    setError(null);
+    if (!user) {
+      setError("Please sign in to view games.");
+      setLoading(false);
+      return () => {
+        cancelled = true;
+      };
+    }
 
-    fetch("/api/games")
-      .then(async response => {
+    const loadGames = async () => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        const token = await user.getIdToken();
+        const response = await fetch("/api/games", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
         if (!response.ok) {
           const message = await response.text();
           throw new Error(message || "Failed to load games");
         }
-        return response.json() as Promise<GameSummary[]>;
-      })
-      .then(data => {
+
+        const data = (await response.json()) as GameSummary[];
+
         if (!cancelled) {
           setGames(data);
         }
-      })
-      .catch(err => {
+      } catch (err) {
         if (!cancelled) {
           setError(err instanceof Error ? err.message : "Unknown error");
         }
-      })
-      .finally(() => {
+      } finally {
         if (!cancelled) {
           setLoading(false);
         }
-      });
+      }
+    };
+
+    void loadGames();
 
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [user]);
 
   const handleCreateGame = async () => {
     setCreateError(null);
     setCreating(true);
 
     try {
+      if (!user) {
+        throw new Error("Please sign in to create a game.");
+      }
+
+      const token = await user.getIdToken();
       const response = await fetch("/api/games", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify({
           gameType: "throneworld",
           scenario: "6p",
