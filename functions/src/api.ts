@@ -60,6 +60,13 @@ const backendRegistry = backendModules;
 export const api = onRequest(async (req : Request, res : Response) => {
   applyCors(res);
 
+  console.info("[api] incoming request", {
+    method: req.method,
+    path: req.path,
+    origin: req.headers.origin,
+    userAgent: req.headers["user-agent"],
+  });
+
   if (req.method === "OPTIONS") {
     res.status(204).send("OK");
     return;
@@ -68,14 +75,25 @@ export const api = onRequest(async (req : Request, res : Response) => {
   const token = getBearerToken(req);
 
   if (!token) {
+    console.warn("[api] missing bearer token", {
+      method: req.method,
+      path: req.path,
+    });
     res.status(401).json({ error: "Authentication required" });
     return;
   }
 
   try {
-    await admin.auth().verifyIdToken(token);
+    const decoded = await admin.auth().verifyIdToken(token);
+
+    console.info("[api] authenticated request", {
+      method: req.method,
+      path: req.path,
+      uid: decoded.uid,
+      email: decoded.email,
+    });
   } catch (err) {
-    console.error("Failed to verify auth token", err);
+    console.error("[api] failed to verify auth token", err);
     res.status(401).json({ error: "Invalid authentication token" });
     return;
   }
