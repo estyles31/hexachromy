@@ -1,13 +1,15 @@
 import { systemStyles } from "../config/systemStyles";
 import type { SystemDefinition } from "../../shared/models/Systems.ThroneWorld";
+import type { ThroneworldSystemDetails } from "../../shared/models/GameState.Throneworld";
 import { UNITS } from "../../shared/models/UnitTypes.ThroneWorld";
 
 interface Props {
-  system: SystemDefinition;
+  system: ThroneworldSystemDetails | SystemDefinition;
   worldType: string;
   ownerColor?: string;
   size?: number;
   revealed?: boolean;
+  scannerColors?: string[];
   onHover?: (isHovering: boolean) => void;
 }
 
@@ -52,17 +54,26 @@ const LAYOUT = {
     labelY: 0.55,
     labelFontSize: 0.50,
   },
+
+  scanner: {
+    cx: 0.9,
+    startY: 0.2,
+    spacing: 0.14,
+    radius: 0.05,
+    strokeWidth: 1.25,
+  },
 };
 
 export const DEFAULT_SIZE = 36;
 
 export function SystemMarker({ 
   system, 
-  worldType, 
-  ownerColor, 
-  size = DEFAULT_SIZE, 
-  revealed = true, 
-  onHover 
+  worldType,
+  ownerColor,
+  size = DEFAULT_SIZE,
+  revealed = true,
+  scannerColors = [],
+  onHover
 }: Props) {
   worldType = worldType.toLowerCase();
   const styleKey = worldType as keyof typeof systemStyles;
@@ -70,7 +81,28 @@ export function SystemMarker({
 
   revealed = revealed || worldType === "homeworld";
   const typeLabel = worldType == "throneworld" ? "TW" : worldType.charAt(0).toUpperCase();
-  
+
+  const scannerMarkers = scannerColors.slice(0, 6);
+
+  const renderScannerMarkers = () => (
+    <g>
+      {scannerMarkers.map((color, index) => {
+        const cy = size * (LAYOUT.scanner.startY + index * LAYOUT.scanner.spacing);
+        return (
+          <circle
+            key={`${color}-${index}`}
+            cx={size * LAYOUT.scanner.cx}
+            cy={cy}
+            r={size * LAYOUT.scanner.radius}
+            fill={color}
+            stroke="black"
+            strokeWidth={LAYOUT.scanner.strokeWidth}
+          />
+        );
+      })}
+    </g>
+  );
+
   // FOGGED VERSION
   if (!revealed) {
     return (
@@ -95,6 +127,7 @@ export function SystemMarker({
         >
           {typeLabel}
         </text>
+        {renderScannerMarkers()}
       </svg>
     );
   }
@@ -143,6 +176,8 @@ export function SystemMarker({
       >
         {system.dev}
       </text>
+
+      {renderScannerMarkers()}
 
       {/* Space units column (left side, bottom-aligned) */}
       {spaceEntries.length > 0 && (
