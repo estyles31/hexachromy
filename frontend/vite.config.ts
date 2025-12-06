@@ -55,7 +55,7 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
-      "@game-modules": path.resolve(__dirname, "../modules"),
+      "@game-modules": path.resolve(__dirname, "../modules/frontend.ts"),
       "@shared": path.resolve(__dirname, "../shared"),
     },
     dedupe: ['react', 'react-dom', 'react/jsx-runtime'],
