@@ -3,6 +3,7 @@ import { useAuthState } from "react-firebase-hooks/auth";
 import LoginProfile from "../components/LoginProfile";
 import { useNavigate } from "react-router-dom";
 import { auth } from "../firebase";
+import { authFetch } from "../utils/authFetch";
 import type { GameSummary } from "../../../shared/models/GameSummary";
 
 export default function LobbyPage() {
@@ -30,12 +31,7 @@ export default function LobbyPage() {
       setError(null);
 
       try {
-        const token = await user.getIdToken();
-        const response = await fetch("/api/games", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const response = await authFetch(user, "/api/games");
 
         if (!response.ok) {
           const message = await response.text();
@@ -74,12 +70,10 @@ export default function LobbyPage() {
         throw new Error("Please sign in to create a game.");
       }
 
-      const token = await user.getIdToken();
-      const response = await fetch("/api/games", {
+      const response = await authFetch(user, "/api/games", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           gameType: "throneworld",
