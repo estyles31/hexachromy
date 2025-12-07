@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- Outer hex -->
+  <polygon
+    points="50,4 93,27 93,73 50,96 7,73 7,27"
+    fill="#0b1020"
+    stroke="#e6e6e6"
+    stroke-width="6"
+  />
+
+  <!-- Inner circuit ring -->
+  <circle
+    cx="50"
+    cy="50"
+    r="26"
+    fill="none"
+    stroke="#5ac8fa"
+    stroke-width="4"
+    stroke-dasharray="8 5"
+  />
+
+  <!-- Central node -->
+  <circle
+    cx="50"
+    cy="50"
+    r="5"
+    fill="#c77dff"
+  />
+</svg>
