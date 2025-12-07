@@ -30,14 +30,17 @@ export default function PlanetArc({ dev, worldType, cx, cy, r, ownerColor }: Pro
   const x2 = cx + r;      // midpoint of right edge
   const y2 = cy;
 
-  // Control point pulls arc upward
+  const bottomRightX = cx + r * 0.5;
+  const bottomRightY = cy + (Math.sqrt(3) / 2) * r;
+
+  // Control point pulls arc upward (deeper fill to occupy ~35-40% of the hex height)
   const cpx = cx;
-  const cpy = cy + r * 0.35;
+  const cpy = cy + r * 0.65;
 
   const pathData = `
     M ${x1} ${y1}
     Q ${cpx} ${cpy} ${x2} ${y2}
-    L ${cx} ${cy + r * 1.2}
+    L ${bottomRightX} ${bottomRightY}
     Z
   `;
 

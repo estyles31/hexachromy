@@ -228,6 +228,7 @@ function normalizePlayerSummaries(value: unknown): PlayerSummary[] {
       id,
       name: typeof maybe.name === "string" ? maybe.name : id,
       status,
+      race: typeof maybe.race === "string" ? maybe.race : undefined,
     } satisfies PlayerSummary;
   });
 }
@@ -507,6 +508,8 @@ export const api = onRequest({ invoker: "public" }, async (req : Request, res : 
         throw new Error("Game module did not return an initial state");
       }
 
+      const resolvedOptions = (resolvedState as { options?: Record<string, unknown> })?.options ?? {};
+
       const everyoneReady = playerSummaries.every(player => player.status === "joined" || player.status === "dummy");
 
       const summary: GameSummary = {
@@ -521,9 +524,7 @@ export const api = onRequest({ invoker: "public" }, async (req : Request, res : 
         status: everyoneReady ? "in-progress" : "waiting",
         gameType: normalizedType,
         boardId: selectedBoard?.id ?? (typeof resolvedBoardId === "string" ? resolvedBoardId : undefined),
-        options: {
-          startScannedForAll: startScanned,
-        },
+        options: typeof resolvedOptions === "object" ? resolvedOptions : undefined,
       };
 
       await Promise.all([
@@ -640,7 +641,7 @@ export const api = onRequest({ invoker: "public" }, async (req : Request, res : 
           gameType: data.gameType ?? "unknown",
           boardId: data.boardId,
           options: typeof data.options === "object" && data.options
-            ? { startScannedForAll: Boolean((data.options as { startScannedForAll?: unknown }).startScannedForAll) }
+            ? (data.options as Record<string, unknown>)
             : undefined,
         } satisfies GameSummary;
       });
@@ -670,16 +671,21 @@ export const api = onRequest({ invoker: "public" }, async (req : Request, res : 
       return;
     }
 
+    const summarySnapshot = await db.doc(`gameSummaries/${gameId}`).get();
+    const players = summarySnapshot.exists
+      ? normalizePlayerSummaries((summarySnapshot.data() as Partial<GameSummary>).players)
+      : [];
+
     if ((state as { gameType?: unknown }).gameType === "throneworld") {
       const playerView =
         (await dbAdapter.getDocument<ThroneworldPlayerView>(`games/${gameId}/playerViews/${decoded.uid}`)) ??
         { playerId: decoded.uid, systems: {} };
 
-      res.status(200).json({ ...state, playerView });
+      res.status(200).json({ ...state, players, playerView });
       return;
     }
 
-    res.status(200).json(state);
+    res.status(200).json({ ...state, players });
     return;
   }
 

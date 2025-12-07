@@ -4,6 +4,7 @@ import BoardCanvas from "./ui/BoardCanvas";
 import PlayerArea from "./ui/PlayerArea";
 import InfoPanel from "./ui/InfoPanel";
 import { getFrontendModule } from "../modules/getFrontendModule";
+import type { HoveredSystemInfo } from "../modules/types";
 
 type GamePageProps = {
   gameState: {
@@ -13,10 +14,12 @@ type GamePageProps = {
 };
 
 export default function GamePage({ gameState }: GamePageProps) {
-  const [selectedSystem, setSelectedSystem] = useState<string | null>(null);
-  const [selectedObject, setSelectedObject] = useState<string | null>(null);
+  const [hoveredSystem, setHoveredSystem] = useState<HoveredSystemInfo | null>(null);
 
   const module = getFrontendModule(gameState.gameType);
+
+  const PlayerAreaComponent = module?.PlayerArea ?? PlayerArea;
+  const InfoPanelComponent = module?.InfoPanel ?? InfoPanel;
 
   if (!module) {
     return <div>Unsupported game type: {gameState.gameType}</div>;
@@ -27,17 +30,10 @@ export default function GamePage({ gameState }: GamePageProps) {
       <BoardCanvas
         gameState={gameState}
         module={module}
-        selectedSystem={selectedSystem}
-        selectedObject={selectedObject}
-        onSelectSystem={setSelectedSystem}
-        onSelectObject={setSelectedObject}
+        onHoverSystem={setHoveredSystem}
       />
-      <PlayerArea gameState={gameState} />
-      <InfoPanel
-        gameState={gameState}
-        selectedSystem={selectedSystem}
-        selectedObject={selectedObject}
-      />
+      <PlayerAreaComponent gameState={gameState} />
+      <InfoPanelComponent gameState={gameState} hoveredSystem={hoveredSystem} />
     </div>
   );
 }

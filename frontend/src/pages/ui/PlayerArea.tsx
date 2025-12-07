@@ -1,18 +1,38 @@
 import "./PlayerArea.css";
 
-export default function PlayerArea({ gameState }: any) {
-  const players = Array.isArray(gameState.players) ? gameState.players : [];
+type PlayerSummary = {
+  id: string;
+  name?: string;
+  race?: string;
+};
+
+export default function PlayerArea({ gameState }: { gameState: any }) {
+  const players: PlayerSummary[] = Array.isArray(gameState.players)
+    ? gameState.players
+    : Array.isArray(gameState.playerIds)
+      ? gameState.playerIds.map((id: string) => ({ id, name: id }))
+      : [];
+
+  const playerStatuses =
+    gameState && typeof gameState.playerStatuses === "object" && gameState.playerStatuses !== null
+      ? (gameState.playerStatuses as Record<string, string>)
+      : {};
 
   return (
     <div className="player-area">
-      {players.map((p: any) => (
-        <div className="player-panel" key={p.id}>
-          <strong>{p.name}</strong>
-          <div>Systems: {p.systems}</div>
-          <div>Credits: {p.credits}</div>
-          <div>Tech: {p.tech.join(", ")}</div>
-        </div>
-      ))}
+      <h3 className="player-area__title">Players</h3>
+      {players.map(player => {
+        const status = playerStatuses[player.id] ?? "joined";
+        const race = player.race;
+
+        return (
+          <div className="player-panel" key={player.id}>
+            <div className="player-name">{player.name ?? player.id}</div>
+            {race ? <div className="player-meta">Race: {race}</div> : null}
+            <div className="player-status">Status: {status}</div>
+          </div>
+        );
+      })}
     </div>
   );
 }
