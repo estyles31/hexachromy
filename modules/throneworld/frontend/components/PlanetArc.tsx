@@ -24,10 +24,10 @@ export default function PlanetArc({ dev, worldType, cx, cy, r, ownerColor }: Pro
   const gradientId = `planet-grad-${cx}-${cy}`;
 
   // Geometry for arc (bottom-left vertex → midpoint right)
-  const x1 = cx - r * 0.5;
-  const y1 = cy + (Math.sqrt(3) / 2) * r;
+  const x1 = cx - r * 0.5 + 2;
+  const y1 = cy + (Math.sqrt(3) / 2) * r - 1;
 
-  const x2 = cx + r;      // midpoint of right edge
+  const x2 = cx + r - 2;      // midpoint of right edge
   const y2 = cy;
 
   const bottomRightX = cx + r * 0.5;
@@ -35,7 +35,7 @@ export default function PlanetArc({ dev, worldType, cx, cy, r, ownerColor }: Pro
 
   // Control point pulls arc upward (deeper fill to occupy ~35-40% of the hex height)
   const cpx = cx;
-  const cpy = cy + r * 0.65;
+  const cpy = cy; // + r * 0.65;
 
   const pathData = `
     M ${x1} ${y1}
