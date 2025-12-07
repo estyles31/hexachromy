@@ -28,13 +28,23 @@ export interface ThroneworldPlayerView {
   systems: Record<string, ThroneworldSystemDetails>;
 }
 
+export type ThroneworldPlayerStatus = "joined" | "invited" | "dummy";
+export type ThroneworldGameStatus = "waiting" | "in-progress";
+
 export interface ThroneworldGameState {
   gameId: string;
+  name?: string;
   createdAt: number;
   scenario: string;
+  boardId: string;
   playerIds: string[];
+  playerStatuses: Record<string, ThroneworldPlayerStatus>;
   systems: Record<string, ThroneworldPublicSystemState>;
   gameType: "throneworld";
+  status: ThroneworldGameStatus;
+  options?: {
+    startScannedForAll?: boolean;
+  };
 }
 
 export interface ThroneworldGameView extends ThroneworldGameState {

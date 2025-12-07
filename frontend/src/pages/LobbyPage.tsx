@@ -5,6 +5,10 @@ import { useNavigate } from "react-router-dom";
 import { auth } from "../firebase";
 import { authFetch } from "../utils/authFetch";
 import type { GameSummary } from "../../../shared/models/GameSummary";
+import type {
+  ThroneworldBoardDefinition,
+  ThroneworldGameDefinition,
+} from "../../../modules/throneworld/shared/models/GameDefinition.Throneworld";
 
 export default function LobbyPage() {
   const [games, setGames] = useState<GameSummary[]>([]);
@@ -17,6 +21,12 @@ export default function LobbyPage() {
   const [tokenMeta, setTokenMeta] = useState<{ issuedAt?: string; expiresAt?: string } | null>(
     null,
   );
+  const [definition, setDefinition] = useState<ThroneworldGameDefinition | null>(null);
+  const [selectedBoardId, setSelectedBoardId] = useState<string>("");
+  const [invitedPlayers, setInvitedPlayers] = useState<string>("");
+  const [dummyPlayers, setDummyPlayers] = useState<string>("");
+  const [gameName, setGameName] = useState<string>("");
+  const [startScannedForAll, setStartScannedForAll] = useState<boolean>(false);
   const [user] = useAuthState(auth);
   const navigate = useNavigate();
 
@@ -83,10 +93,36 @@ export default function LobbyPage() {
     if (!user) {
       setError("Please sign in to view games.");
       setLoading(false);
+      setDefinition(null);
       return () => {
         cancelled = true;
       };
     }
+
+    const loadDefinition = async () => {
+      try {
+        const response = await authFetch(user, "/api/game-definitions/throneworld");
+
+        if (!response.ok) {
+          throw new Error(await formatResponseError(response, "GET /api/game-definitions/throneworld"));
+        }
+
+        const data = (await response.json()) as ThroneworldGameDefinition;
+
+        if (!cancelled) {
+          setDefinition(data);
+          setSelectedBoardId(current =>
+            current || data.defaultBoardId || data.boards[0]?.id || "",
+          );
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setError(err instanceof Error ? err.message : "Unknown error");
+        }
+      }
+    };
+
+    void loadDefinition();
 
     const loadGames = async () => {
       setLoading(true);
@@ -132,6 +168,31 @@ export default function LobbyPage() {
         throw new Error("Please sign in to create a game.");
       }
 
+      const board: ThroneworldBoardDefinition | undefined =
+        definition?.boards.find(candidate => candidate.id === selectedBoardId) ??
+        (definition?.defaultBoardId
+          ? definition?.boards.find(candidate => candidate.id === definition.defaultBoardId)
+          : undefined);
+
+      const inviteList = invitedPlayers
+        .split(",")
+        .map(item => item.trim())
+        .filter(Boolean);
+
+      const dummyList = dummyPlayers
+        .split(",")
+        .map(item => item.trim())
+        .filter(Boolean);
+
+      const requiredPlayers = board?.playerCount;
+      const totalProvided = 1 + inviteList.length + dummyList.length;
+
+      if (requiredPlayers && totalProvided !== requiredPlayers) {
+        throw new Error(
+          `Board requires ${requiredPlayers} players (including you). Add invites or dummy players to match the total.`,
+        );
+      }
+
       const response = await authFetch(user, "/api/games", {
         method: "POST",
         headers: {
@@ -139,8 +200,11 @@ export default function LobbyPage() {
         },
         body: JSON.stringify({
           gameType: "throneworld",
-          scenario: "6p",
-          playerIds: [user?.uid ?? "anonymous"],
+          boardId: board?.id ?? definition?.defaultBoardId,
+          invitedPlayers: inviteList,
+          dummyPlayers: dummyList,
+          name: gameName || undefined,
+          startScannedForAll,
         }),
       });
 
@@ -189,9 +253,63 @@ export default function LobbyPage() {
     <div>
       <LoginProfile />
       <h1>Hexachromy Lobby</h1>
-      <button onClick={handleCreateGame} disabled={creating}>
-        {creating ? "Creating..." : "Create New Game"}
-      </button>
+      <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", maxWidth: 480 }}>
+        <label>
+          Game name
+          <input
+            type="text"
+            value={gameName}
+            onChange={event => setGameName(event.target.value)}
+            placeholder="Optional"
+            style={{ display: "block", width: "100%", marginTop: 4 }}
+          />
+        </label>
+        <label>
+          Board
+          <select
+            value={selectedBoardId}
+            onChange={event => setSelectedBoardId(event.target.value)}
+            style={{ display: "block", width: "100%", marginTop: 4 }}
+          >
+            {definition?.boards.map(board => (
+              <option key={board.id} value={board.id}>
+                {board.name} — {board.playerCount} players
+              </option>
+            ))}
+          </select>
+        </label>
+        <label>
+          Invite player UIDs (comma separated)
+          <input
+            type="text"
+            value={invitedPlayers}
+            onChange={event => setInvitedPlayers(event.target.value)}
+            placeholder="uid-1, uid-2"
+            style={{ display: "block", width: "100%", marginTop: 4 }}
+          />
+        </label>
+        <label>
+          Dummy player names (comma separated)
+          <input
+            type="text"
+            value={dummyPlayers}
+            onChange={event => setDummyPlayers(event.target.value)}
+            placeholder="Bot A, Bot B"
+            style={{ display: "block", width: "100%", marginTop: 4 }}
+          />
+        </label>
+        <label style={{ display: "flex", gap: 8, alignItems: "center" }}>
+          <input
+            type="checkbox"
+            checked={startScannedForAll}
+            onChange={event => setStartScannedForAll(event.target.checked)}
+          />
+          Start with all tiles scanned (debug)
+        </label>
+        <button onClick={handleCreateGame} disabled={creating}>
+          {creating ? "Creating..." : "Create New Game"}
+        </button>
+      </div>
       {createError ? <div style={{ color: "red" }}>{createError}</div> : null}
 
       <div style={{ marginTop: "0.5rem", fontFamily: "monospace", fontSize: "0.9rem" }}>
@@ -213,13 +331,15 @@ export default function LobbyPage() {
 
             if (!gameId) return null;
 
+            const playerNames = (game.players ?? []).map(player => player.name).join(", ");
+
             return (
               <li
                 key={gameId}
                 style={{ cursor: "pointer" }}
                 onClick={() => navigate(`/game/${gameId}`)}
               >
-                <strong>{game.name}</strong> — Players: {game.players.join(", ")} — Status: {game.status}
+                <strong>{game.name}</strong> — Players: {playerNames || "<none>"} — Status: {game.status}
               </li>
             );
           })}
