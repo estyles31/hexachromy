@@ -192,7 +192,6 @@ type CreateGameRequest = {
   scenario?: unknown;
   boardId?: unknown;
   invitedPlayers?: unknown;
-  dummyPlayers?: unknown;
   name?: unknown;
   startScannedForAll?: unknown;
   options?: unknown;
@@ -333,7 +332,6 @@ export const api = onRequest({ invoker: "public" }, async (req : Request, res : 
       scenario,
       boardId,
       invitedPlayers,
-      dummyPlayers,
       name,
       options,
       playerSlots,
@@ -517,7 +515,7 @@ export const api = onRequest({ invoker: "public" }, async (req : Request, res : 
         scenario: scenarioToUse,
         db: dbAdapter,
         options: backendOptions,
-        returnState: value => {
+        returnState: (value: unknown) => {
           createdState = value;
         },
       });
@@ -763,15 +761,16 @@ export const api = onRequest({ invoker: "public" }, async (req : Request, res : 
       ? normalizePlayerSummaries((summarySnapshot.data() as Partial<GameSummary>).players)
       : [];
 
-      const gameType = (state as { gameType?: unknown }).gameType;
+    const gameType = (state as { gameType?: unknown }).gameType;
+    const module = typeof gameType === "string" ? backendRegistry[gameType] : undefined;
 
     const extraResponse = module?.api?.buildPlayerResponse
       ? await module.api.buildPlayerResponse({
-        gameId,
-        playerId: decoded.uid,
-        state,
-        db: dbAdapter,
-      })
+          gameId,
+          playerId: decoded.uid,
+          state,
+          db: dbAdapter,
+        })
       : {};
 
     res.status(200).json({ ...state, players, ...(extraResponse ?? {}) });

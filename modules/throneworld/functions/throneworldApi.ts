@@ -118,7 +118,7 @@ async function addThroneworldPlayer(
   } satisfies AddPlayerResult<ThroneworldGameState>;
 }
 
-export const throneworldApi: GameBackendApi = {
+export const throneworldApi: GameBackendApi<ThroneworldGameState> = {
   ensureGameDefinition: ensureThroneworldDefinition,
   prepareCreateGame: prepareThroneworldCreateGame,
   buildPlayerResponse: async ({ gameId, playerId, db }) => {

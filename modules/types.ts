@@ -103,7 +103,7 @@ export interface GameBackendApi<State = unknown> {
   addPlayer?: (context: AddPlayerContext<State>) => Promise<AddPlayerResult<State>> | AddPlayerResult<State>;
 }
 
-export interface GameBackendRegistration {
-  backend: GameBackendModule;
-  api?: GameBackendApi;
+export interface GameBackendRegistration<State = unknown, Move = unknown, LegalMoves = unknown> {
+  backend: GameBackendModule<State, Move, LegalMoves>;
+  api?: GameBackendApi<State>;
 }
