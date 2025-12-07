@@ -50,6 +50,13 @@ function PlayerSlotRow({
 }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [results, setResults] = useState<PlayerOption[]>([]);
+  const [selectedDisplayName, setSelectedDisplayName] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (disabled) {
+      setSearchTerm(value ?? "");
+    }
+  }, [disabled, value]);
 
   useEffect(() => {
     let cancelled = false;
@@ -74,6 +81,18 @@ function PlayerSlotRow({
     };
   }, [searchPlayers, searchTerm]);
 
+  useEffect(() => {
+    if (!value) {
+      setSelectedDisplayName(null);
+      return;
+    }
+
+    const match = results.find(option => option.uid === value);
+    if (match) {
+      setSelectedDisplayName(match.displayName);
+    }
+  }, [results, value]);
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -82,7 +101,7 @@ function PlayerSlotRow({
           type="text"
           value={searchTerm}
           onChange={event => setSearchTerm(event.target.value)}
-          placeholder={index === 0 ? "You" : "Search player name"}
+          placeholder={index === 0 ? "Host player" : "Search player name"}
           disabled={disabled}
           style={{ flex: 1 }}
         />
@@ -90,19 +109,48 @@ function PlayerSlotRow({
       {index === 0 ? (
         <div style={{ fontSize: "0.9rem", color: "#666" }}>Host: {value ?? "<not signed in>"}</div>
       ) : (
-        <select
-          value={value ?? ""}
-          onChange={event => onChange(event.target.value || null)}
-          disabled={disabled}
-          style={{ width: "100%" }}
-        >
-          <option value="">Unassigned</option>
-          {results.map(option => (
-            <option key={option.uid} value={option.uid}>
-              {option.displayName} ({option.uid})
-            </option>
-          ))}
-        </select>
+        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+          <div style={{ display: "flex", gap: 8, alignItems: "center", justifyContent: "space-between" }}>
+            <div style={{ fontSize: "0.9rem", color: "#444" }}>
+              {value ? `Selected: ${selectedDisplayName ?? value}` : "No player selected"}
+            </div>
+            {value ? (
+              <button
+                type="button"
+                onClick={() => {
+                  onChange(null);
+                  setSearchTerm("");
+                  setSelectedDisplayName(null);
+                }}
+                style={{ fontSize: "0.85rem" }}
+              >
+                Clear
+              </button>
+            ) : null}
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 4, border: "1px solid #ddd", padding: 8 }}>
+            {searchTerm.trim().length < 2 ? (
+              <div style={{ fontSize: "0.85rem", color: "#666" }}>Type at least 2 characters to search players.</div>
+            ) : results.length === 0 ? (
+              <div style={{ fontSize: "0.85rem", color: "#666" }}>No players found.</div>
+            ) : (
+              results.map(option => (
+                <button
+                  key={option.uid}
+                  type="button"
+                  onClick={() => {
+                    onChange(option.uid);
+                    setSelectedDisplayName(option.displayName);
+                    setSearchTerm(option.displayName);
+                  }}
+                  style={{ textAlign: "left" }}
+                >
+                  {option.displayName} ({option.uid})
+                </button>
+              ))
+            )}
+          </div>
+        </div>
       )}
     </div>
   );
@@ -276,6 +324,18 @@ export default function LobbyPage() {
     return typeof metadata?.playerCount === "number" ? metadata.playerCount : undefined;
   }, [optionValues, selectedDefinition]);
 
+  const debugOptionEnabled = useMemo(() => {
+    if (!selectedDefinition?.options) return false;
+
+    return selectedDefinition.options.some(option => {
+      if (option.type !== "checkbox") return false;
+
+      return option.id.toLowerCase().includes("debug") && Boolean(optionValues[option.id]);
+    });
+  }, [optionValues, selectedDefinition]);
+
+  const allowBotFill = debugMode || debugOptionEnabled;
+
   const searchPlayers = useCallback(async (term: string): Promise<PlayerOption[]> => {
     const cacheKey = term.trim().toLowerCase();
     const queryTerm = term.trim();
@@ -291,14 +351,19 @@ export default function LobbyPage() {
       limit(5),
     );
 
-    const snapshot = await getDocs(profileQuery);
-    const results: PlayerOption[] = snapshot.docs.map(doc => {
-      const data = doc.data() as { displayName?: string };
-      return { uid: doc.id, displayName: data.displayName ?? doc.id };
-    });
+    try {
+      const snapshot = await getDocs(profileQuery);
+      const results: PlayerOption[] = snapshot.docs.map(doc => {
+        const data = doc.data() as { displayName?: string };
+        return { uid: doc.id, displayName: data.displayName ?? doc.id };
+      });
 
-    setPlayerSearchCache(current => ({ ...current, [cacheKey]: results }));
-    return results;
+      setPlayerSearchCache(current => ({ ...current, [cacheKey]: results }));
+      return results;
+    } catch (err) {
+      console.error("Failed to search players", err);
+      return [];
+    }
   }, [playerSearchCache]);
 
   useEffect(() => {
@@ -372,7 +437,7 @@ export default function LobbyPage() {
         body: JSON.stringify({
           gameType: selectedDefinition.id,
           playerSlots: normalizedSlots,
-          fillWithBots: debugMode ? fillWithBots : undefined,
+          fillWithBots: allowBotFill ? fillWithBots : undefined,
           name: gameName || undefined,
           options: creationOptions,
         }),
@@ -555,14 +620,14 @@ export default function LobbyPage() {
             <div style={{ fontSize: "0.9rem", color: "#555" }}>
               Slots adjust to the selected board. Leave blank to open seats for invites or bots.
             </div>
-            {debugMode ? (
+            {allowBotFill ? (
               <label style={{ display: "flex", gap: 8, alignItems: "center" }}>
                 <input
                   type="checkbox"
                   checked={fillWithBots}
                   onChange={event => setFillWithBots(event.target.checked)}
                 />
-                Fill empty spots with bots
+                Fill empty spots with bots (debug)
               </label>
             ) : null}
           </div>
