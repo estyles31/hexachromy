@@ -1,0 +1,95 @@
+{
+  "B": {
+    "id": "B",
+    "Name": "Buralti",
+    "CannotBuild": "H",
+    "CanBuild": "bH",
+    "StartingTech": {
+      "Ground": 2,
+      "Space": 1,
+      "Jump": 1,
+      "Comm": 1
+    },
+    "TechBonus": {
+      "Ground": 1
+    }
+  },
+  "P": {
+    "id": "P",
+    "Name": "Pasha",
+    "CannotBuild": "F",
+    "CanBuild": "pF",
+    "StartingTech": {
+      "Ground": 1,
+      "Space": 2,
+      "Jump": 1,
+      "Comm": 1
+    },
+    "TechBonus": {
+      "Space": 1
+    }
+  },
+  "Q": {
+    "id": "Q",
+    "Name": "Q'teni",
+    "CannotBuild": "C",
+    "CanBuild": "qC",
+    "StartingTech": {
+      "Ground": 1,
+      "Space": 1,
+      "Jump": 1,
+      "Comm": 2
+    },
+    "TechBonus": {
+      "Comm": 1
+    }
+  },
+  "T": {
+    "id": "T",
+    "Name": "Trill",
+    "CannotBuild": "L",
+    "CanBuild": "tL",
+    "StartingTech": {
+      "Ground": 1,
+      "Space": 1,
+      "Jump": 2,
+      "Comm": 1
+    },
+    "TechBonus": {
+      "Jump": 1
+    },
+    "SpecialAbility": {
+      "FreeHWReturn": 1
+    }
+  },
+  "V": {
+    "id": "V",
+    "Name": "Veneb",
+    "StartingTech": {
+      "Ground": 2,
+      "Space": 2,
+      "Jump": 2,
+      "Comm": 2
+    },
+    "SpecialAbility": {
+      "TechReroll": 1
+    }
+  },
+  "Z": {
+    "id": "Z",
+    "Name": "Zytal",
+    "StartingTech": {
+      "Ground": 1,
+      "Space": 1,
+      "Jump": 1,
+      "Comm": 1
+    },
+    "ProductionBonus": {
+      "Throneworld": 2,
+      "Homeworld": 2,
+      "Fringe": 1,
+      "Outer": 1,
+      "Inner": 1
+    }
+  }
+}

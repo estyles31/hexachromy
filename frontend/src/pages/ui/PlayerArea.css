@@ -4,9 +4,31 @@
   overflow-y: auto;
 }
 
+.player-area__title {
+  margin: 0 0 10px;
+  font-size: 1.1rem;
+  letter-spacing: 0.04em;
+}
+
 .player-panel {
   background: #2a2a2a;
   margin-bottom: 8px;
   padding: 8px;
   border-radius: 6px;
+}
+
+.player-name {
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.player-meta {
+  font-size: 0.95rem;
+  color: #d5d5d5;
+}
+
+.player-status {
+  font-size: 0.85rem;
+  color: #a5a5a5;
+  margin-top: 4px;
 }
