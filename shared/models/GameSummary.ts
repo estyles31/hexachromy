@@ -6,6 +6,7 @@ export interface PlayerSummary {
   id: string;
   name: string;
   status: PlayerSlotStatus;
+  race?: string;
 }
 
 export interface GameSummary {
@@ -17,5 +18,8 @@ export interface GameSummary {
   boardId?: string;
   options?: {
     startScannedForAll?: boolean;
+    raceAssignment?: "random" | "playerChoice";
+    forceRandomRaces?: boolean;
+    homeworldAssignment?: "random" | "playerOrder";
   };
 }

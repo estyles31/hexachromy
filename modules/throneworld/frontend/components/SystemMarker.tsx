@@ -11,6 +11,7 @@ interface Props {
   revealed?: boolean;
   scannerColors?: string[];
   onHover?: (isHovering: boolean) => void;
+  hideUnits?: boolean;
 }
 
 // Layout configuration - all positioning as ratios of marker size
@@ -21,6 +22,11 @@ const LAYOUT = {
     cy: 0.15,
     radius: 0.11,
     strokeWidth: 1.5,
+  },
+
+  homeworldLabel: {
+    y: 0.7,
+    fontSize: 0.32,
   },
   
   // Development value (large number at top)
@@ -73,11 +79,14 @@ export function SystemMarker({
   size = DEFAULT_SIZE,
   revealed = true,
   scannerColors = [],
-  onHover
+  onHover,
+  hideUnits = false,
 }: Props) {
   worldType = worldType.toLowerCase();
   const styleKey = worldType as keyof typeof systemStyles;
   const style = systemStyles[styleKey] ?? systemStyles.default;
+
+  const isHomeworld = worldType === "homeworld";
 
   revealed = revealed || worldType === "homeworld";
   const typeLabel = worldType == "throneworld" ? "TW" : worldType.charAt(0).toUpperCase();
@@ -134,8 +143,12 @@ export function SystemMarker({
     );
   }
 
-  const spaceEntries = Object.entries(system.spaceUnits).filter(([, count]) => count && count > 0);
-  const groundEntries = Object.entries(system.groundUnits).filter(([, count]) => count && count > 0);
+  const spaceEntries = hideUnits
+    ? []
+    : Object.entries(system.spaceUnits).filter(([, count]) => count && count > 0);
+  const groundEntries = hideUnits
+    ? []
+    : Object.entries(system.groundUnits).filter(([, count]) => count && count > 0);
 
   return (
     <svg 
@@ -155,7 +168,7 @@ export function SystemMarker({
       />
 
       {/* Owner badge (top-left corner) */}
-      {ownerColor && (
+      {ownerColor && !isHomeworld && (
         <circle
           cx={size * LAYOUT.ownerBadge.cx}
           cy={size * LAYOUT.ownerBadge.cy}
@@ -178,6 +191,20 @@ export function SystemMarker({
       >
         {system.dev}
       </text>
+
+      {isHomeworld && (
+        <text
+          x="50%"
+          y={size * LAYOUT.homeworldLabel.y}
+          textAnchor="middle"
+          dominantBaseline="middle"
+          fontSize={size * LAYOUT.homeworldLabel.fontSize}
+          fontWeight="bold"
+          fill={style.text}
+        >
+          HW
+        </text>
+      )}
 
       {renderScannerMarkers()}
 
