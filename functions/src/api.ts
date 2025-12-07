@@ -6,6 +6,7 @@ import { getFirestore } from "firebase-admin/firestore";
 import { backendModules } from "../../modules/backend.js";
 import type { GameDatabaseAdapter } from "../../modules/types.js";
 import type { GameSummary } from "../../shared/models/GameSummary.js";
+import type { ThroneworldPlayerView } from "../../modules/throneworld/shared/models/GameState.Throneworld.js";
 
 const app = admin.apps.length ? admin.app() : admin.initializeApp();
 const db = getFirestore(app);
@@ -273,6 +274,15 @@ export const api = onRequest({ invoker: "public" }, async (req : Request, res : 
 
     if (!state) {
       res.status(404).json({ error: "Game not found" });
+      return;
+    }
+
+    if ((state as { gameType?: unknown }).gameType === "throneworld") {
+      const playerView =
+        (await dbAdapter.getDocument<ThroneworldPlayerView>(`games/${gameId}/playerViews/${decoded.uid}`)) ??
+        { playerId: decoded.uid, systems: {} };
+
+      res.status(200).json({ ...state, playerView });
       return;
     }
 
