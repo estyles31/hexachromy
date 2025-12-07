@@ -7,7 +7,10 @@ import { backendModules } from "../../modules/backend.js";
 import type { GameDatabaseAdapter } from "../../modules/types.js";
 import type { GameSummary, PlayerSummary } from "../../shared/models/GameSummary.js";
 import type { PlayerPublicProfile, PlayerPrivateProfile } from "../../shared/models/PlayerProfile.js";
-import type { ThroneworldPlayerView } from "../../modules/throneworld/shared/models/GameState.Throneworld.js";
+import type {
+  ThroneworldGameOptions,
+  ThroneworldPlayerView,
+} from "../../modules/throneworld/shared/models/GameState.Throneworld.js";
 import {
   buildThroneworldDefinition,
   type ThroneworldBoardDefinition,
@@ -512,6 +515,16 @@ export const api = onRequest({ invoker: "public" }, async (req : Request, res : 
 
       const everyoneReady = playerSummaries.every(player => player.status === "joined" || player.status === "dummy");
 
+      const summaryOptions: GameSummary["options"] = {
+        startScannedForAll:
+          typeof resolvedOptions.startScannedForAll === "boolean"
+            ? resolvedOptions.startScannedForAll
+            : startScanned,
+        raceAssignment: resolvedOptions.raceAssignment,
+        forceRandomRaces: resolvedOptions.forceRandomRaces,
+        homeworldAssignment: resolvedOptions.homeworldAssignment,
+      };
+
       const summary: GameSummary = {
         id: gameId,
         name:
@@ -520,7 +533,7 @@ export const api = onRequest({ invoker: "public" }, async (req : Request, res : 
             : typeof name === "string" && name.trim().length > 0
               ? name.trim()
               : `Game ${gameId}`,
-        players: playerSummaries,
+        players: playersWithRaces,
         status: everyoneReady ? "in-progress" : "waiting",
         gameType: normalizedType,
         boardId: selectedBoard?.id ?? (typeof resolvedBoardId === "string" ? resolvedBoardId : undefined),
