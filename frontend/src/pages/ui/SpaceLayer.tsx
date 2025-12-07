@@ -1,12 +1,10 @@
 export default function SpaceLayer({
   gameState,
-  selectedSystem,
-  onSelectSystem
+  onHoverSystem
 }: {
   gameState: any;
   boardGeometry?: unknown;
-  selectedSystem: string | null;
-  onSelectSystem: (system: string) => void;
+  onHoverSystem?: (info: { hexId: string; worldType?: string; details?: any } | null) => void;
 }) {
   const systems = Array.isArray(gameState?.systems) ? gameState.systems : [];
 
@@ -19,8 +17,9 @@ export default function SpaceLayer({
           cy={s.y}
           r={18}
           fill={s.ownerColor}
-          className={"system-circle" + (selectedSystem === s.id ? " selected" : "")}
-          onClick={() => onSelectSystem(s.id)}
+          className="system-circle"
+          onMouseEnter={() => onHoverSystem?.({ hexId: s.id, worldType: s.worldType, details: s })}
+          onMouseLeave={() => onHoverSystem?.(null)}
         />
       ))}
     </>
