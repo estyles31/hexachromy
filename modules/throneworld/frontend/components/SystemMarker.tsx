@@ -23,6 +23,11 @@ const LAYOUT = {
     radius: 0.11,
     strokeWidth: 1.5,
   },
+
+  homeworldLabel: {
+    y: 0.7,
+    fontSize: 0.32,
+  },
   
   // Development value (large number at top)
   devValue: {
@@ -80,6 +85,8 @@ export function SystemMarker({
   worldType = worldType.toLowerCase();
   const styleKey = worldType as keyof typeof systemStyles;
   const style = systemStyles[styleKey] ?? systemStyles.default;
+
+  const isHomeworld = worldType === "homeworld";
 
   revealed = revealed || worldType === "homeworld";
   const typeLabel = worldType == "throneworld" ? "TW" : worldType.charAt(0).toUpperCase();
@@ -161,7 +168,7 @@ export function SystemMarker({
       />
 
       {/* Owner badge (top-left corner) */}
-      {ownerColor && (
+      {ownerColor && !isHomeworld && (
         <circle
           cx={size * LAYOUT.ownerBadge.cx}
           cy={size * LAYOUT.ownerBadge.cy}
@@ -184,6 +191,20 @@ export function SystemMarker({
       >
         {system.dev}
       </text>
+
+      {isHomeworld && (
+        <text
+          x="50%"
+          y={size * LAYOUT.homeworldLabel.y}
+          textAnchor="middle"
+          dominantBaseline="middle"
+          fontSize={size * LAYOUT.homeworldLabel.fontSize}
+          fontWeight="bold"
+          fill={style.text}
+        >
+          HW
+        </text>
+      )}
 
       {renderScannerMarkers()}
 

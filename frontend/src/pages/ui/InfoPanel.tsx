@@ -13,10 +13,21 @@ export default function InfoPanel({ gameState, hoveredSystem }: { gameState: any
   const phase = gameState?.phase ?? "—";
   const currentPlayer = gameState?.currentPlayer ?? "—";
   const players = Array.isArray(gameState?.players) ? gameState.players : [];
+  const raceMapping =
+    gameState?.options?.races && typeof gameState.options.races === "object"
+      ? (gameState.options.races as Record<string, string>)
+      : {};
   const playerNameById = players.reduce<Record<string, string>>((acc, player) => {
     if (player?.id) acc[player.id] = player.name ?? player.id;
     return acc;
   }, {});
+  const playerRaceById = players.reduce<Record<string, string>>((acc, player) => {
+    if (player?.id) {
+      const race = player.race ?? raceMapping[player.id];
+      if (race) acc[player.id] = race;
+    }
+    return acc;
+  }, { ...raceMapping });
 
   const hoveredDetails = (hoveredSystem?.details ?? null) as
     | {
@@ -28,10 +39,15 @@ export default function InfoPanel({ gameState, hoveredSystem }: { gameState: any
     | null;
 
   const isRevealed = hoveredSystem?.revealed;
+  const ownerId = hoveredDetails?.owner ?? null;
+  const ownerRace = ownerId ? playerRaceById[ownerId] : undefined;
+  const ownerName = ownerId ? playerNameById[ownerId] ?? ownerId : undefined;
 
   const ownerLabel = isRevealed
-    ? hoveredDetails?.owner
-      ? playerNameById[hoveredDetails.owner] ?? hoveredDetails.owner
+    ? ownerId
+      ? ownerId === "neutral"
+        ? "Neutral"
+        : `${ownerRace ?? "Unknown"} (${ownerName ?? ownerId})`
       : hoveredSystem
         ? "Unclaimed"
         : "—"
@@ -58,7 +74,7 @@ export default function InfoPanel({ gameState, hoveredSystem }: { gameState: any
         <div className="info-subtitle">Owner</div>
         <div className="info-value">{ownerLabel}</div>
 
-        <div className="info-subtitle">Space Units</div>
+        <div className="info-subtitle">Fleets</div>
         <div className="info-value">
           {isRevealed ? formatUnitSummary(hoveredDetails?.spaceUnits) : hoveredSystem ? "Unknown" : "—"}
         </div>
