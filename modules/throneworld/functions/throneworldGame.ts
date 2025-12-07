@@ -21,6 +21,8 @@ import type {
   GetLegalMovesContext,
 } from "../../types.js";
 
+type RaceDefinition = { id: string; Name: string };
+
 const SYSTEM_POOLS = systemsJson as SystemPool;
 type SystemTile = { systemId: string; definition: SystemDefinition };
 
@@ -32,7 +34,8 @@ const HOMEWORLD_BASE: SystemDefinition = {
   groundUnits: {},
 };
 
-const ALL_RACES: string[] = (racesJson as string[]).map(race => race.trim()).filter(Boolean);
+const RACE_DEFINITIONS = racesJson as Record<string, RaceDefinition>;
+const ALL_RACES: RaceDefinition[] = Object.values(RACE_DEFINITIONS);
 
 type PoolKey = keyof SystemPool;
 type NormalizedWorldType = ThroneworldWorldType | "notinplay";
@@ -54,7 +57,7 @@ function assignRaces(playerIds: string[]): Record<string, string> {
   const pool = shuffle(ALL_RACES).slice(0, playerIds.length);
 
   return playerIds.reduce<Record<string, string>>((acc, playerId, idx) => {
-    acc[playerId] = pool[idx];
+    acc[playerId] = pool[idx]?.Name ?? "";
     return acc;
   }, {});
 }
