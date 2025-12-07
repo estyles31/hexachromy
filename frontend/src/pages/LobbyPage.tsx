@@ -537,7 +537,7 @@ export default function LobbyPage() {
           {renderOptions()}
 
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            <div style={{ fontWeight: 600 }}>Players ({requiredPlayers ?? playerSlots.length || 1})</div>
+            <div style={{ fontWeight: 600 }}>Players ({requiredPlayers ?? (playerSlots.length || 1)})</div>
             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
               {playerSlots.map((slot, index) => (
                 <PlayerSlotRow
