@@ -39,6 +39,9 @@ export interface ThroneworldGameOptions {
   forceRandomRaces?: boolean;
   homeworldAssignment?: ThroneworldHomeworldAssignment;
   races?: Record<string, string>;
+  playerStatuses?: Record<string, ThroneworldPlayerStatus>;
+  boardId?: string;
+  name?: string;
 }
 
 export interface ThroneworldGameState {

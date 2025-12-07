@@ -50,6 +50,10 @@ export default function InfoPanel({ gameState, hoveredSystem }: { gameState: any
   const owner = (details as { owner?: unknown } | undefined)?.owner;
   const ownerLabel = typeof owner === "string" ? owner : owner === null ? "Unclaimed" : "—";
 
+  const details = hoveredSystem?.details;
+  const owner = (details as { owner?: unknown } | undefined)?.owner;
+  const ownerLabel = typeof owner === "string" ? owner : owner === null ? "Unclaimed" : "—";
+
   return (
     <div className="info-panel">
       <div className="info-section">
