@@ -64,6 +64,7 @@ function buildInitialGameDocuments(params: {
   playerStatuses?: Record<string, ThroneworldPlayerStatus>;
   boardId?: string;
   revealAllSystems?: boolean;
+  startScannedForAll?: boolean;
   name?: string;
   scenario?: string;
 }): { state: ThroneworldGameState; playerViews: Record<string, ThroneworldPlayerView> } {
@@ -71,6 +72,8 @@ function buildInitialGameDocuments(params: {
   const scenario = params.scenario ?? "6p";
   const playerStatuses = params.playerStatuses ?? {};
   const revealAllSystems = Boolean(params.revealAllSystems);
+  const startScannedForAll = Boolean(params.startScannedForAll);
+  const scanForAll = startScannedForAll || revealAllSystems;
   const boardId = params.boardId ?? "standard-6p";
   const name = params.name ?? undefined;
   const playerCount = parsePlayerCountFromScenario(scenario, playerIds.length);
@@ -109,7 +112,7 @@ function buildInitialGameDocuments(params: {
           ...HOMEWORLD_BASE,
         };
 
-        const scannedBy = revealAllSystems ? [...playerIds] : [];
+        const scannedBy = scanForAll ? [...playerIds] : [];
 
         systems[hex.id] = {
           hexId: hex.id,
@@ -122,7 +125,7 @@ function buildInitialGameDocuments(params: {
 
         playerViews.neutral.systems[hex.id] = details;
 
-        if (revealAllSystems) {
+        if (scanForAll) {
           for (const playerId of playerIds) {
             playerViews[playerId].systems[hex.id] = details;
           }
@@ -144,7 +147,7 @@ function buildInitialGameDocuments(params: {
     };
 
     const shouldReveal = revealAllSystems;
-    const scannedBy = revealAllSystems ? [...playerIds] : [];
+    const scannedBy = scanForAll ? [...playerIds] : [];
 
     systems[hex.id] = {
       hexId: hex.id,
@@ -157,7 +160,7 @@ function buildInitialGameDocuments(params: {
 
     playerViews.neutral.systems[hex.id] = details;
 
-    if (revealAllSystems) {
+    if (scanForAll || shouldReveal) {
       for (const playerId of playerIds) {
         playerViews[playerId].systems[hex.id] = details;
       }
@@ -191,7 +194,7 @@ function buildInitialGameDocuments(params: {
       gameType: "throneworld",
       status: allPlayersReady ? "in-progress" : "waiting",
       options: {
-        startScannedForAll: revealAllSystems,
+        startScannedForAll,
       },
     },
     playerViews,
@@ -205,7 +208,7 @@ async function createGame(context: CreateGameContext<ThroneworldGameState>): Pro
     scenario: context.scenario,
     playerStatuses: (context.options?.playerStatuses ?? {}) as Record<string, ThroneworldPlayerStatus>,
     boardId: typeof context.options?.boardId === "string" ? context.options.boardId : undefined,
-    revealAllSystems: Boolean(context.options?.startScannedForAll),
+    startScannedForAll: Boolean(context.options?.startScannedForAll),
     name: typeof context.options?.name === "string" ? context.options.name : undefined,
   });
 
