@@ -16,10 +16,5 @@ export interface GameSummary {
   status: GameStatus;
   gameType: string;
   boardId?: string;
-  options?: {
-    startScannedForAll?: boolean;
-    raceAssignment?: "random" | "playerChoice";
-    forceRandomRaces?: boolean;
-    homeworldAssignment?: "random" | "playerOrder";
-  };
+  options?: Record<string, unknown>;
 }

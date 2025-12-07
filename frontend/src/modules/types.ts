@@ -14,6 +14,8 @@ export interface FrontendModuleDefinition {
     boardGeometry?: unknown;
     onHoverSystem?: (info: HoveredSystemInfo | null) => void;
   }>;
+  PlayerArea?: ComponentType<{ gameState: any }>;
+  InfoPanel?: ComponentType<{ gameState: any; hoveredSystem: HoveredSystemInfo | null }>;
   getBoardGeometry?: (gameState: any) => {
     boardGeometry?: unknown;
     width?: number;

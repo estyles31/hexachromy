@@ -18,6 +18,9 @@ export default function GamePage({ gameState }: GamePageProps) {
 
   const module = getFrontendModule(gameState.gameType);
 
+  const PlayerAreaComponent = module?.PlayerArea ?? PlayerArea;
+  const InfoPanelComponent = module?.InfoPanel ?? InfoPanel;
+
   if (!module) {
     return <div>Unsupported game type: {gameState.gameType}</div>;
   }
@@ -29,8 +32,8 @@ export default function GamePage({ gameState }: GamePageProps) {
         module={module}
         onHoverSystem={setHoveredSystem}
       />
-      <PlayerArea gameState={gameState} />
-      <InfoPanel gameState={gameState} hoveredSystem={hoveredSystem} />
+      <PlayerAreaComponent gameState={gameState} />
+      <InfoPanelComponent gameState={gameState} hoveredSystem={hoveredSystem} />
     </div>
   );
 }

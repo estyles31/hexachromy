@@ -511,14 +511,7 @@ export const api = onRequest({ invoker: "public" }, async (req : Request, res : 
         throw new Error("Game module did not return an initial state");
       }
 
-      const resolvedOptions = (resolvedState as { options?: ThroneworldGameOptions })?.options ?? {};
-      const raceAssignments =
-        (resolvedOptions.races as Record<string, string> | undefined) ?? {};
-
-      const playersWithRaces = playerSummaries.map(player => ({
-        ...player,
-        race: raceAssignments[player.id] ?? player.race,
-      }));
+      const resolvedOptions = (resolvedState as { options?: Record<string, unknown> })?.options ?? {};
 
       const everyoneReady = playerSummaries.every(player => player.status === "joined" || player.status === "dummy");
 
@@ -544,7 +537,7 @@ export const api = onRequest({ invoker: "public" }, async (req : Request, res : 
         status: everyoneReady ? "in-progress" : "waiting",
         gameType: normalizedType,
         boardId: selectedBoard?.id ?? (typeof resolvedBoardId === "string" ? resolvedBoardId : undefined),
-        options: summaryOptions,
+        options: typeof resolvedOptions === "object" ? resolvedOptions : undefined,
       };
 
       await Promise.all([
@@ -661,25 +654,7 @@ export const api = onRequest({ invoker: "public" }, async (req : Request, res : 
           gameType: data.gameType ?? "unknown",
           boardId: data.boardId,
           options: typeof data.options === "object" && data.options
-            ? {
-              startScannedForAll: Boolean((data.options as { startScannedForAll?: unknown }).startScannedForAll),
-              raceAssignment:
-                (data.options as ThroneworldGameOptions).raceAssignment === "playerChoice"
-                  ? "playerChoice"
-                  : (data.options as ThroneworldGameOptions).raceAssignment === "random"
-                    ? "random"
-                    : undefined,
-              forceRandomRaces:
-                typeof (data.options as ThroneworldGameOptions).forceRandomRaces === "boolean"
-                  ? (data.options as ThroneworldGameOptions).forceRandomRaces
-                  : undefined,
-              homeworldAssignment:
-                (data.options as ThroneworldGameOptions).homeworldAssignment === "playerOrder"
-                  ? "playerOrder"
-                  : (data.options as ThroneworldGameOptions).homeworldAssignment === "random"
-                    ? "random"
-                    : undefined,
-            }
+            ? (data.options as Record<string, unknown>)
             : undefined,
         } satisfies GameSummary;
       });
