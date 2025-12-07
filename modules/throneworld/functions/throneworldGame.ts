@@ -1,6 +1,11 @@
 import { randomInt } from "crypto";
 import { BOARD_HEXES, getWorldType, isInPlay, type WorldType } from "../shared/models/BoardLayout.ThroneWorld";
-import type { ThroneworldGameState, ThroneworldSystemState } from "../shared/models/GameState.Throneworld";
+import type {
+  ThroneworldGameState,
+  ThroneworldPlayerView,
+  ThroneworldSystemDetails,
+  ThroneworldWorldType,
+} from "../shared/models/GameState.Throneworld";
 import type { SystemDefinition, SystemPool } from "../shared/models/Systems.ThroneWorld";
 import systemsJson from "../shared/data/systems.throneworld.json";
 import { parsePlayerCountFromScenario } from "../shared/utils/scenario";
@@ -23,7 +28,7 @@ const HOMEWORLD_BASE: SystemDefinition = {
 };
 
 type PoolKey = keyof SystemPool;
-type NormalizedWorldType = PoolKey | "homeworld" | "notinplay";
+type NormalizedWorldType = ThroneworldWorldType | "notinplay";
 
 function normalizeWorldType(worldType: WorldType): NormalizedWorldType {
   const normalized = worldType.toLowerCase();
@@ -52,7 +57,11 @@ function drawRandomSystem(pool: SystemTile[]): SystemTile {
   return tile;
 }
 
-function buildInitialGameState(params: { gameId: string; playerIds: string[]; scenario?: string }): ThroneworldGameState {
+function buildInitialGameDocuments(params: {
+  gameId: string;
+  playerIds: string[];
+  scenario?: string;
+}): { state: ThroneworldGameState; playerViews: Record<string, ThroneworldPlayerView> } {
   const { gameId, playerIds } = params;
   const scenario = params.scenario ?? "6p";
   const playerCount = parsePlayerCountFromScenario(scenario, playerIds.length);
@@ -66,7 +75,14 @@ function buildInitialGameState(params: { gameId: string; playerIds: string[]; sc
     throneworld: buildSystemPool("throneworld"),
   };
 
-  const systems: Record<string, ThroneworldSystemState> = {};
+  const systems: Record<string, ThroneworldGameState["systems"][string]> = {};
+  const playerViews: Record<string, ThroneworldPlayerView> = {
+    neutral: { playerId: "neutral", systems: {} },
+  };
+
+  for (const playerId of playerIds) {
+    playerViews[playerId] = { playerId, systems: {} };
+  }
 
   for (const hex of BOARD_HEXES) {
     if (!isInPlay(hex.id, playerCount)) continue;
@@ -78,12 +94,22 @@ function buildInitialGameState(params: { gameId: string; playerIds: string[]; sc
     if (worldType === "homeworld") {
       const playerId = homeworldQueue.shift();
       if (playerId) {
-        systems[hex.id] = {
+        const details: ThroneworldSystemDetails = {
           systemId: `homeworld-${playerId}`,
-          revealed: true,
           owner: playerId,
           ...HOMEWORLD_BASE,
         };
+
+        systems[hex.id] = {
+          hexId: hex.id,
+          location: { col: hex.col, row: hex.row },
+          worldType,
+          revealed: true,
+          scannedBy: [],
+          details,
+        };
+
+        playerViews.neutral.systems[hex.id] = details;
       }
       continue;
     }
@@ -94,13 +120,21 @@ function buildInitialGameState(params: { gameId: string; playerIds: string[]; sc
       throw new Error(`No remaining systems in pool '${poolKey}' for hex ${hex.id}`);
     }
     const { systemId, definition } = drawRandomSystem(pool);
-
-    systems[hex.id] = {
+    const details: ThroneworldSystemDetails = {
       systemId,
-      revealed: false,
       owner: null,
       ...definition,
     };
+
+    systems[hex.id] = {
+      hexId: hex.id,
+      location: { col: hex.col, row: hex.row },
+      worldType,
+      revealed: false,
+      scannedBy: [],
+    };
+
+    playerViews.neutral.systems[hex.id] = details;
   }
 
   if (homeworldQueue.length > 0) {
@@ -108,21 +142,30 @@ function buildInitialGameState(params: { gameId: string; playerIds: string[]; sc
   }
 
   return {
-    gameId,
-    createdAt: Date.now(),
-    scenario,
-    playerIds,
-    systems,
-    gameType: "throneworld",
+    state: {
+      gameId,
+      createdAt: Date.now(),
+      scenario,
+      playerIds,
+      systems,
+      gameType: "throneworld",
+    },
+    playerViews,
   };
 }
 
 async function createGame(context: CreateGameContext<ThroneworldGameState>): Promise<ThroneworldGameState> {
-  const state = buildInitialGameState({
+  const { state, playerViews } = buildInitialGameDocuments({
     gameId: context.gameId,
     playerIds: context.playerIds,
     scenario: context.scenario,
   });
+
+  await Promise.all(
+    Object.entries(playerViews).map(([playerId, view]) =>
+      context.db.setDocument(`games/${context.gameId}/playerViews/${playerId}`, view),
+    ),
+  );
 
   context.returnState?.(state);
 

@@ -1,14 +1,14 @@
 import { useEffect, useState } from "react";
-import type { ThroneworldGameState } from "../../shared/models/GameState.Throneworld";
+import type { ThroneworldGameView } from "../../shared/models/GameState.Throneworld";
 
 interface HookState {
-  state: ThroneworldGameState | null;
+  state: ThroneworldGameView | null;
   loading: boolean;
   error: Error | null;
 }
 
 export function useThroneworldGameState(gameId: string): HookState {
-  const [state, setState] = useState<ThroneworldGameState | null>(null);
+  const [state, setState] = useState<ThroneworldGameView | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<Error | null>(null);
 
@@ -25,7 +25,7 @@ export function useThroneworldGameState(gameId: string): HookState {
           const message = await response.text();
           throw new Error(message || `Failed to load game ${gameId}`);
         }
-        return response.json() as Promise<ThroneworldGameState>;
+        return response.json() as Promise<ThroneworldGameView>;
       })
       .then(data => {
         setState(data);

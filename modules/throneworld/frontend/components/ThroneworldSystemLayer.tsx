@@ -1,10 +1,13 @@
 import { SystemMarker, DEFAULT_SIZE } from "./SystemMarker";
 import { HEX_RADIUS, type BoardGeometry } from "../../shared/models/BoardGeometry.ThroneWorld";
-import type { ThroneworldGameState } from "../../shared/models/GameState.Throneworld";
-import { useState } from "react";
+import type {
+  ThroneworldGameView,
+  ThroneworldSystemDetails,
+} from "../../shared/models/GameState.Throneworld";
+import { useMemo, useState } from "react";
 
 interface Props {
-  gameState: ThroneworldGameState;
+  gameState: ThroneworldGameView;
   boardGeometry?: BoardGeometry;
   selectedSystem: string | null;
   onSelectSystem: (systemId: string) => void;
@@ -12,11 +15,24 @@ interface Props {
 
 interface HoverPreview {
   hexId: string;
-  systemState: ThroneworldGameState["systems"][string];
+  systemState: ThroneworldSystemDetails;
   worldType: string;
   x: number;
   y: number;
+  revealed: boolean;
 }
+
+const PLAYER_COLORS = ["#ff7043", "#4dd0e1", "#ce93d8", "#aed581", "#ffd54f", "#90caf9"];
+
+const EMPTY_DETAILS: ThroneworldSystemDetails = {
+  systemId: "unknown",
+  owner: null,
+  dev: 0,
+  spaceTech: 0,
+  groundTech: 0,
+  spaceUnits: {},
+  groundUnits: {},
+};
 
 export function ThroneworldSystemLayer({
   gameState,
@@ -26,14 +42,33 @@ export function ThroneworldSystemLayer({
 }: Props) {
   const [hoverPreview, setHoverPreview] = useState<HoverPreview | null>(null);
 
+  const playerColorMap = useMemo(() => {
+    const map: Record<string, string> = {};
+    gameState.playerIds.forEach((playerId, index) => {
+      map[playerId] = PLAYER_COLORS[index % PLAYER_COLORS.length];
+    });
+    return map;
+  }, [gameState.playerIds]);
+
   if (!boardGeometry) return null;
 
   return (
     <>
       {/* NORMAL SYSTEM MARKERS */}
-      {Object.entries(gameState.systems).map(([hexId, systemState]) => {
+      {Object.entries(gameState.systems).map(([hexId, publicSystem]) => {  
         const hexGeometry = boardGeometry.hexes[hexId];
         if (!hexGeometry) return null;
+
+        const publicDetails = publicSystem.details;
+        const privateDetails = gameState.playerView?.systems?.[hexId];
+        const resolvedDetails = publicDetails ?? privateDetails ?? EMPTY_DETAILS;
+        const isRevealed = publicSystem.revealed;
+        const hoverDetails = privateDetails ?? publicDetails ?? EMPTY_DETAILS;
+        const hoverRevealed = publicSystem.revealed || Boolean(privateDetails);
+
+        const scannerColors = (publicSystem.scannedBy ?? []).map(
+          playerId => playerColorMap[playerId] ?? "#777",
+        );
 
         const markerSize = DEFAULT_SIZE;
         const hexRadius = HEX_RADIUS;
@@ -60,21 +95,23 @@ export function ThroneworldSystemLayer({
               style={{ cursor: "pointer" }}
             >
               <SystemMarker
-                system={systemState}
+                system={resolvedDetails}
                 worldType={hexGeometry.worldType.toLowerCase()}
-                revealed={systemState.revealed}
+                revealed={isRevealed}
                 size={markerSize}
+                scannerColors={scannerColors}
                 onHover={(hovering) =>
                   setHoverPreview(
                     hovering
                       ? {
                           hexId,
-                          systemState,
+                          systemState: hoverDetails,
                           worldType: hexGeometry.worldType.toLowerCase(),
                           x: hexGeometry.x,
                           y: hexGeometry.y,
+                          revealed: hoverRevealed,
                         }
-                      : null
+                      : null,
                   )
                 }
               />
@@ -108,7 +145,7 @@ export function ThroneworldSystemLayer({
           <SystemMarker
             system={hoverPreview.systemState}
             worldType={hoverPreview.worldType}
-            revealed={true /*hoverPreview.systemState.revealed*/}
+            revealed={hoverPreview.revealed}
             size={125}
           />
         </g>
