@@ -1,16 +1,17 @@
 import { SystemMarker, DEFAULT_SIZE } from "./SystemMarker";
+import PlanetArc from "./PlanetArc";
 import { HEX_RADIUS, type BoardGeometry } from "../../shared/models/BoardGeometry.ThroneWorld";
 import type {
   ThroneworldGameView,
   ThroneworldSystemDetails,
 } from "../../shared/models/GameState.Throneworld";
 import { useMemo, useState } from "react";
+import type { HoveredSystemInfo } from "../../../../frontend/src/modules/types";
 
 interface Props {
   gameState: ThroneworldGameView;
   boardGeometry?: BoardGeometry;
-  selectedSystem: string | null;
-  onSelectSystem: (systemId: string) => void;
+  onHoverSystem?: (hover: HoveredSystemInfo | null) => void;
 }
 
 interface HoverPreview {
@@ -37,8 +38,7 @@ const EMPTY_DETAILS: ThroneworldSystemDetails = {
 export function ThroneworldSystemLayer({
   gameState,
   boardGeometry,
-  selectedSystem,
-  onSelectSystem,
+  onHoverSystem,
 }: Props) {
   const [hoverPreview, setHoverPreview] = useState<HoverPreview | null>(null);
 
@@ -62,9 +62,15 @@ export function ThroneworldSystemLayer({
         const publicDetails = publicSystem.details;
         const privateDetails = gameState.playerView?.systems?.[hexId];
         const resolvedDetails = publicDetails ?? privateDetails ?? EMPTY_DETAILS;
+        const isPlayerOwned = Boolean(resolvedDetails.owner && resolvedDetails.owner !== "neutral");
+        const ownerColor = isPlayerOwned
+          ? playerColorMap[resolvedDetails.owner as string] ?? "#666"
+          : undefined;
         const isRevealed = publicSystem.revealed;
         const hoverDetails = privateDetails ?? publicDetails ?? EMPTY_DETAILS;
         const hoverRevealed = publicSystem.revealed || Boolean(privateDetails);
+        const worldType = hexGeometry.worldType.toLowerCase();
+        const shouldShowPlanetArc = publicSystem.revealed || worldType === "homeworld";
 
         const scannerColors = (publicSystem.scannedBy ?? []).map(
           playerId => playerColorMap[playerId] ?? "#777",
@@ -89,47 +95,51 @@ export function ThroneworldSystemLayer({
 
         return (
           <g key={hexId}>
+            {shouldShowPlanetArc && (
+              <PlanetArc
+                dev={resolvedDetails.dev}
+                worldType={worldType}
+                cx={hexGeometry.x}
+                cy={hexGeometry.y}
+                r={hexRadius}
+                ownerColor={ownerColor}
+              />
+            )}
             <g
               transform={`translate(${x}, ${y})`}
-              onClick={() => onSelectSystem(hexId)}
-              style={{ cursor: "pointer" }}
             >
               <SystemMarker
                 system={resolvedDetails}
-                worldType={hexGeometry.worldType.toLowerCase()}
+                worldType={worldType}
                 revealed={isRevealed}
+                ownerColor={ownerColor}
+                hideUnits={isPlayerOwned}
                 size={markerSize}
                 scannerColors={scannerColors}
-                onHover={(hovering) =>
-                  setHoverPreview(
+                onHover={(hovering) => {
+                  const nextHover = hovering
+                    ? {
+                        hexId,
+                        systemState: hoverDetails,
+                        worldType,
+                        x: hexGeometry.x,
+                        y: hexGeometry.y,
+                        revealed: hoverRevealed,
+                      }
+                    : null;
+                  setHoverPreview(nextHover);
+                  onHoverSystem?.(
                     hovering
                       ? {
                           hexId,
-                          systemState: hoverDetails,
-                          worldType: hexGeometry.worldType.toLowerCase(),
-                          x: hexGeometry.x,
-                          y: hexGeometry.y,
+                          worldType,
+                          details: hoverDetails,
                           revealed: hoverRevealed,
                         }
                       : null,
-                  )
-                }
+                  );
+                }}
               />
-
-              {/* Selection outline */}
-              {selectedSystem === hexId && (
-                <rect
-                  x={-3}
-                  y={-3}
-                  width={markerSize + 6}
-                  height={markerSize + 6}
-                  fill="none"
-                  stroke="gold"
-                  strokeWidth={2.5}
-                  rx={6}
-                  pointerEvents="none"
-                />
-              )}
             </g>
           </g>
         );
@@ -147,6 +157,14 @@ export function ThroneworldSystemLayer({
             worldType={hoverPreview.worldType}
             revealed={hoverPreview.revealed}
             size={125}
+            ownerColor={
+              hoverPreview.systemState.owner && hoverPreview.systemState.owner !== "neutral"
+                ? playerColorMap[hoverPreview.systemState.owner]
+                : undefined
+            }
+            hideUnits={Boolean(
+              hoverPreview.systemState.owner && hoverPreview.systemState.owner !== "neutral",
+            )}
           />
         </g>
       )}
