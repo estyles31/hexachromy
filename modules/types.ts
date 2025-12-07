@@ -1,3 +1,6 @@
+import type { GameDefinition } from "../shared/models/GameDefinition.js";
+import type { PlayerSummary } from "../shared/models/GameSummary.js";
+
 export interface GameDatabaseAdapter {
   /** Reads a Firestore document by path and returns the typed data or null. */
   getDocument<T = unknown>(path: string): Promise<T | null>;
@@ -48,4 +51,44 @@ export interface GameModuleManifest {
   frontendEntry?: string;
   /** Relative path to the backend entry point for this module (no imports here). */
   backendEntry?: string;
+}
+
+export interface EnsureGameDefinitionContext {
+  db: GameDatabaseAdapter;
+}
+
+export interface PrepareCreateGameContext {
+  definition: GameDefinition | null;
+  requestBody: Record<string, unknown>;
+  creationOptions: Record<string, unknown>;
+  players: PlayerSummary[];
+  resolvedBoardId?: string;
+  defaultScenario?: string;
+}
+
+export interface PrepareCreateGameResult {
+  requiredPlayers?: number;
+  scenario?: string;
+  options?: Record<string, unknown>;
+  players?: PlayerSummary[];
+}
+
+export interface BuildPlayerResponseContext<State = unknown> {
+  gameId: string;
+  playerId: string;
+  state: State;
+  db: GameDatabaseAdapter;
+}
+
+export interface GameBackendApi<State = unknown> {
+  ensureGameDefinition?: (context: EnsureGameDefinitionContext) => Promise<GameDefinition | null>;
+  prepareCreateGame?: (context: PrepareCreateGameContext) => Promise<PrepareCreateGameResult> | PrepareCreateGameResult;
+  buildPlayerResponse?: (
+    context: BuildPlayerResponseContext<State>,
+  ) => Promise<Record<string, unknown>> | Record<string, unknown>;
+}
+
+export interface GameBackendRegistration {
+  backend: GameBackendModule;
+  api?: GameBackendApi;
 }
