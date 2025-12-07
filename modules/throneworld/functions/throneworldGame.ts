@@ -1,14 +1,18 @@
 import { randomInt } from "crypto";
 import { BOARD_HEXES, getWorldType, isInPlay, type WorldType } from "../shared/models/BoardLayout.ThroneWorld";
 import type {
+  ThroneworldGameOptions,
   ThroneworldGameState,
+  ThroneworldHomeworldAssignment,
   ThroneworldPlayerStatus,
   ThroneworldPlayerView,
+  ThroneworldRaceAssignment,
   ThroneworldSystemDetails,
   ThroneworldWorldType,
 } from "../shared/models/GameState.Throneworld";
 import type { SystemDefinition, SystemPool } from "../shared/models/Systems.ThroneWorld";
 import systemsJson from "../shared/data/systems.throneworld.json";
+import racesJson from "../shared/data/races.throneworld.json";
 import { parsePlayerCountFromScenario } from "../shared/utils/scenario";
 import type {
   CommitMoveContext,
@@ -28,8 +32,40 @@ const HOMEWORLD_BASE: SystemDefinition = {
   groundUnits: {},
 };
 
+const ALL_RACES: string[] = (racesJson as string[]).map(race => race.trim()).filter(Boolean);
+
 type PoolKey = keyof SystemPool;
 type NormalizedWorldType = ThroneworldWorldType | "notinplay";
+
+function shuffle<T>(items: T[]): T[] {
+  const arr = [...items];
+  for (let i = arr.length - 1; i > 0; i -= 1) {
+    const j = randomInt(i + 1);
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+function assignRaces(playerIds: string[]): Record<string, string> {
+  if (playerIds.length > ALL_RACES.length) {
+    throw new Error(`Not enough unique races for ${playerIds.length} players`);
+  }
+
+  const pool = shuffle(ALL_RACES).slice(0, playerIds.length);
+
+  return playerIds.reduce<Record<string, string>>((acc, playerId, idx) => {
+    acc[playerId] = pool[idx];
+    return acc;
+  }, {});
+}
+
+function resolveHomeworldOrder(
+  playerIds: string[],
+  assignment: ThroneworldHomeworldAssignment,
+): string[] {
+  if (assignment === "playerOrder") return [...playerIds];
+  return shuffle(playerIds);
+}
 
 function normalizeWorldType(worldType: WorldType): NormalizedWorldType {
   const normalized = worldType.toLowerCase();
@@ -67,6 +103,9 @@ function buildInitialGameDocuments(params: {
   startScannedForAll?: boolean;
   name?: string;
   scenario?: string;
+  raceAssignment?: ThroneworldRaceAssignment;
+  homeworldAssignment?: ThroneworldHomeworldAssignment;
+  forceRandomRaces?: boolean;
 }): { state: ThroneworldGameState; playerViews: Record<string, ThroneworldPlayerView> } {
   const { gameId, playerIds } = params;
   const scenario = params.scenario ?? "6p";
@@ -78,7 +117,18 @@ function buildInitialGameDocuments(params: {
   const name = params.name ?? undefined;
   const playerCount = parsePlayerCountFromScenario(scenario, playerIds.length);
 
-  const homeworldQueue = [...playerIds];
+  const requestedRaceAssignment: ThroneworldRaceAssignment = params.raceAssignment ?? "random";
+  const requestedHomeworldAssignment: ThroneworldHomeworldAssignment = params.homeworldAssignment ?? "random";
+  const forceRandomRaces = params.forceRandomRaces ?? true;
+
+  const appliedRaceAssignment: ThroneworldRaceAssignment = forceRandomRaces
+    ? "random"
+    : requestedRaceAssignment;
+  const appliedHomeworldAssignment: ThroneworldHomeworldAssignment =
+    requestedHomeworldAssignment === "playerOrder" ? "playerOrder" : "random";
+
+  const races = assignRaces(playerIds);
+  const homeworldQueue = resolveHomeworldOrder(playerIds, appliedHomeworldAssignment);
 
   const pools: Record<PoolKey, SystemTile[]> = {
     outer: buildSystemPool("outer"),
@@ -197,6 +247,10 @@ function buildInitialGameDocuments(params: {
       status: allPlayersReady ? "in-progress" : "waiting",
       options: {
         startScannedForAll,
+        raceAssignment: appliedRaceAssignment,
+        forceRandomRaces,
+        homeworldAssignment: appliedHomeworldAssignment,
+        races,
       },
     },
     playerViews,
@@ -204,6 +258,12 @@ function buildInitialGameDocuments(params: {
 }
 
 async function createGame(context: CreateGameContext<ThroneworldGameState>): Promise<ThroneworldGameState> {
+  const raceAssignment: ThroneworldRaceAssignment =
+    context.options?.raceAssignment === "playerChoice" ? "playerChoice" : "random";
+  const homeworldAssignment: ThroneworldHomeworldAssignment =
+    context.options?.homeworldAssignment === "playerOrder" ? "playerOrder" : "random";
+  const forceRandomRaces = context.options?.forceRandomRaces === false ? false : true;
+
   const { state, playerViews } = buildInitialGameDocuments({
     gameId: context.gameId,
     playerIds: context.playerIds,
@@ -212,6 +272,9 @@ async function createGame(context: CreateGameContext<ThroneworldGameState>): Pro
     boardId: typeof context.options?.boardId === "string" ? context.options.boardId : undefined,
     startScannedForAll: Boolean(context.options?.startScannedForAll),
     name: typeof context.options?.name === "string" ? context.options.name : undefined,
+    raceAssignment,
+    homeworldAssignment,
+    forceRandomRaces,
   });
 
   await Promise.all(

@@ -7,7 +7,10 @@ import { backendModules } from "../../modules/backend.js";
 import type { GameDatabaseAdapter } from "../../modules/types.js";
 import type { GameSummary, PlayerSummary } from "../../shared/models/GameSummary.js";
 import type { PlayerPublicProfile, PlayerPrivateProfile } from "../../shared/models/PlayerProfile.js";
-import type { ThroneworldPlayerView } from "../../modules/throneworld/shared/models/GameState.Throneworld.js";
+import type {
+  ThroneworldGameOptions,
+  ThroneworldPlayerView,
+} from "../../modules/throneworld/shared/models/GameState.Throneworld.js";
 import {
   buildThroneworldDefinition,
   type ThroneworldBoardDefinition,
@@ -508,7 +511,26 @@ export const api = onRequest({ invoker: "public" }, async (req : Request, res : 
         throw new Error("Game module did not return an initial state");
       }
 
+      const resolvedOptions = (resolvedState as { options?: ThroneworldGameOptions })?.options ?? {};
+      const raceAssignments =
+        (resolvedOptions.races as Record<string, string> | undefined) ?? {};
+
+      const playersWithRaces = playerSummaries.map(player => ({
+        ...player,
+        race: raceAssignments[player.id] ?? player.race,
+      }));
+
       const everyoneReady = playerSummaries.every(player => player.status === "joined" || player.status === "dummy");
+
+      const summaryOptions: GameSummary["options"] = {
+        startScannedForAll:
+          typeof resolvedOptions.startScannedForAll === "boolean"
+            ? resolvedOptions.startScannedForAll
+            : startScanned,
+        raceAssignment: resolvedOptions.raceAssignment,
+        forceRandomRaces: resolvedOptions.forceRandomRaces,
+        homeworldAssignment: resolvedOptions.homeworldAssignment,
+      };
 
       const summary: GameSummary = {
         id: gameId,
@@ -518,13 +540,11 @@ export const api = onRequest({ invoker: "public" }, async (req : Request, res : 
             : typeof name === "string" && name.trim().length > 0
               ? name.trim()
               : `Game ${gameId}`,
-        players: playerSummaries,
+        players: playersWithRaces,
         status: everyoneReady ? "in-progress" : "waiting",
         gameType: normalizedType,
         boardId: selectedBoard?.id ?? (typeof resolvedBoardId === "string" ? resolvedBoardId : undefined),
-        options: {
-          startScannedForAll: startScanned,
-        },
+        options: summaryOptions,
       };
 
       await Promise.all([
@@ -641,7 +661,25 @@ export const api = onRequest({ invoker: "public" }, async (req : Request, res : 
           gameType: data.gameType ?? "unknown",
           boardId: data.boardId,
           options: typeof data.options === "object" && data.options
-            ? { startScannedForAll: Boolean((data.options as { startScannedForAll?: unknown }).startScannedForAll) }
+            ? {
+              startScannedForAll: Boolean((data.options as { startScannedForAll?: unknown }).startScannedForAll),
+              raceAssignment:
+                (data.options as ThroneworldGameOptions).raceAssignment === "playerChoice"
+                  ? "playerChoice"
+                  : (data.options as ThroneworldGameOptions).raceAssignment === "random"
+                    ? "random"
+                    : undefined,
+              forceRandomRaces:
+                typeof (data.options as ThroneworldGameOptions).forceRandomRaces === "boolean"
+                  ? (data.options as ThroneworldGameOptions).forceRandomRaces
+                  : undefined,
+              homeworldAssignment:
+                (data.options as ThroneworldGameOptions).homeworldAssignment === "playerOrder"
+                  ? "playerOrder"
+                  : (data.options as ThroneworldGameOptions).homeworldAssignment === "random"
+                    ? "random"
+                    : undefined,
+            }
             : undefined,
         } satisfies GameSummary;
       });

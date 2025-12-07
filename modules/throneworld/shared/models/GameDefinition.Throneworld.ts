@@ -114,6 +114,35 @@ export function buildThroneworldDefinition(): ThroneworldGameDefinition {
         type: "checkbox",
         defaultValue: false,
       },
+      {
+        id: "raceAssignment",
+        label: "Race assignment",
+        description: "Random for now; future option to let players pick",
+        type: "select",
+        defaultValue: "random",
+        choices: [
+          { value: "random", label: "Random" },
+          { value: "playerChoice", label: "Player choice (future)" },
+        ],
+      },
+      {
+        id: "forceRandomRaces",
+        label: "Force random races",
+        description: "Override any player picks with random races (currently always on)",
+        type: "checkbox",
+        defaultValue: true,
+      },
+      {
+        id: "homeworldAssignment",
+        label: "Homeworld assignment",
+        description: "Random now; later can follow player order",
+        type: "select",
+        defaultValue: "random",
+        choices: [
+          { value: "random", label: "Random" },
+          { value: "playerOrder", label: "Player order (future)" },
+        ],
+      },
     ],
   };
 }

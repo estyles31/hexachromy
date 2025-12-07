@@ -18,5 +18,8 @@ export interface GameSummary {
   boardId?: string;
   options?: {
     startScannedForAll?: boolean;
+    raceAssignment?: "random" | "playerChoice";
+    forceRandomRaces?: boolean;
+    homeworldAssignment?: "random" | "playerOrder";
   };
 }
