@@ -44,6 +44,7 @@ export interface ThroneworldGameOptions {
   boardId?: string;
   name?: string;
   playerSummaries?: PlayerSummary[];
+  requiredPlayers?: number;
 }
 
 export interface ThroneworldGameState {

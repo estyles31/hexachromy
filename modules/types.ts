@@ -38,6 +38,20 @@ export interface GetLegalMovesContext<State = unknown> {
   state?: State;
 }
 
+export interface AddPlayerContext<State = unknown> {
+  gameId: string;
+  playerId: string;
+  playerName: string;
+  state: State;
+  db: GameDatabaseAdapter;
+}
+
+export interface AddPlayerResult<State = unknown> {
+  state: State;
+  players?: PlayerSummary[];
+  playerStatuses?: Record<string, PlayerSummary["status"]>;
+}
+
 export interface GameBackendModule<State = unknown, Move = unknown, LegalMoves = unknown> {
   id: string;
   createGame(context: CreateGameContext<State>): Promise<State> | State;
@@ -86,6 +100,7 @@ export interface GameBackendApi<State = unknown> {
   buildPlayerResponse?: (
     context: BuildPlayerResponseContext<State>,
   ) => Promise<Record<string, unknown>> | Record<string, unknown>;
+  addPlayer?: (context: AddPlayerContext<State>) => Promise<AddPlayerResult<State>> | AddPlayerResult<State>;
 }
 
 export interface GameBackendRegistration {

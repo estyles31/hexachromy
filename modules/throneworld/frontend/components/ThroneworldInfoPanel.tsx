@@ -1,3 +1,4 @@
+import { useMemo, useState } from "react";
 import "../../../../frontend/src/pages/ui/InfoPanel.css";
 import type { HoveredSystemInfo } from "../../../../frontend/src/modules/types";
 
@@ -16,6 +17,7 @@ type ThroneworldInfoPanelProps = {
 };
 
 export function ThroneworldInfoPanel({ gameState, hoveredSystem }: ThroneworldInfoPanelProps) {
+  const [showSystemDetails, setShowSystemDetails] = useState(true);
   const phase = gameState?.phase ?? "—";
   const currentPlayer = gameState?.currentPlayer ?? "—";
   const players = Array.isArray(gameState?.players) ? gameState.players : [];
@@ -61,6 +63,11 @@ export function ThroneworldInfoPanel({ gameState, hoveredSystem }: ThroneworldIn
       ? "Unknown"
       : "—";
 
+  const playerColors = useMemo(
+    () => ["#65c3ff", "#a6d189", "#f2cdcd", "#e5c890", "#c6a0f6", "#8bd5ca"],
+    [],
+  );
+
   return (
     <div className="info-panel">
       <div className="info-section">
@@ -71,24 +78,64 @@ export function ThroneworldInfoPanel({ gameState, hoveredSystem }: ThroneworldIn
       </div>
 
       <div className="info-section">
-        <div className="info-title">Hovered System</div>
-        <div className="info-value">{hoveredSystem?.hexId ?? "—"}</div>
+        <div className="info-title">Players</div>
+        <div className="player-list">
+          {players.map((player: { id: string; name?: string }, index: number) => {
+            const color = playerColors[index % playerColors.length];
+            const race = playerRaceById[player.id] ?? "Unknown";
+            return (
+              <div className="player-row" key={player.id}>
+                <span className="player-swatch" style={{ backgroundColor: color }} />
+                <div className="player-row__details">
+                  <div className="player-row__name">{player.name ?? player.id}</div>
+                  <div className="player-row__meta">Race: {race}</div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
 
-        <div className="info-subtitle">Development</div>
-        <div className="info-value">{isRevealed ? hoveredDetails?.dev ?? "—" : hoveredSystem ? "Unknown" : "—"}</div>
-
-        <div className="info-subtitle">Owner</div>
-        <div className="info-value">{ownerLabel}</div>
-
-        <div className="info-subtitle">Fleets</div>
-        <div className="info-value">
-          {isRevealed ? formatUnitSummary(hoveredDetails?.spaceUnits) : hoveredSystem ? "Unknown" : "—"}
+      <div className="info-section info-section--inset">
+        <div className="info-header">
+          <div>
+            <div className="info-title">Hovered System</div>
+            <div className="info-value">{hoveredSystem?.hexId ?? "—"}</div>
+          </div>
+          <label className="info-toggle">
+            <input
+              type="checkbox"
+              checked={showSystemDetails}
+              onChange={event => setShowSystemDetails(event.target.checked)}
+            />
+            Show details
+          </label>
         </div>
 
-        <div className="info-subtitle">Ground Units</div>
-        <div className="info-value">
-          {isRevealed ? formatUnitSummary(hoveredDetails?.groundUnits) : hoveredSystem ? "Unknown" : "—"}
-        </div>
+        {showSystemDetails ? (
+          <div className="info-grid">
+            <div>
+              <div className="info-subtitle">Development</div>
+              <div className="info-value">{isRevealed ? hoveredDetails?.dev ?? "—" : hoveredSystem ? "Unknown" : "—"}</div>
+            </div>
+            <div>
+              <div className="info-subtitle">Owner</div>
+              <div className="info-value">{ownerLabel}</div>
+            </div>
+            <div>
+              <div className="info-subtitle">Fleets</div>
+              <div className="info-value">
+                {isRevealed ? formatUnitSummary(hoveredDetails?.spaceUnits) : hoveredSystem ? "Unknown" : "—"}
+              </div>
+            </div>
+            <div>
+              <div className="info-subtitle">Ground Units</div>
+              <div className="info-value">
+                {isRevealed ? formatUnitSummary(hoveredDetails?.groundUnits) : hoveredSystem ? "Unknown" : "—"}
+              </div>
+            </div>
+          </div>
+        ) : null}
       </div>
     </div>
   );

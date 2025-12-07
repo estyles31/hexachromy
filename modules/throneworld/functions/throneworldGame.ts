@@ -98,6 +98,20 @@ function drawRandomSystem(pool: SystemTile[]): SystemTile {
   return tile;
 }
 
+async function loadPlayerView(params: {
+  gameId: string;
+  playerId: string;
+  db: CreateGameContext["db"];
+}): Promise<ThroneworldPlayerView> {
+  const existingView = await params.db.getDocument<ThroneworldPlayerView>(
+    `games/${params.gameId}/playerViews/${params.playerId}`,
+  );
+
+  if (existingView) return existingView;
+
+  return { playerId: params.playerId, systems: {} } satisfies ThroneworldPlayerView;
+}
+
 function buildInitialGameDocuments(params: {
   gameId: string;
   playerIds: string[];
@@ -111,6 +125,7 @@ function buildInitialGameDocuments(params: {
   homeworldAssignment?: ThroneworldHomeworldAssignment;
   forceRandomRaces?: boolean;
   players?: PlayerSummary[];
+  requiredPlayers?: number;
 }): { state: ThroneworldGameState; playerViews: Record<string, ThroneworldPlayerView> } {
   const { gameId, playerIds } = params;
   const scenario = params.scenario ?? "6p";
@@ -120,7 +135,7 @@ function buildInitialGameDocuments(params: {
   const scanForAll = startScannedForAll || revealAllSystems;
   const boardId = params.boardId ?? "standard-6p";
   const name = params.name ?? undefined;
-  const playerCount = parsePlayerCountFromScenario(scenario, playerIds.length);
+  const playerCount = parsePlayerCountFromScenario(scenario, params.requiredPlayers ?? playerIds.length);
 
   const requestedRaceAssignment: ThroneworldRaceAssignment = params.raceAssignment ?? "random";
   const requestedHomeworldAssignment: ThroneworldHomeworldAssignment = params.homeworldAssignment ?? "random";
@@ -238,9 +253,11 @@ function buildInitialGameDocuments(params: {
     throw new Error("Not all players received a homeworld assignment");
   }
 
-  const allPlayersReady = playerIds.every(playerId =>
-    (playerStatuses[playerId] ?? "joined") === "joined" || playerStatuses[playerId] === "dummy",
-  );
+  const hasEnoughPlayers =
+    typeof params.requiredPlayers === "number" ? playerIds.length >= params.requiredPlayers : playerIds.length > 0;
+  const allPlayersReady =
+    hasEnoughPlayers &&
+    playerIds.every(playerId => (playerStatuses[playerId] ?? "joined") === "joined" || playerStatuses[playerId] === "dummy");
 
   return {
     state: {
@@ -267,6 +284,7 @@ function buildInitialGameDocuments(params: {
         forceRandomRaces,
         homeworldAssignment: appliedHomeworldAssignment,
         races,
+        requiredPlayers: params.requiredPlayers,
       },
     },
     playerViews,
@@ -294,6 +312,7 @@ async function createGame(context: CreateGameContext<ThroneworldGameState>): Pro
     homeworldAssignment,
     forceRandomRaces,
     players: Array.isArray(options.playerSummaries) ? options.playerSummaries : undefined,
+    requiredPlayers: typeof options.requiredPlayers === "number" ? options.requiredPlayers : undefined,
   });
 
   await Promise.all(
@@ -305,6 +324,137 @@ async function createGame(context: CreateGameContext<ThroneworldGameState>): Pro
   context.returnState?.(state);
 
   return state;
+}
+
+async function addPlayerToThroneworldGame(params: {
+  gameId: string;
+  state: ThroneworldGameState;
+  playerId: string;
+  playerName: string;
+  db: CreateGameContext["db"];
+  requiredPlayers?: number;
+}): Promise<{ state: ThroneworldGameState; summaryPlayers: PlayerSummary[] }> {
+  const requiredPlayers =
+    typeof params.requiredPlayers === "number"
+      ? params.requiredPlayers
+      : typeof params.state.options?.requiredPlayers === "number"
+        ? params.state.options.requiredPlayers
+        : undefined;
+
+  if (requiredPlayers && params.state.playerIds.length >= requiredPlayers) {
+    throw new Error("No open player slots remain for this game");
+  }
+
+  if (params.state.playerIds.includes(params.playerId)) {
+    return { state: params.state, summaryPlayers: params.state.summaryPlayers ?? [] };
+  }
+
+  const playerCount = parsePlayerCountFromScenario(
+    params.state.scenario,
+    requiredPlayers ?? params.state.playerIds.length + 1,
+  );
+
+  const availableHomeworld = BOARD_HEXES.find(hex => {
+    const inPlay = isInPlay(hex.id, playerCount);
+    const worldType = normalizeWorldType(getWorldType(hex.id, playerCount));
+    return inPlay && worldType === "homeworld" && !params.state.systems[hex.id];
+  });
+
+  if (!availableHomeworld) {
+    throw new Error("No available homeworld for an additional player");
+  }
+
+  const startScannedForAll = Boolean(params.state.options?.startScannedForAll);
+  const scannedBy = startScannedForAll ? [...params.state.playerIds, params.playerId] : [];
+
+  const details: ThroneworldSystemDetails = {
+    systemId: `homeworld-${params.playerId}`,
+    owner: params.playerId,
+    ...HOMEWORLD_BASE,
+  };
+
+  const newSystems = {
+    ...params.state.systems,
+    [availableHomeworld.id]: {
+      hexId: availableHomeworld.id,
+      location: { col: availableHomeworld.col, row: availableHomeworld.row },
+      worldType: "homeworld" as const,
+      revealed: true,
+      scannedBy,
+      details,
+    },
+  } satisfies ThroneworldGameState["systems"];
+
+  const existingRaces =
+    params.state.options?.races && typeof params.state.options.races === "object"
+      ? (params.state.options.races as Record<string, string>)
+      : {};
+
+  const usedRaceNames = new Set(Object.values(existingRaces));
+  const nextRace = ALL_RACES.find(race => !usedRaceNames.has(race.Name))?.Name ?? ALL_RACES[0]?.Name ?? "Unknown";
+  const updatedRaces = { ...existingRaces, [params.playerId]: nextRace } satisfies Record<string, string>;
+
+  const updatedPlayerIds = [...params.state.playerIds, params.playerId];
+  const updatedPlayerStatuses = {
+    ...params.state.playerStatuses,
+    [params.playerId]: "joined" as ThroneworldPlayerStatus,
+  } satisfies Record<string, ThroneworldPlayerStatus>;
+
+  const updatedOptions: ThroneworldGameOptions = {
+    ...(params.state.options ?? {}),
+    races: updatedRaces,
+    requiredPlayers,
+  };
+
+  const baseSummaryPlayers: PlayerSummary[] = Array.isArray(params.state.summaryPlayers)
+    ? params.state.summaryPlayers
+    : params.state.playerIds.map(id => ({ id, name: id, status: "invited" as const }));
+
+  const summaryPlayers: PlayerSummary[] = [
+    ...baseSummaryPlayers,
+    { id: params.playerId, name: params.playerName, status: "joined", race: nextRace },
+  ];
+
+  const hasEnoughPlayers = requiredPlayers ? updatedPlayerIds.length >= requiredPlayers : true;
+  const everyoneReady =
+    hasEnoughPlayers &&
+    Object.values(updatedPlayerStatuses).every(status => status === "joined" || status === "dummy");
+
+  const updatedState: ThroneworldGameState = {
+    ...params.state,
+    playerIds: updatedPlayerIds,
+    playerStatuses: updatedPlayerStatuses,
+    systems: newSystems,
+    options: updatedOptions,
+    status: everyoneReady ? "in-progress" : "waiting",
+    summaryPlayers,
+  };
+
+  const neutralView = await loadPlayerView({ db: params.db, gameId: params.gameId, playerId: "neutral" });
+  neutralView.systems[availableHomeworld.id] = details;
+  await params.db.setDocument(`games/${params.gameId}/playerViews/neutral`, neutralView);
+
+  if (startScannedForAll) {
+    await Promise.all(
+      updatedPlayerIds.map(async id => {
+        const view = await loadPlayerView({ db: params.db, gameId: params.gameId, playerId: id });
+        view.systems = {
+          ...neutralView.systems,
+          ...view.systems,
+          [availableHomeworld.id]: details,
+        };
+        await params.db.setDocument(`games/${params.gameId}/playerViews/${id}`, view);
+      }),
+    );
+  } else {
+    const newPlayerView = await loadPlayerView({ db: params.db, gameId: params.gameId, playerId: params.playerId });
+    newPlayerView.systems[availableHomeworld.id] = details;
+    await params.db.setDocument(`games/${params.gameId}/playerViews/${params.playerId}`, newPlayerView);
+  }
+
+  await params.db.setDocument(`games/${params.gameId}`, updatedState);
+
+  return { state: updatedState, summaryPlayers };
 }
 
 async function commitMove(context: CommitMoveContext): Promise<ThroneworldGameState> {
@@ -331,3 +481,5 @@ export const throneworldBackend: GameBackendModule = {
   commitMove,
   getLegalMoves,
 };
+
+export { addPlayerToThroneworldGame };
