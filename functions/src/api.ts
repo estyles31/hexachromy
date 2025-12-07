@@ -9,10 +9,16 @@ import type { GameSummary, PlayerSummary } from "../../shared/models/GameSummary
 import type { PlayerPublicProfile, PlayerPrivateProfile } from "../../shared/models/PlayerProfile.js";
 import type { ThroneworldPlayerView } from "../../modules/throneworld/shared/models/GameState.Throneworld.js";
 import {
-  DEFAULT_THRONEWORLD_DEFINITION,
+  buildThroneworldDefinition,
   type ThroneworldBoardDefinition,
   type ThroneworldGameDefinition,
 } from "../../modules/throneworld/shared/models/GameDefinition.Throneworld.js";
+import type {
+  GameDefinition,
+  GameDefinitionCheckboxOption,
+  GameDefinitionOption,
+  GameDefinitionSelectOption,
+} from "../../shared/models/GameDefinition.js";
 
 const app = admin.apps.length ? admin.app() : admin.initializeApp();
 const db = getFirestore(app);
@@ -84,13 +90,57 @@ async function ensureThroneworldDefinition(): Promise<ThroneworldGameDefinition>
   const docRef = db.doc("gameDefinitions/throneworld");
   const snapshot = await docRef.get();
 
+  const defaultDefinition = buildThroneworldDefinition();
+
   if (snapshot.exists) {
-    return snapshot.data() as ThroneworldGameDefinition;
+    const existing = snapshot.data() as ThroneworldGameDefinition;
+    const existingBoardIds = new Set((existing.boards ?? []).map(board => board.id));
+    const missingBoards = defaultDefinition.boards.some(board => !existingBoardIds.has(board.id));
+    const missingOptions = !Array.isArray(existing.options) || existing.options.length === 0;
+
+    if (!missingBoards && !missingOptions) {
+      return existing;
+    }
+
+    const merged: ThroneworldGameDefinition = {
+      ...defaultDefinition,
+      ...existing,
+      boards: defaultDefinition.boards,
+      options: defaultDefinition.options,
+      defaultBoardId: defaultDefinition.defaultBoardId,
+    };
+
+    await docRef.set(merged);
+    return merged;
   }
 
-  await docRef.set(DEFAULT_THRONEWORLD_DEFINITION);
+  await docRef.set(defaultDefinition);
 
-  return DEFAULT_THRONEWORLD_DEFINITION;
+  return defaultDefinition;
+}
+
+async function ensureGameDefinition(gameType: string): Promise<GameDefinition | null> {
+  if (gameType === "throneworld") {
+    return ensureThroneworldDefinition();
+  }
+
+  const docRef = db.doc(`gameDefinitions/${gameType}`);
+  const snapshot = await docRef.get();
+  return snapshot.exists ? ((snapshot.data() as GameDefinition) ?? null) : null;
+}
+
+async function ensureSupportedGameDefinitions(): Promise<GameDefinition[]> {
+  const definitions: GameDefinition[] = [];
+  const supportedTypes = Object.keys(backendRegistry);
+
+  for (const gameType of supportedTypes) {
+    const definition = await ensureGameDefinition(gameType);
+    if (definition) {
+      definitions.push(definition);
+    }
+  }
+
+  return definitions;
 }
 
 function applyCors(res: Response) {
@@ -152,6 +202,7 @@ type CreateGameRequest = {
   dummyPlayers?: unknown;
   name?: unknown;
   startScannedForAll?: unknown;
+  options?: unknown;
 };
 
 function isStringArray(value: unknown): value is string[] {
@@ -179,6 +230,14 @@ function normalizePlayerSummaries(value: unknown): PlayerSummary[] {
       status,
     } satisfies PlayerSummary;
   });
+}
+
+function isSelectOption(option: GameDefinitionOption): option is GameDefinitionSelectOption {
+  return option?.type === "select" && Array.isArray((option as GameDefinitionSelectOption).choices);
+}
+
+function isCheckboxOption(option: GameDefinitionOption): option is GameDefinitionCheckboxOption {
+  return option?.type === "checkbox";
 }
 
 const backendRegistry = backendModules;
@@ -276,8 +335,17 @@ export const api = onRequest({ invoker: "public" }, async (req : Request, res : 
   }
 
   if (req.method === "POST" && path === "/games") {
-    const { gameType, playerIds, scenario, boardId, invitedPlayers, dummyPlayers, name, startScannedForAll } =
-      (req.body ?? {}) as CreateGameRequest;
+    const {
+      gameType,
+      playerIds,
+      scenario,
+      boardId,
+      invitedPlayers,
+      dummyPlayers,
+      name,
+      startScannedForAll,
+      options,
+    } = (req.body ?? {}) as CreateGameRequest;
 
     const normalizedType = typeof gameType === "string" && gameType.trim().length > 0
       ? gameType.trim().toLowerCase()
@@ -302,14 +370,56 @@ export const api = onRequest({ invoker: "public" }, async (req : Request, res : 
     try {
       let createdState: unknown;
 
+      const creationOptions =
+        options && typeof options === "object" && !Array.isArray(options)
+          ? (options as Record<string, unknown>)
+          : {};
+
+      const definition = await ensureGameDefinition(normalizedType);
+
+      const boardOption = definition?.options?.find(option => option.id === "boardId" && isSelectOption(option)) as
+        | GameDefinitionSelectOption
+        | undefined;
+
+      const resolvedBoardId =
+        typeof creationOptions.boardId === "string"
+          ? creationOptions.boardId
+          : typeof boardId === "string"
+            ? boardId
+            : typeof boardOption?.defaultValue === "string"
+              ? boardOption.defaultValue
+              : boardOption?.choices?.[0]?.value;
+
       let selectedBoard: ThroneworldBoardDefinition | undefined;
+      let requiredPlayers: number | undefined;
+      let definitionScenario: string | undefined;
+
+      const boardChoice = boardOption?.choices?.find(choice => choice.value === resolvedBoardId);
+      if (boardChoice?.metadata) {
+        const { playerCount, scenario: choiceScenario } = boardChoice.metadata as {
+          playerCount?: unknown;
+          scenario?: unknown;
+        };
+        if (typeof playerCount === "number") {
+          requiredPlayers = playerCount;
+        }
+        if (typeof choiceScenario === "string") {
+          definitionScenario = choiceScenario;
+        }
+      }
+
       if (normalizedType === "throneworld") {
-        const definition = await ensureThroneworldDefinition();
-        const requestedBoardId = typeof boardId === "string" ? boardId : undefined;
+        const throneworldDefinition = (definition as ThroneworldGameDefinition | null) ?? (await ensureThroneworldDefinition());
+        const requestedBoardId = typeof resolvedBoardId === "string" ? resolvedBoardId : undefined;
         selectedBoard =
-          definition.boards.find(board => board.id === requestedBoardId) ??
-          definition.boards.find(board => board.id === definition.defaultBoardId) ??
-          definition.boards[0];
+          throneworldDefinition.boards.find(board => board.id === requestedBoardId) ??
+          throneworldDefinition.boards.find(board => board.id === throneworldDefinition.defaultBoardId) ??
+          throneworldDefinition.boards[0];
+
+        if (selectedBoard) {
+          requiredPlayers = selectedBoard.playerCount;
+          definitionScenario = selectedBoard.scenario;
+        }
       }
 
       const additionalPlayers = isStringArray(playerIds) ? playerIds : [];
@@ -345,14 +455,14 @@ export const api = onRequest({ invoker: "public" }, async (req : Request, res : 
       );
       playerSummaries.push(...dummySummaries);
 
-      if (selectedBoard && playerSummaries.length !== selectedBoard.playerCount) {
+      if (requiredPlayers && playerSummaries.length !== requiredPlayers) {
         res.status(400).json({
-          error: `Board ${selectedBoard.name} requires ${selectedBoard.playerCount} players; received ${playerSummaries.length}. Add invites or dummy players to fill the roster.`,
+          error: `Board requires ${requiredPlayers} players; received ${playerSummaries.length}. Add invites or dummy players to fill the roster.`,
         });
         return;
       }
 
-      if (!selectedBoard && playerSummaries.length === 0) {
+      if (!requiredPlayers && playerSummaries.length === 0) {
         res.status(400).json({ error: "At least one player is required" });
         return;
       }
@@ -363,9 +473,16 @@ export const api = onRequest({ invoker: "public" }, async (req : Request, res : 
         return acc;
       }, {});
 
+      const startScannedOption = definition?.options?.find(opt => opt.id === "startScannedForAll" && isCheckboxOption(opt));
+      const startScanned =
+        typeof creationOptions.startScannedForAll === "boolean"
+          ? creationOptions.startScannedForAll
+          : typeof startScannedForAll === "boolean"
+            ? startScannedForAll
+            : Boolean(startScannedOption?.defaultValue);
+
       const scenarioToUse =
-        (selectedBoard?.scenario ?? (typeof scenario === "string" ? scenario : undefined)) ??
-        `${playerIdsForState.length}p`;
+        definitionScenario ?? (typeof scenario === "string" ? scenario : undefined) ?? `${playerIdsForState.length}p`;
 
       const state = await module.backend.createGame({
         gameId,
@@ -373,9 +490,10 @@ export const api = onRequest({ invoker: "public" }, async (req : Request, res : 
         scenario: scenarioToUse,
         db: dbAdapter,
         options: {
+          ...creationOptions,
           playerStatuses: statusByPlayer,
-          boardId: selectedBoard?.id,
-          startScannedForAll: Boolean(startScannedForAll),
+          boardId: selectedBoard?.id ?? resolvedBoardId,
+          startScannedForAll: startScanned,
           name: typeof name === "string" ? name : undefined,
         },
         returnState: value => {
@@ -402,9 +520,9 @@ export const api = onRequest({ invoker: "public" }, async (req : Request, res : 
         players: playerSummaries,
         status: everyoneReady ? "in-progress" : "waiting",
         gameType: normalizedType,
-        boardId: selectedBoard?.id,
+        boardId: selectedBoard?.id ?? (typeof resolvedBoardId === "string" ? resolvedBoardId : undefined),
         options: {
-          startScannedForAll: Boolean(startScannedForAll),
+          startScannedForAll: startScanned,
         },
       };
 
@@ -419,6 +537,12 @@ export const api = onRequest({ invoker: "public" }, async (req : Request, res : 
       res.status(500).json({ error: "Failed to create game" });
     }
 
+    return;
+  }
+
+  if (req.method === "GET" && path === "/game-definitions") {
+    const definitions = await ensureSupportedGameDefinitions();
+    res.status(200).json(definitions);
     return;
   }
 
