@@ -30,6 +30,19 @@ export interface ThroneworldPlayerView {
 
 export type ThroneworldPlayerStatus = "joined" | "invited" | "dummy";
 export type ThroneworldGameStatus = "waiting" | "in-progress";
+export type ThroneworldRaceAssignment = "random" | "playerChoice";
+export type ThroneworldHomeworldAssignment = "random" | "playerOrder";
+
+export interface ThroneworldGameOptions {
+  startScannedForAll?: boolean;
+  raceAssignment?: ThroneworldRaceAssignment;
+  forceRandomRaces?: boolean;
+  homeworldAssignment?: ThroneworldHomeworldAssignment;
+  races?: Record<string, string>;
+  playerStatuses?: Record<string, ThroneworldPlayerStatus>;
+  boardId?: string;
+  name?: string;
+}
 
 export interface ThroneworldGameState {
   gameId: string;
@@ -42,9 +55,7 @@ export interface ThroneworldGameState {
   systems: Record<string, ThroneworldPublicSystemState>;
   gameType: "throneworld";
   status: ThroneworldGameStatus;
-  options?: {
-    startScannedForAll?: boolean;
-  };
+  options?: ThroneworldGameOptions;
 }
 
 export interface ThroneworldGameView extends ThroneworldGameState {
