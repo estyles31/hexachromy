@@ -71,6 +71,28 @@ service cloud.firestore {
       }
     }
 
+    // Public player profiles
+    match /profiles/{userId} {
+      allow read: if isSignedIn();
+      allow write, update: if isSignedIn() && request.auth.uid == userId;
+
+      match /private/{docId} {
+        allow read, write, update: if isSignedIn() && request.auth.uid == userId;
+      }
+    }
+
+    // Game metadata
+    match /gameSummaries/{gameId} {
+      allow read: if isSignedIn();
+      allow write, update, delete: if isAdmin();
+    }
+
+    // Game definitions
+    match /gameDefinitions/{gameType} {
+      allow read: if isSignedIn();
+      allow write, update, delete: if isAdmin();
+    }
+
     // Deny everything else by default.
     match /{document=**} {
       allow read, write: if false;

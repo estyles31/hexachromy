@@ -2,6 +2,7 @@ import { randomInt } from "crypto";
 import { BOARD_HEXES, getWorldType, isInPlay, type WorldType } from "../shared/models/BoardLayout.ThroneWorld";
 import type {
   ThroneworldGameState,
+  ThroneworldPlayerStatus,
   ThroneworldPlayerView,
   ThroneworldSystemDetails,
   ThroneworldWorldType,
@@ -60,10 +61,21 @@ function drawRandomSystem(pool: SystemTile[]): SystemTile {
 function buildInitialGameDocuments(params: {
   gameId: string;
   playerIds: string[];
+  playerStatuses?: Record<string, ThroneworldPlayerStatus>;
+  boardId?: string;
+  revealAllSystems?: boolean;
+  startScannedForAll?: boolean;
+  name?: string;
   scenario?: string;
 }): { state: ThroneworldGameState; playerViews: Record<string, ThroneworldPlayerView> } {
   const { gameId, playerIds } = params;
   const scenario = params.scenario ?? "6p";
+  const playerStatuses = params.playerStatuses ?? {};
+  const revealAllSystems = Boolean(params.revealAllSystems);
+  const startScannedForAll = Boolean(params.startScannedForAll);
+  const scanForAll = startScannedForAll || revealAllSystems;
+  const boardId = params.boardId ?? "standard-6p";
+  const name = params.name ?? undefined;
   const playerCount = parsePlayerCountFromScenario(scenario, playerIds.length);
 
   const homeworldQueue = [...playerIds];
@@ -100,16 +112,24 @@ function buildInitialGameDocuments(params: {
           ...HOMEWORLD_BASE,
         };
 
+        const scannedBy = scanForAll ? [...playerIds] : [];
+
         systems[hex.id] = {
           hexId: hex.id,
           location: { col: hex.col, row: hex.row },
           worldType,
           revealed: true,
-          scannedBy: [],
+          scannedBy,
           details,
         };
 
         playerViews.neutral.systems[hex.id] = details;
+
+        if (scanForAll) {
+          for (const playerId of playerIds) {
+            playerViews[playerId].systems[hex.id] = details;
+          }
+        }
       }
       continue;
     }
@@ -126,29 +146,56 @@ function buildInitialGameDocuments(params: {
       ...definition,
     };
 
+    const shouldReveal = revealAllSystems;
+    const scannedBy = scanForAll ? [...playerIds] : [];
+
     systems[hex.id] = {
       hexId: hex.id,
       location: { col: hex.col, row: hex.row },
       worldType,
-      revealed: false,
-      scannedBy: [],
+      revealed: shouldReveal,
+      scannedBy,
+      ...(shouldReveal ? { details } : {}),
     };
 
     playerViews.neutral.systems[hex.id] = details;
+
+    if (scanForAll || shouldReveal) {
+      for (const playerId of playerIds) {
+        playerViews[playerId].systems[hex.id] = details;
+      }
+    }
   }
 
   if (homeworldQueue.length > 0) {
     throw new Error("Not all players received a homeworld assignment");
   }
 
+  const allPlayersReady = playerIds.every(playerId =>
+    (playerStatuses[playerId] ?? "joined") === "joined" || playerStatuses[playerId] === "dummy",
+  );
+
   return {
     state: {
       gameId,
+      name,
       createdAt: Date.now(),
       scenario,
+      boardId,
       playerIds,
+      playerStatuses: playerIds.reduce<Record<string, ThroneworldPlayerStatus>>(
+        (acc, id) => {
+          acc[id] = playerStatuses[id] ?? "joined";
+          return acc;
+        },
+        {},
+      ),
       systems,
       gameType: "throneworld",
+      status: allPlayersReady ? "in-progress" : "waiting",
+      options: {
+        startScannedForAll,
+      },
     },
     playerViews,
   };
@@ -159,6 +206,10 @@ async function createGame(context: CreateGameContext<ThroneworldGameState>): Pro
     gameId: context.gameId,
     playerIds: context.playerIds,
     scenario: context.scenario,
+    playerStatuses: (context.options?.playerStatuses ?? {}) as Record<string, ThroneworldPlayerStatus>,
+    boardId: typeof context.options?.boardId === "string" ? context.options.boardId : undefined,
+    startScannedForAll: Boolean(context.options?.startScannedForAll),
+    name: typeof context.options?.name === "string" ? context.options.name : undefined,
   });
 
   await Promise.all(

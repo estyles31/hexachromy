@@ -66,8 +66,8 @@ const LAYOUT = {
 
 export const DEFAULT_SIZE = 36;
 
-export function SystemMarker({ 
-  system, 
+export function SystemMarker({
+  system,
   worldType,
   ownerColor,
   size = DEFAULT_SIZE,
@@ -82,26 +82,28 @@ export function SystemMarker({
   revealed = revealed || worldType === "homeworld";
   const typeLabel = worldType == "throneworld" ? "TW" : worldType.charAt(0).toUpperCase();
 
-  const scannerMarkers = scannerColors.slice(0, 6);
+  const shouldRenderScanners = !revealed;
+  const scannerMarkers = shouldRenderScanners ? scannerColors.slice(0, 6) : [];
 
-  const renderScannerMarkers = () => (
-    <g>
-      {scannerMarkers.map((color, index) => {
-        const cy = size * (LAYOUT.scanner.startY + index * LAYOUT.scanner.spacing);
-        return (
-          <circle
-            key={`${color}-${index}`}
-            cx={size * LAYOUT.scanner.cx}
-            cy={cy}
-            r={size * LAYOUT.scanner.radius}
-            fill={color}
-            stroke="black"
-            strokeWidth={LAYOUT.scanner.strokeWidth}
-          />
-        );
-      })}
-    </g>
-  );
+  const renderScannerMarkers = () =>
+    shouldRenderScanners && scannerMarkers.length > 0 ? (
+      <g>
+        {scannerMarkers.map((color, index) => {
+          const cy = size * (LAYOUT.scanner.startY + index * LAYOUT.scanner.spacing);
+          return (
+            <circle
+              key={`${color}-${index}`}
+              cx={size * LAYOUT.scanner.cx}
+              cy={cy}
+              r={size * LAYOUT.scanner.radius}
+              fill={color}
+              stroke="black"
+              strokeWidth={LAYOUT.scanner.strokeWidth}
+            />
+          );
+        })}
+      </g>
+    ) : null;
 
   // FOGGED VERSION
   if (!revealed) {
