@@ -496,6 +496,7 @@ export const api = onRequest({ invoker: "public" }, async (req : Request, res : 
           boardId: selectedBoard?.id ?? resolvedBoardId,
           startScannedForAll: startScanned,
           name: typeof name === "string" ? name : undefined,
+          playerSummaries,
         },
         returnState: value => {
           createdState = value;
@@ -510,17 +511,13 @@ export const api = onRequest({ invoker: "public" }, async (req : Request, res : 
 
       const resolvedOptions = (resolvedState as { options?: Record<string, unknown> })?.options ?? {};
 
-      const raceMapping =
-        typeof resolvedOptions === "object" && resolvedOptions && "races" in resolvedOptions
-          ? (resolvedOptions as { races?: Record<string, unknown> }).races
-          : undefined;
+      const providedSummaryPlayers = normalizePlayerSummaries(
+        (resolvedState as { summaryPlayers?: unknown }).summaryPlayers,
+      );
 
-      const playersWithRaces: PlayerSummary[] = playerSummaries.map(player => ({
-        ...player,
-        race: typeof raceMapping?.[player.id] === "string" ? (raceMapping[player.id] as string) : undefined,
-      }));
+      const players = providedSummaryPlayers.length > 0 ? providedSummaryPlayers : playerSummaries;
 
-      const everyoneReady = playerSummaries.every(player => player.status === "joined" || player.status === "dummy");
+      const everyoneReady = players.every(player => player.status === "joined" || player.status === "dummy");
 
       const summary: GameSummary = {
         id: gameId,
@@ -530,7 +527,7 @@ export const api = onRequest({ invoker: "public" }, async (req : Request, res : 
             : typeof name === "string" && name.trim().length > 0
               ? name.trim()
               : `Game ${gameId}`,
-        players: playersWithRaces,
+        players,
         status: everyoneReady ? "in-progress" : "waiting",
         gameType: normalizedType,
         boardId: selectedBoard?.id ?? (typeof resolvedBoardId === "string" ? resolvedBoardId : undefined),

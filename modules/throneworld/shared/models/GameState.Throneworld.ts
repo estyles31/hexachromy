@@ -1,3 +1,4 @@
+import type { PlayerSummary } from "../../../../shared/models/GameSummary.js";
 import type { ColumnId } from "./BoardLayout.ThroneWorld";
 import type { SystemDefinition } from "./Systems.ThroneWorld";
 
@@ -42,6 +43,7 @@ export interface ThroneworldGameOptions {
   playerStatuses?: Record<string, ThroneworldPlayerStatus>;
   boardId?: string;
   name?: string;
+  playerSummaries?: PlayerSummary[];
 }
 
 export interface ThroneworldGameState {
@@ -55,6 +57,7 @@ export interface ThroneworldGameState {
   systems: Record<string, ThroneworldPublicSystemState>;
   gameType: "throneworld";
   status: ThroneworldGameStatus;
+  summaryPlayers?: PlayerSummary[];
   options?: ThroneworldGameOptions;
 }
 
