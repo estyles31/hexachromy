@@ -11,6 +11,7 @@ interface Props {
   revealed?: boolean;
   scannerColors?: string[];
   onHover?: (isHovering: boolean) => void;
+  hideUnits?: boolean;
 }
 
 // Layout configuration - all positioning as ratios of marker size
@@ -73,7 +74,8 @@ export function SystemMarker({
   size = DEFAULT_SIZE,
   revealed = true,
   scannerColors = [],
-  onHover
+  onHover,
+  hideUnits = false,
 }: Props) {
   worldType = worldType.toLowerCase();
   const styleKey = worldType as keyof typeof systemStyles;
@@ -134,8 +136,12 @@ export function SystemMarker({
     );
   }
 
-  const spaceEntries = Object.entries(system.spaceUnits).filter(([, count]) => count && count > 0);
-  const groundEntries = Object.entries(system.groundUnits).filter(([, count]) => count && count > 0);
+  const spaceEntries = hideUnits
+    ? []
+    : Object.entries(system.spaceUnits).filter(([, count]) => count && count > 0);
+  const groundEntries = hideUnits
+    ? []
+    : Object.entries(system.groundUnits).filter(([, count]) => count && count > 0);
 
   return (
     <svg 

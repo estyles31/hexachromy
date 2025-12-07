@@ -1,12 +1,18 @@
 import type { ComponentType } from "react";
 
+export interface HoveredSystemInfo {
+  hexId: string;
+  worldType?: string;
+  details?: unknown;
+  revealed?: boolean;
+}
+
 export interface FrontendModuleDefinition {
   StaticBoardLayer?: ComponentType<{ gameState: any; boardGeometry?: unknown }>;
   SpaceLayer?: ComponentType<{
     gameState: any;
     boardGeometry?: unknown;
-    selectedSystem: string | null;
-    onSelectSystem: (system: string) => void;
+    onHoverSystem?: (info: HoveredSystemInfo | null) => void;
   }>;
   getBoardGeometry?: (gameState: any) => {
     boardGeometry?: unknown;

@@ -6,6 +6,7 @@ export interface PlayerSummary {
   id: string;
   name: string;
   status: PlayerSlotStatus;
+  race?: string;
 }
 
 export interface GameSummary {

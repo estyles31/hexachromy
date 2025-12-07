@@ -1,8 +1,4 @@
-export default function ObjectLayer({
-  objects,
-  selectedObject,
-  onSelectObject
-}: any) {
+export default function ObjectLayer({ objects }: { objects: any[] }) {
   return (
     <>
       {objects.map((obj: any) => (
@@ -13,8 +9,7 @@ export default function ObjectLayer({
           y={obj.y}
           width={32}
           height={32}
-          className={"game-object" + (selectedObject === obj.id ? " selected" : "")}
-          onClick={() => onSelectObject(obj.id)}
+          className="game-object"
         />
       ))}
     </>

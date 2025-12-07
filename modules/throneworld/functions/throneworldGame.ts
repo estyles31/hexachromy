@@ -125,6 +125,8 @@ function buildInitialGameDocuments(params: {
 
         playerViews.neutral.systems[hex.id] = details;
 
+        playerViews[playerId].systems[hex.id] = details;
+
         if (scanForAll) {
           for (const playerId of playerIds) {
             playerViews[playerId].systems[hex.id] = details;
