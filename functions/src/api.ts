@@ -499,6 +499,7 @@ export const api = onRequest({ invoker: "public" }, async (req : Request, res : 
           boardId: selectedBoard?.id ?? resolvedBoardId,
           startScannedForAll: startScanned,
           name: typeof name === "string" ? name : undefined,
+          playerSummaries,
         },
         returnState: value => {
           createdState = value;
@@ -513,7 +514,13 @@ export const api = onRequest({ invoker: "public" }, async (req : Request, res : 
 
       const resolvedOptions = (resolvedState as { options?: Record<string, unknown> })?.options ?? {};
 
-      const everyoneReady = playerSummaries.every(player => player.status === "joined" || player.status === "dummy");
+      const providedSummaryPlayers = normalizePlayerSummaries(
+        (resolvedState as { summaryPlayers?: unknown }).summaryPlayers,
+      );
+
+      const players = providedSummaryPlayers.length > 0 ? providedSummaryPlayers : playerSummaries;
+
+      const everyoneReady = players.every(player => player.status === "joined" || player.status === "dummy");
 
       const summaryOptions: GameSummary["options"] = {
         startScannedForAll:
@@ -533,7 +540,7 @@ export const api = onRequest({ invoker: "public" }, async (req : Request, res : 
             : typeof name === "string" && name.trim().length > 0
               ? name.trim()
               : `Game ${gameId}`,
-        players: playersWithRaces,
+        players,
         status: everyoneReady ? "in-progress" : "waiting",
         gameType: normalizedType,
         boardId: selectedBoard?.id ?? (typeof resolvedBoardId === "string" ? resolvedBoardId : undefined),

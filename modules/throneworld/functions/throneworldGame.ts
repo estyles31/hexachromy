@@ -10,6 +10,7 @@ import type {
   ThroneworldSystemDetails,
   ThroneworldWorldType,
 } from "../shared/models/GameState.Throneworld";
+import type { PlayerSummary } from "../../../shared/models/GameSummary.js";
 import type { SystemDefinition, SystemPool } from "../shared/models/Systems.ThroneWorld";
 import systemsJson from "../shared/data/systems.throneworld.json";
 import racesJson from "../shared/data/races.throneworld.json";
@@ -109,6 +110,7 @@ function buildInitialGameDocuments(params: {
   raceAssignment?: ThroneworldRaceAssignment;
   homeworldAssignment?: ThroneworldHomeworldAssignment;
   forceRandomRaces?: boolean;
+  players?: PlayerSummary[];
 }): { state: ThroneworldGameState; playerViews: Record<string, ThroneworldPlayerView> } {
   const { gameId, playerIds } = params;
   const scenario = params.scenario ?? "6p";
@@ -132,6 +134,16 @@ function buildInitialGameDocuments(params: {
 
   const races = assignRaces(playerIds);
   const homeworldQueue = resolveHomeworldOrder(playerIds, appliedHomeworldAssignment);
+
+  const baseSummaries: PlayerSummary[] = Array.isArray(params.players)
+    ? params.players
+    : playerIds.map(playerId => ({ id: playerId, name: playerId, status: "invited" as const }));
+
+  const summaryPlayers: PlayerSummary[] = baseSummaries.map(player => ({
+    ...player,
+    status: (playerStatuses[player.id] ?? player.status ?? "invited") as PlayerSummary["status"],
+    race: typeof races[player.id] === "string" ? races[player.id] : player.race,
+  }));
 
   const pools: Record<PoolKey, SystemTile[]> = {
     outer: buildSystemPool("outer"),
@@ -248,6 +260,7 @@ function buildInitialGameDocuments(params: {
       systems,
       gameType: "throneworld",
       status: allPlayersReady ? "in-progress" : "waiting",
+      summaryPlayers,
       options: {
         startScannedForAll,
         raceAssignment: appliedRaceAssignment,
@@ -280,6 +293,7 @@ async function createGame(context: CreateGameContext<ThroneworldGameState>): Pro
     raceAssignment,
     homeworldAssignment,
     forceRandomRaces,
+    players: Array.isArray(options.playerSummaries) ? options.playerSummaries : undefined,
   });
 
   await Promise.all(
