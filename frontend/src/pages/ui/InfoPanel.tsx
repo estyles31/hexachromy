@@ -3,6 +3,56 @@ import type { HoveredSystemInfo } from "../../modules/types";
 export default function InfoPanel({ gameState, hoveredSystem }: { gameState: any; hoveredSystem: HoveredSystemInfo | null }) {
   const phase = gameState?.phase ?? "—";
   const currentPlayer = gameState?.currentPlayer ?? "—";
+  const players = Array.isArray(gameState?.players) ? gameState.players : [];
+  const raceMapping =
+    gameState?.options?.races && typeof gameState.options.races === "object"
+      ? (gameState.options.races as Record<string, string>)
+      : {};
+  const playerNameById = players.reduce<Record<string, string>>((acc, player) => {
+    if (player?.id) acc[player.id] = player.name ?? player.id;
+    return acc;
+  }, {});
+  const playerRaceById = players.reduce<Record<string, string>>((acc, player) => {
+    if (player?.id) {
+      const race = player.race ?? raceMapping[player.id];
+      if (race) acc[player.id] = race;
+    }
+    return acc;
+  }, { ...raceMapping });
+
+  const hoveredDetails = (hoveredSystem?.details ?? null) as
+    | {
+        dev?: number;
+        owner?: string | null;
+        spaceUnits?: Record<string, number>;
+        groundUnits?: Record<string, number>;
+      }
+    | null;
+
+  const isRevealed = hoveredSystem?.revealed;
+  const ownerId = hoveredDetails?.owner ?? null;
+  const ownerRace = ownerId ? playerRaceById[ownerId] : undefined;
+  const ownerName = ownerId ? playerNameById[ownerId] ?? ownerId : undefined;
+
+  const ownerLabel = isRevealed
+    ? ownerId
+      ? ownerId === "neutral"
+        ? "Neutral"
+        : `${ownerRace ?? "Unknown"} (${ownerName ?? ownerId})`
+      : hoveredSystem
+        ? "Unclaimed"
+        : "—"
+    : hoveredSystem
+      ? "Unknown"
+      : "—";
+
+  const details = hoveredSystem?.details;
+  const owner = (details as { owner?: unknown } | undefined)?.owner;
+  const ownerLabel = typeof owner === "string" ? owner : owner === null ? "Unclaimed" : "—";
+
+  const details = hoveredSystem?.details;
+  const owner = (details as { owner?: unknown } | undefined)?.owner;
+  const ownerLabel = typeof owner === "string" ? owner : owner === null ? "Unclaimed" : "—";
 
   const details = hoveredSystem?.details;
   const owner = (details as { owner?: unknown } | undefined)?.owner;
