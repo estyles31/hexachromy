@@ -261,20 +261,22 @@ function buildInitialGameDocuments(params: {
 }
 
 async function createGame(context: CreateGameContext<ThroneworldGameState>): Promise<ThroneworldGameState> {
+  const options = (context.options ?? {}) as ThroneworldGameOptions;
+
   const raceAssignment: ThroneworldRaceAssignment =
-    context.options?.raceAssignment === "playerChoice" ? "playerChoice" : "random";
+    options.raceAssignment === "playerChoice" ? "playerChoice" : "random";
   const homeworldAssignment: ThroneworldHomeworldAssignment =
-    context.options?.homeworldAssignment === "playerOrder" ? "playerOrder" : "random";
-  const forceRandomRaces = context.options?.forceRandomRaces === false ? false : true;
+    options.homeworldAssignment === "playerOrder" ? "playerOrder" : "random";
+  const forceRandomRaces = options.forceRandomRaces === false ? false : true;
 
   const { state, playerViews } = buildInitialGameDocuments({
     gameId: context.gameId,
     playerIds: context.playerIds,
     scenario: context.scenario,
-    playerStatuses: (context.options?.playerStatuses ?? {}) as Record<string, ThroneworldPlayerStatus>,
-    boardId: typeof context.options?.boardId === "string" ? context.options.boardId : undefined,
-    startScannedForAll: Boolean(context.options?.startScannedForAll),
-    name: typeof context.options?.name === "string" ? context.options.name : undefined,
+    playerStatuses: (options.playerStatuses ?? {}) as Record<string, ThroneworldPlayerStatus>,
+    boardId: typeof options.boardId === "string" ? options.boardId : undefined,
+    startScannedForAll: Boolean(options.startScannedForAll),
+    name: typeof options.name === "string" ? options.name : undefined,
     raceAssignment,
     homeworldAssignment,
     forceRandomRaces,
