@@ -79,6 +79,39 @@ async function getDisplayName(uid: string): Promise<string> {
   return profile?.displayName ?? `Player ${uid.slice(0, 6)}`;
 }
 
+async function getBotProfiles(limit: number): Promise<PlayerPublicProfile[]> {
+  const snapshot = await db.collection("profiles").where("isBot", "==", true).limit(limit).get();
+  return snapshot.docs.map(doc => doc.data() as PlayerPublicProfile);
+}
+
+async function ensureBotProfiles(count: number): Promise<PlayerPublicProfile[]> {
+  const existing = await getBotProfiles(count);
+
+  if (existing.length >= count) {
+    return existing.slice(0, count);
+  }
+
+  const needed = count - existing.length;
+  const created: PlayerPublicProfile[] = [];
+
+  for (let i = 0; i < needed; i += 1) {
+    const id = `bot-${randomUUID()}`;
+    const displayName = `Bot ${existing.length + i + 1}`;
+    const profile: PlayerPublicProfile & { isBot: boolean } = {
+      uid: id,
+      displayName,
+      photoURL: null,
+      updatedAt: Date.now(),
+      isBot: true,
+    };
+
+    await db.doc(`profiles/${id}`).set(profile);
+    created.push(profile);
+  }
+
+  return [...existing, ...created];
+}
+
 async function ensureGameDefinition(gameType: string): Promise<GameDefinition | null> {
   const module: GameBackendRegistration | undefined = backendRegistry[gameType];
 
@@ -159,10 +192,11 @@ type CreateGameRequest = {
   scenario?: unknown;
   boardId?: unknown;
   invitedPlayers?: unknown;
-  dummyPlayers?: unknown;
   name?: unknown;
   startScannedForAll?: unknown;
   options?: unknown;
+  playerSlots?: unknown;
+  fillWithBots?: unknown;
 };
 
 function isStringArray(value: unknown): value is string[] {
@@ -298,9 +332,10 @@ export const api = onRequest({ invoker: "public" }, async (req : Request, res : 
       scenario,
       boardId,
       invitedPlayers,
-      dummyPlayers,
       name,
       options,
+      playerSlots,
+      fillWithBots,
     } = (req.body ?? {}) as CreateGameRequest;
 
     const normalizedType = typeof gameType === "string" && gameType.trim().length > 0
@@ -363,13 +398,28 @@ export const api = onRequest({ invoker: "public" }, async (req : Request, res : 
         }
       }
 
+      const slotEntries = Array.isArray(playerSlots) ? playerSlots : [];
+      const normalizedSlots = slotEntries.map(slot =>
+        typeof slot === "string" && slot.trim().length > 0 ? slot.trim() : null,
+      );
       const additionalPlayers = isStringArray(playerIds) ? playerIds : [];
       const invitees = isStringArray(invitedPlayers) ? invitedPlayers : [];
-      const dummyNames = isStringArray(dummyPlayers) ? dummyPlayers : [];
+      const requestedSlots = normalizedSlots.length
+        ? normalizedSlots
+        : requiredPlayers
+          ? Array.from({ length: requiredPlayers }, () => null)
+          : [];
 
       let playerSummaries: PlayerSummary[] = [
         { id: decoded.uid, name: hostProfile.displayName, status: "joined" },
       ];
+
+      requestedSlots.forEach((value, index) => {
+        if (index === 0) return;
+        if (typeof value === "string" && value !== decoded.uid) {
+          playerSummaries.push({ id: value, name: value, status: "invited" });
+        }
+      });
 
       const inviteIds = Array.from(new Set([...additionalPlayers, ...invitees].filter(id => id !== decoded.uid)));
       const inviteSummaries = await Promise.all(
@@ -381,20 +431,33 @@ export const api = onRequest({ invoker: "public" }, async (req : Request, res : 
       );
       playerSummaries.push(...inviteSummaries);
 
-      const dummySummaries: PlayerSummary[] = await Promise.all(
-        dummyNames.map(async (dummyName, idx) => {
-          const dummyId = `dummy-${randomUUID()}`;
-          const finalName = dummyName.trim().length > 0 ? dummyName : `Dummy Player ${idx + 1}`;
-          await db.doc(`profiles/${dummyId}`).set({
-            uid: dummyId,
-            displayName: finalName,
-            photoURL: null,
-            updatedAt: Date.now(),
-          });
-          return { id: dummyId, name: finalName, status: "dummy" as const } satisfies PlayerSummary;
-        }),
-      );
-      playerSummaries.push(...dummySummaries);
+      const uniquePlayers = new Map<string, PlayerSummary>();
+      playerSummaries.forEach(player => {
+        if (!uniquePlayers.has(player.id)) {
+          uniquePlayers.set(player.id, player);
+        }
+      });
+      playerSummaries = Array.from(uniquePlayers.values());
+
+      if (requiredPlayers && playerSummaries.length > requiredPlayers) {
+        res.status(400).json({
+          error: `Board allows ${requiredPlayers} players; received ${playerSummaries.length}. Remove extra invites.`,
+        });
+        return;
+      }
+
+      const shouldFillWithBots = Boolean(fillWithBots);
+      if (shouldFillWithBots && requiredPlayers && playerSummaries.length < requiredPlayers) {
+        const neededBots = requiredPlayers - playerSummaries.length;
+        const bots = await ensureBotProfiles(neededBots);
+        playerSummaries.push(
+          ...bots.map((bot, index) => ({
+            id: bot.uid,
+            name: bot.displayName ?? `Bot ${index + 1}`,
+            status: "dummy" as const,
+          })),
+        );
+      }
 
       const modulePreparation = module.api?.prepareCreateGame
         ? await module.api.prepareCreateGame({
@@ -412,13 +475,6 @@ export const api = onRequest({ invoker: "public" }, async (req : Request, res : 
       }
 
       requiredPlayers = modulePreparation?.requiredPlayers ?? requiredPlayers;
-
-      if (requiredPlayers && playerSummaries.length !== requiredPlayers) {
-        res.status(400).json({
-          error: `Board requires ${requiredPlayers} players; received ${playerSummaries.length}. Add invites or dummy players to fill the roster.`,
-        });
-        return;
-      }
 
       if (!requiredPlayers && playerSummaries.length === 0) {
         res.status(400).json({ error: "At least one player is required" });
@@ -443,6 +499,7 @@ export const api = onRequest({ invoker: "public" }, async (req : Request, res : 
         playerStatuses: statusByPlayer,
         name: typeof name === "string" ? name : undefined,
         playerSummaries,
+        requiredPlayers,
       };
 
       const boardIdForSummary =
@@ -458,7 +515,7 @@ export const api = onRequest({ invoker: "public" }, async (req : Request, res : 
         scenario: scenarioToUse,
         db: dbAdapter,
         options: backendOptions,
-        returnState: value => {
+        returnState: (value: unknown) => {
           createdState = value;
         },
       });
@@ -470,6 +527,13 @@ export const api = onRequest({ invoker: "public" }, async (req : Request, res : 
       }
 
       const resolvedOptions = (resolvedState as { options?: Record<string, unknown> })?.options ?? {};
+      const resolvedRequiredPlayers =
+        typeof resolvedOptions.requiredPlayers === "number"
+          ? (resolvedOptions.requiredPlayers as number)
+          : requiredPlayers;
+      if (typeof resolvedRequiredPlayers === "number" && resolvedRequiredPlayers > 0) {
+        resolvedOptions.requiredPlayers = resolvedRequiredPlayers;
+      }
 
       const providedSummaryPlayers = normalizePlayerSummaries(
         (resolvedState as { summaryPlayers?: unknown }).summaryPlayers,
@@ -477,7 +541,10 @@ export const api = onRequest({ invoker: "public" }, async (req : Request, res : 
 
       const players = providedSummaryPlayers.length > 0 ? providedSummaryPlayers : playerSummaries;
 
-      const everyoneReady = players.every(player => player.status === "joined" || player.status === "dummy");
+      const enoughPlayers =
+        typeof resolvedRequiredPlayers === "number" ? players.length >= resolvedRequiredPlayers : players.length > 0;
+      const everyoneReady =
+        enoughPlayers && players.every(player => player.status === "joined" || player.status === "dummy");
 
       const summary: GameSummary = {
         id: gameId,
@@ -550,47 +617,84 @@ export const api = onRequest({ invoker: "public" }, async (req : Request, res : 
         photoURL: typeof decoded.picture === "string" ? decoded.picture : null,
       });
 
-      const summaryRef = db.doc(`gameSummaries/${gameId}`);
-      const gameRef = db.doc(`games/${gameId}`);
+      const summary = await dbAdapter.getDocument<GameSummary>(`gameSummaries/${gameId}`);
+      const state = await dbAdapter.getDocument<Record<string, unknown>>(`games/${gameId}`);
 
-      await db.runTransaction(async transaction => {
-        const [summarySnap, gameSnap] = await transaction.getAll(summaryRef, gameRef);
+      if (!summary || !state) {
+        throw new Error("Game not found");
+      }
 
-        if (!summarySnap.exists || !gameSnap.exists) {
-          throw new Error("Game not found");
-        }
+      const normalizedPlayers = normalizePlayerSummaries(summary.players);
+      const playerIndex = normalizedPlayers.findIndex(player => player.id === decoded.uid);
+      const gameType = (state as { gameType?: unknown }).gameType;
+      const normalizedType = typeof gameType === "string" ? gameType : "unknown";
+      const module = backendRegistry[normalizedType];
 
-        const summaryData = summarySnap.data() as Partial<GameSummary>;
-        const normalizedPlayers = normalizePlayerSummaries(summaryData.players);
+      const baseStatuses =
+        state && typeof (state as { playerStatuses?: unknown }).playerStatuses === "object"
+          ? ((state as { playerStatuses?: Record<string, string> }).playerStatuses as Record<string, string>)
+          : {};
 
-        const playerIndex = normalizedPlayers.findIndex(player => player.id === decoded.uid);
+      let updatedStatuses = { ...baseStatuses } as Record<string, string>;
+      let updatedPlayers = [...normalizedPlayers];
+      let updatedState = state as Record<string, unknown>;
+      let summaryPlayers = updatedPlayers;
 
-        if (playerIndex < 0) {
-          throw new Error("Player is not invited to this game");
-        }
+      if (playerIndex >= 0) {
+        updatedPlayers[playerIndex] = { ...updatedPlayers[playerIndex], status: "joined" };
+        updatedStatuses[decoded.uid] = "joined";
+      } else if (module?.api?.addPlayer) {
+        const addResult = await module.api.addPlayer({
+          gameId,
+          state,
+          playerId: decoded.uid,
+          playerName: await getDisplayName(decoded.uid),
+          db: dbAdapter,
+        });
+        updatedState = addResult.state as Record<string, unknown>;
+        const playerEntries =
+          addResult.players ??
+          (Array.isArray((addResult.state as { summaryPlayers?: unknown }).summaryPlayers)
+            ? ((addResult.state as { summaryPlayers: unknown[] }).summaryPlayers as PlayerSummary[])
+            : []);
+        summaryPlayers = normalizePlayerSummaries(playerEntries);
+        updatedStatuses = addResult.playerStatuses ?? updatedStatuses;
+      } else {
+        throw new Error("Player is not invited to this game");
+      }
 
-        normalizedPlayers[playerIndex] = { ...normalizedPlayers[playerIndex], status: "joined" };
+      const raceMapping =
+        updatedState && typeof (updatedState as { options?: unknown }).options === "object"
+          ? ((updatedState as { options?: { races?: Record<string, string> } }).options?.races ?? {})
+          : {};
 
-        const updatedStatus = normalizedPlayers.every(player => player.status === "joined" || player.status === "dummy")
-          ? "in-progress"
-          : "waiting";
+      const requiredPlayers =
+        updatedState && typeof (updatedState as { options?: unknown }).options === "object"
+          ? (updatedState as { options?: { requiredPlayers?: unknown } }).options?.requiredPlayers
+          : undefined;
+      const requiredCount = typeof requiredPlayers === "number" ? requiredPlayers : undefined;
 
-        const stateData = gameSnap.data() as { playerStatuses?: Record<string, string>; status?: string };
-        const updatedPlayerStatuses = {
-          ...(stateData.playerStatuses ?? {}),
-          [decoded.uid]: "joined",
-        } as Record<string, string>;
+      const mergedPlayers = summaryPlayers.map(player => ({
+        ...player,
+        status: (updatedStatuses[player.id] as PlayerSummary["status"]) ?? player.status ?? "invited",
+        race: player.race ?? (raceMapping as Record<string, string>)[player.id],
+      }));
 
-        transaction.set(
-          summaryRef,
-          { players: normalizedPlayers, status: updatedStatus },
-          { merge: true },
-        );
-        transaction.set(
-          gameRef,
-          { playerStatuses: updatedPlayerStatuses, status: updatedStatus },
-          { merge: true },
-        );
+      const enoughPlayers = requiredCount ? mergedPlayers.length >= requiredCount : mergedPlayers.length > 0;
+      const everyoneReady = mergedPlayers.every(p => p.status === "joined" || p.status === "dummy");
+      const updatedStatus = enoughPlayers && everyoneReady ? "in-progress" : "waiting";
+
+      await dbAdapter.setDocument(`gameSummaries/${gameId}`, {
+        ...summary,
+        players: mergedPlayers,
+        status: updatedStatus,
+      });
+
+      await dbAdapter.setDocument(`games/${gameId}`, {
+        ...updatedState,
+        playerStatuses: updatedStatuses,
+        status: updatedStatus,
+        summaryPlayers: mergedPlayers,
       });
 
       res.status(200).json({ ok: true });
@@ -662,11 +766,11 @@ export const api = onRequest({ invoker: "public" }, async (req : Request, res : 
 
     const extraResponse = module?.api?.buildPlayerResponse
       ? await module.api.buildPlayerResponse({
-        gameId,
-        playerId: decoded.uid,
-        state,
-        db: dbAdapter,
-      })
+          gameId,
+          playerId: decoded.uid,
+          state,
+          db: dbAdapter,
+        })
       : {};
 
     res.status(200).json({ ...state, players, ...(extraResponse ?? {}) });

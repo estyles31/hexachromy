@@ -3,13 +3,16 @@ import {
   type ThroneworldBoardDefinition,
   type ThroneworldGameDefinition,
 } from "../shared/models/GameDefinition.Throneworld.js";
-import type { ThroneworldPlayerView } from "../shared/models/GameState.Throneworld";
+import type { ThroneworldGameState, ThroneworldPlayerView } from "../shared/models/GameState.Throneworld";
 import type {
   GameBackendApi,
+  AddPlayerContext,
+  AddPlayerResult,
   EnsureGameDefinitionContext,
   PrepareCreateGameContext,
   PrepareCreateGameResult,
 } from "../../types.js";
+import { addPlayerToThroneworldGame } from "./throneworldGame.js";
 
 async function ensureThroneworldDefinition({
   db,
@@ -97,11 +100,30 @@ function prepareThroneworldCreateGame(context: PrepareCreateGameContext): Prepar
   } satisfies PrepareCreateGameResult;
 }
 
-export const throneworldApi: GameBackendApi = {
+async function addThroneworldPlayer(
+  context: AddPlayerContext<ThroneworldGameState>,
+): Promise<AddPlayerResult<ThroneworldGameState>> {
+  const result = await addPlayerToThroneworldGame({
+    gameId: context.gameId,
+    state: context.state,
+    playerId: context.playerId,
+    playerName: context.playerName,
+    db: context.db,
+  });
+
+  return {
+    state: result.state,
+    players: result.summaryPlayers,
+    playerStatuses: result.state.playerStatuses,
+  } satisfies AddPlayerResult<ThroneworldGameState>;
+}
+
+export const throneworldApi: GameBackendApi<ThroneworldGameState> = {
   ensureGameDefinition: ensureThroneworldDefinition,
   prepareCreateGame: prepareThroneworldCreateGame,
   buildPlayerResponse: async ({ gameId, playerId, db }) => {
     const playerView = await db.getDocument<ThroneworldPlayerView>(`games/${gameId}/playerViews/${playerId}`);
     return { playerView: playerView ?? { playerId, systems: {} } } as Record<string, unknown>;
   },
+  addPlayer: addThroneworldPlayer,
 };
