@@ -636,7 +636,7 @@ export const api = onRequest({ invoker: "public" }, async (req : Request, res : 
           : {};
 
       let updatedStatuses = { ...baseStatuses } as Record<string, string>;
-      let updatedPlayers = [...normalizedPlayers];
+      const updatedPlayers = [...normalizedPlayers];
       let updatedState = state as Record<string, unknown>;
       let summaryPlayers = updatedPlayers;
 
@@ -766,11 +766,11 @@ export const api = onRequest({ invoker: "public" }, async (req : Request, res : 
 
     const extraResponse = module?.api?.buildPlayerResponse
       ? await module.api.buildPlayerResponse({
-          gameId,
-          playerId: decoded.uid,
-          state,
-          db: dbAdapter,
-        })
+        gameId,
+        playerId: decoded.uid,
+        state,
+        db: dbAdapter,
+      })
       : {};
 
     res.status(200).json({ ...state, players, ...(extraResponse ?? {}) });
