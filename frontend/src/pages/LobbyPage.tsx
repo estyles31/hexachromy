@@ -7,6 +7,7 @@ import { auth, firestore } from "../firebase";
 import { authFetch } from "../utils/authFetch";
 import type { GameDefinition, GameDefinitionOption } from "../../../shared/models/GameDefinition";
 import type { GameSummary } from "../../../shared/models/GameSummary";
+import "./LobbyPage.css";
 
 function deriveDefaultOptions(definition?: GameDefinition | null): Record<string, unknown> {
   const defaults: Record<string, unknown> = {};
@@ -38,13 +39,15 @@ type PlayerOption = { uid: string; displayName: string };
 function PlayerSlotRow({
   index,
   value,
+  displayName,
   onChange,
   disabled,
   searchPlayers,
 }: {
   index: number;
   value: string | null;
-  onChange: (value: string | null) => void;
+  displayName?: string | null;
+  onChange: (value: string | null, displayName?: string | null) => void;
   disabled: boolean;
   searchPlayers: (term: string) => Promise<PlayerOption[]>;
 }) {
@@ -54,9 +57,9 @@ function PlayerSlotRow({
 
   useEffect(() => {
     if (disabled) {
-      setSearchTerm(value ?? "");
+      setSearchTerm(displayName ?? value ?? "");
     }
-  }, [disabled, value]);
+  }, [disabled, displayName, value]);
 
   useEffect(() => {
     let cancelled = false;
@@ -90,8 +93,13 @@ function PlayerSlotRow({
     const match = results.find(option => option.uid === value);
     if (match) {
       setSelectedDisplayName(match.displayName);
+      return;
     }
-  }, [results, value]);
+
+    if (displayName) {
+      setSelectedDisplayName(displayName);
+    }
+  }, [displayName, results, value]);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
@@ -107,7 +115,7 @@ function PlayerSlotRow({
         />
       </div>
       {index === 0 ? (
-        <div style={{ fontSize: "0.9rem", color: "#666" }}>Host: {value ?? "<not signed in>"}</div>
+        <div style={{ fontSize: "0.9rem", color: "#666" }}>Host: {displayName ?? value ?? "<not signed in>"}</div>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
           <div style={{ display: "flex", gap: 8, alignItems: "center", justifyContent: "space-between" }}>
@@ -118,7 +126,7 @@ function PlayerSlotRow({
               <button
                 type="button"
                 onClick={() => {
-                  onChange(null);
+                  onChange(null, null);
                   setSearchTerm("");
                   setSelectedDisplayName(null);
                 }}
@@ -139,13 +147,13 @@ function PlayerSlotRow({
                   key={option.uid}
                   type="button"
                   onClick={() => {
-                    onChange(option.uid);
+                    onChange(option.uid, option.displayName);
                     setSelectedDisplayName(option.displayName);
                     setSearchTerm(option.displayName);
                   }}
                   style={{ textAlign: "left" }}
                 >
-                  {option.displayName} ({option.uid})
+                  {option.displayName}
                 </button>
               ))
             )}
@@ -173,6 +181,7 @@ export default function LobbyPage() {
   const [playerSlots, setPlayerSlots] = useState<(string | null)[]>([]);
   const [fillWithBots, setFillWithBots] = useState(false);
   const [playerSearchCache, setPlayerSearchCache] = useState<Record<string, PlayerOption[]>>({});
+  const [playerDisplayNames, setPlayerDisplayNames] = useState<Record<string, string>>({});
   const [gameName, setGameName] = useState<string>("");
   const [searchParams] = useSearchParams();
   const debugMode = searchParams.get("debug") === "true";
@@ -324,17 +333,27 @@ export default function LobbyPage() {
     return typeof metadata?.playerCount === "number" ? metadata.playerCount : undefined;
   }, [optionValues, selectedDefinition]);
 
-  const debugOptionEnabled = useMemo(() => {
-    if (!selectedDefinition?.options) return false;
+  useEffect(() => {
+    if (user?.uid) {
+      setPlayerDisplayNames(current => {
+        const desiredName = user.displayName ?? user.uid;
+        if (current[user.uid] === desiredName) return current;
+        return { ...current, [user.uid]: desiredName };
+      });
+    }
+  }, [user]);
 
-    return selectedDefinition.options.some(option => {
-      if (option.type !== "checkbox") return false;
+  useEffect(() => {
+    setPlayerSlots(current => {
+      const targetLength = requiredPlayers ?? (current.length > 0 ? current.length : 1);
+      const nextSlots: (string | null)[] = Array.from({ length: targetLength }, (_, index) => {
+        if (index === 0) return user?.uid ?? current[0] ?? null;
+        return current[index] ?? null;
+      });
 
-      return option.id.toLowerCase().includes("debug") && Boolean(optionValues[option.id]);
+      return nextSlots;
     });
-  }, [optionValues, selectedDefinition]);
-
-  const allowBotFill = debugMode || debugOptionEnabled;
+  }, [requiredPlayers, user?.uid]);
 
   const searchPlayers = useCallback(async (term: string): Promise<PlayerOption[]> => {
     const cacheKey = term.trim().toLowerCase();
@@ -359,26 +378,21 @@ export default function LobbyPage() {
       });
 
       setPlayerSearchCache(current => ({ ...current, [cacheKey]: results }));
+      setPlayerDisplayNames(current => {
+        const next = { ...current };
+        results.forEach(option => {
+          if (!next[option.uid]) {
+            next[option.uid] = option.displayName;
+          }
+        });
+        return next;
+      });
       return results;
     } catch (err) {
       console.error("Failed to search players", err);
       return [];
     }
   }, [playerSearchCache]);
-
-  useEffect(() => {
-    setPlayerSlots(current => {
-      const slotCount = requiredPlayers ?? Math.max(current.length, 1);
-      if (slotCount <= 0) return [];
-
-      const next = Array.from({ length: slotCount }, (_, index) => {
-        if (index === 0) return user?.uid ?? current[index] ?? null;
-        return current[index] ?? null;
-      });
-
-      return next;
-    });
-  }, [requiredPlayers, user]);
 
   const loadDefinitions = async () => {
     if (!user || definitionsLoading) return;
@@ -437,7 +451,7 @@ export default function LobbyPage() {
         body: JSON.stringify({
           gameType: selectedDefinition.id,
           playerSlots: normalizedSlots,
-          fillWithBots: allowBotFill ? fillWithBots : undefined,
+          fillWithBots,
           name: gameName || undefined,
           options: creationOptions,
         }),
@@ -563,81 +577,110 @@ export default function LobbyPage() {
       <LoginProfile />
       <h1>Hexachromy Lobby</h1>
 
-      {!createFormVisible ? (
-        <div style={{ marginBottom: "1rem" }}>
-          <button onClick={handleBeginCreate} disabled={!user || definitionsLoading}>
-            {definitionsLoading ? "Loading..." : "Create Game"}
-          </button>
-        </div>
-      ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", maxWidth: 480 }}>
-          <label>
-            Game type
-            <select
-              value={selectedGameType}
-              onChange={event => setSelectedGameType(event.target.value)}
-              style={{ display: "block", width: "100%", marginTop: 4 }}
-              disabled={definitionsLoading}
-            >
-              {gameDefinitions.map(definition => (
-                <option key={definition.id} value={definition.id}>
-                  {definition.name}
-                </option>
-              ))}
-            </select>
-            {definitionsLoading ? <div>Loading definitions...</div> : null}
-          </label>
+      <div style={{ marginBottom: "1rem" }}>
+        <button onClick={handleBeginCreate} disabled={!user || definitionsLoading}>
+          {definitionsLoading && createFormVisible ? "Loading..." : "Create Game"}
+        </button>
+      </div>
 
-          <label>
-            Game name
-            <input
-              type="text"
-              value={gameName}
-              onChange={event => setGameName(event.target.value)}
-              placeholder="Optional"
-              style={{ display: "block", width: "100%", marginTop: 4 }}
-            />
-          </label>
-
-          {renderOptions()}
-
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            <div style={{ fontWeight: 600 }}>Players ({requiredPlayers ?? playerSlots.length || 1})</div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-              {playerSlots.map((slot, index) => (
-                <PlayerSlotRow
-                  key={index}
-                  index={index}
-                  value={slot}
-                  disabled={index === 0}
-                  searchPlayers={searchPlayers}
-                  onChange={newValue =>
-                    setPlayerSlots(current => current.map((existing, idx) => (idx === index ? newValue : existing)))
-                  }
-                />
-              ))}
+      {createFormVisible ? (
+        <div className="lobby-modal-overlay" role="dialog" aria-modal="true">
+          <div className="lobby-modal">
+            <div className="lobby-modal__header">
+              <h2>Create Game</h2>
+              <button type="button" onClick={() => setCreateFormVisible(false)}>
+                Close
+              </button>
             </div>
-            <div style={{ fontSize: "0.9rem", color: "#555" }}>
-              Slots adjust to the selected board. Leave blank to open seats for invites or bots.
+            <div className="lobby-modal__body">
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+                <label>
+                  Game type
+                  <select
+                    value={selectedGameType}
+                    onChange={event => setSelectedGameType(event.target.value)}
+                    style={{ display: "block", width: "100%", marginTop: 4 }}
+                    disabled={definitionsLoading}
+                  >
+                    {gameDefinitions.map(definition => (
+                      <option key={definition.id} value={definition.id}>
+                        {definition.name}
+                      </option>
+                    ))}
+                  </select>
+                  {definitionsLoading ? <div>Loading definitions...</div> : null}
+                </label>
+
+                <label>
+                  Game name
+                  <input
+                    type="text"
+                    value={gameName}
+                    onChange={event => setGameName(event.target.value)}
+                    placeholder="Optional"
+                    style={{ display: "block", width: "100%", marginTop: 4 }}
+                  />
+                </label>
+
+                {renderOptions()}
+
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  <div style={{ fontWeight: 600 }}>Players ({requiredPlayers ?? playerSlots.length || 1})</div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                    {playerSlots.map((slot, index) => (
+                      <PlayerSlotRow
+                        key={index}
+                        index={index}
+                        value={slot}
+                        displayName={slot ? playerDisplayNames[slot] : index === 0 ? user?.displayName ?? null : null}
+                        disabled={index === 0}
+                        searchPlayers={searchPlayers}
+                        onChange={(newValue, newDisplayName) => {
+                          setPlayerSlots(current =>
+                            current.map((existing, idx) => (idx === index ? newValue ?? null : existing)),
+                          );
+
+                          if (newValue && newDisplayName) {
+                            setPlayerDisplayNames(current => ({ ...current, [newValue]: newDisplayName }));
+                          } else if (!newValue) {
+                            setPlayerDisplayNames(current => {
+                              if (index === 0 && user?.uid) return current;
+                              const next = { ...current };
+                              const previousValue = playerSlots[index];
+                              if (previousValue && next[previousValue]) {
+                                delete next[previousValue];
+                              }
+                              return next;
+                            });
+                          }
+                        }}
+                      />
+                    ))}
+                  </div>
+                  <div style={{ fontSize: "0.9rem", color: "#555" }}>
+                    Slots adjust to the selected board. Leave blank to open seats for invites or bots.
+                  </div>
+                  <label style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                    <input
+                      type="checkbox"
+                      checked={fillWithBots}
+                      onChange={event => setFillWithBots(event.target.checked)}
+                    />
+                    Fill empty spots with bots (debug)
+                  </label>
+                </div>
+
+                <div className="lobby-modal__actions">
+                  <button onClick={handleCreateGame} disabled={creating || definitionsLoading}>
+                    {creating ? "Creating..." : "Create New Game"}
+                  </button>
+                  {createError ? <div style={{ color: "red" }}>{createError}</div> : null}
+                </div>
+              </div>
             </div>
-            {allowBotFill ? (
-              <label style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                <input
-                  type="checkbox"
-                  checked={fillWithBots}
-                  onChange={event => setFillWithBots(event.target.checked)}
-                />
-                Fill empty spots with bots (debug)
-              </label>
-            ) : null}
           </div>
-
-          <button onClick={handleCreateGame} disabled={creating || definitionsLoading}>
-            {creating ? "Creating..." : "Create New Game"}
-          </button>
-          {createError ? <div style={{ color: "red" }}>{createError}</div> : null}
         </div>
-      )}
+      ) : null}
 
       {loading ? (
         <div>Loading games...</div>
@@ -650,7 +693,10 @@ export default function LobbyPage() {
 
             if (!gameId) return null;
 
-            const playerNames = (game.players ?? []).map(player => player.name).join(", ");
+            const playerNames = (game.players ?? [])
+              .map(player => (player as { displayName?: string; name?: string; id?: string }).displayName ?? player.name ?? player.id ?? "")
+              .filter(Boolean)
+              .join(", ");
 
             return (
               <li
