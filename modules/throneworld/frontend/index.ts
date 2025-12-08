@@ -9,7 +9,9 @@ import { parsePlayerCountFromScenario } from "../shared/utils/scenario";
 function getBoardGeometry(gameState: ThroneworldGameView) {
   const playerCount = parsePlayerCountFromScenario(
     typeof gameState.scenario === "string" ? gameState.scenario : undefined,
-    Array.isArray(gameState.playerIds) ? gameState.playerIds.length : 0,
+    gameState && typeof gameState.players === "object"
+      ? Object.keys(gameState.players).length
+      : 0,
   );
   const geometry = computeBoardGeometry(playerCount);
 

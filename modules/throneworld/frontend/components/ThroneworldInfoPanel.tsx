@@ -19,11 +19,10 @@ type ThroneworldInfoPanelProps = {
 export function ThroneworldInfoPanel({ gameState, hoveredSystem }: ThroneworldInfoPanelProps) {
   const [showSystemDetails, setShowSystemDetails] = useState(true);
   const phase = gameState?.phase ?? "—";
-  const players = Array.isArray(gameState?.players) ? gameState.players : [];
-  const raceMapping =
-    gameState?.options?.races && typeof gameState.options.races === "object"
-      ? (gameState.options.races as Record<string, string>)
-      : {};
+  const players =
+    gameState && typeof gameState.players === "object" && !Array.isArray(gameState.players)
+      ? (Object.values(gameState.players) as Array<{ id: string; name?: string; race?: string }>)
+      : [];
   const systems =
     gameState && typeof gameState.systems === "object" && gameState.systems !== null
       ? (Object.values(gameState.systems) as Array<{ hexId?: string; worldType?: string; details?: Record<string, unknown> }>)
@@ -45,11 +44,11 @@ export function ThroneworldInfoPanel({ gameState, hoveredSystem }: ThroneworldIn
   }, {});
   const playerRaceById = players.reduce<Record<string, string>>((acc, player) => {
     if (player?.id) {
-      const race = player.race ?? raceMapping[player.id];
+      const race = player.race;
       if (race) acc[player.id] = race;
     }
     return acc;
-  }, { ...raceMapping });
+  }, {});
 
   const playerVictoryPoints = useMemo(() => {
     const totals: Record<string, number> = {};

@@ -1,4 +1,3 @@
-import type { PlayerSummary } from "../../../../shared/models/GameSummary.js";
 import type { ColumnId } from "./BoardLayout.ThroneWorld";
 import type { SystemDefinition } from "./Systems.ThroneWorld";
 
@@ -34,16 +33,20 @@ export type ThroneworldGameStatus = "waiting" | "in-progress";
 export type ThroneworldRaceAssignment = "random" | "playerChoice";
 export type ThroneworldHomeworldAssignment = "random" | "playerOrder";
 
+export interface ThroneworldPlayerState {
+  id: string;
+  name: string;
+  status: ThroneworldPlayerStatus;
+  race: string;
+}
+
 export interface ThroneworldGameOptions {
   startScannedForAll?: boolean;
   raceAssignment?: ThroneworldRaceAssignment;
   forceRandomRaces?: boolean;
   homeworldAssignment?: ThroneworldHomeworldAssignment;
-  races?: Record<string, string>;
-  playerStatuses?: Record<string, ThroneworldPlayerStatus>;
   boardId?: string;
   name?: string;
-  playerSummaries?: PlayerSummary[];
   requiredPlayers?: number;
 }
 
@@ -53,12 +56,10 @@ export interface ThroneworldGameState {
   createdAt: number;
   scenario: string;
   boardId: string;
-  playerIds: string[];
-  playerStatuses: Record<string, ThroneworldPlayerStatus>;
+  players: Record<string, ThroneworldPlayerState>;
   systems: Record<string, ThroneworldPublicSystemState>;
   gameType: "throneworld";
   status: ThroneworldGameStatus;
-  summaryPlayers?: PlayerSummary[];
   options?: ThroneworldGameOptions;
 }
 

@@ -227,6 +227,34 @@ function normalizePlayerSummaries(value: unknown): PlayerSummary[] {
   });
 }
 
+function hasCanonicalPlayers(
+  state: unknown,
+): state is { players: Record<string, { id: string; name?: string; status?: string; race?: string }> } {
+  return Boolean(
+    state &&
+      typeof (state as { players?: unknown }).players === "object" &&
+      !Array.isArray((state as { players?: unknown }).players),
+  );
+}
+
+function extractPlayersFromState(state: unknown): PlayerSummary[] {
+  if (hasCanonicalPlayers(state)) {
+    const players = (state as { players: Record<string, { id: string; name?: string; status?: string; race?: string }> })
+      .players;
+    return Object.values(players).map(player => ({
+      id: player.id,
+      name: typeof player.name === "string" ? player.name : player.id,
+      status:
+        player.status === "joined" || player.status === "dummy" || player.status === "invited"
+          ? (player.status as PlayerSummary["status"])
+          : "invited",
+      race: typeof player.race === "string" ? player.race : undefined,
+    }));
+  }
+
+  return normalizePlayerSummaries((state as { summaryPlayers?: unknown }).summaryPlayers);
+}
+
 function isSelectOption(option: GameDefinitionOption): option is GameDefinitionSelectOption {
   return option?.type === "select" && Array.isArray((option as GameDefinitionSelectOption).choices);
 }
@@ -535,11 +563,9 @@ export const api = onRequest({ invoker: "public" }, async (req : Request, res : 
         resolvedOptions.requiredPlayers = resolvedRequiredPlayers;
       }
 
-      const providedSummaryPlayers = normalizePlayerSummaries(
-        (resolvedState as { summaryPlayers?: unknown }).summaryPlayers,
-      );
+      const providedPlayers = extractPlayersFromState(resolvedState);
 
-      const players = providedSummaryPlayers.length > 0 ? providedSummaryPlayers : playerSummaries;
+      const players = providedPlayers.length > 0 ? providedPlayers : playerSummaries;
 
       const enoughPlayers =
         typeof resolvedRequiredPlayers === "number" ? players.length >= resolvedRequiredPlayers : players.length > 0;
@@ -624,25 +650,28 @@ export const api = onRequest({ invoker: "public" }, async (req : Request, res : 
         throw new Error("Game not found");
       }
 
-      const normalizedPlayers = normalizePlayerSummaries(summary.players);
-      const playerIndex = normalizedPlayers.findIndex(player => player.id === decoded.uid);
+      const statePlayers = extractPlayersFromState(state);
+      const playerIndex = statePlayers.findIndex(player => player.id === decoded.uid);
       const gameType = (state as { gameType?: unknown }).gameType;
       const normalizedType = typeof gameType === "string" ? gameType : "unknown";
       const module = backendRegistry[normalizedType];
 
-      const baseStatuses =
-        state && typeof (state as { playerStatuses?: unknown }).playerStatuses === "object"
-          ? ((state as { playerStatuses?: Record<string, string> }).playerStatuses as Record<string, string>)
-          : {};
+      if (!hasCanonicalPlayers(state)) {
+        throw new Error("Game is missing canonical player records");
+      }
 
-      let updatedStatuses = { ...baseStatuses } as Record<string, string>;
-      const updatedPlayers = [...normalizedPlayers];
-      let updatedState = state as Record<string, unknown>;
-      let summaryPlayers = updatedPlayers;
+      let workingState: Record<string, unknown> = state;
 
       if (playerIndex >= 0) {
-        updatedPlayers[playerIndex] = { ...updatedPlayers[playerIndex], status: "joined" };
-        updatedStatuses[decoded.uid] = "joined";
+        const players = (state as { players: Record<string, { id: string; name?: string; status?: string; race?: string }> })
+          .players;
+        workingState = {
+          ...state,
+          players: {
+            ...players,
+            [decoded.uid]: { ...players[decoded.uid], status: "joined" },
+          },
+        } as Record<string, unknown>;
       } else if (module?.api?.addPlayer) {
         const addResult = await module.api.addPlayer({
           gameId,
@@ -651,37 +680,18 @@ export const api = onRequest({ invoker: "public" }, async (req : Request, res : 
           playerName: await getDisplayName(decoded.uid),
           db: dbAdapter,
         });
-        updatedState = addResult.state as Record<string, unknown>;
-        const playerEntries =
-          addResult.players ??
-          (Array.isArray((addResult.state as { summaryPlayers?: unknown }).summaryPlayers)
-            ? ((addResult.state as { summaryPlayers: unknown[] }).summaryPlayers as PlayerSummary[])
-            : []);
-        summaryPlayers = normalizePlayerSummaries(playerEntries);
-        updatedStatuses = addResult.playerStatuses ?? updatedStatuses;
+        workingState = addResult.state as Record<string, unknown>;
       } else {
         throw new Error("Player is not invited to this game");
       }
 
-      const raceMapping =
-        updatedState && typeof (updatedState as { options?: unknown }).options === "object"
-          ? ((updatedState as { options?: { races?: Record<string, string> } }).options?.races ?? {})
-          : {};
-
+      const mergedPlayers = extractPlayersFromState(workingState);
       const requiredPlayers =
-        updatedState && typeof (updatedState as { options?: unknown }).options === "object"
-          ? (updatedState as { options?: { requiredPlayers?: unknown } }).options?.requiredPlayers
+        typeof (workingState as { options?: { requiredPlayers?: unknown } }).options?.requiredPlayers === "number"
+          ? (workingState as { options: { requiredPlayers: number } }).options.requiredPlayers
           : undefined;
-      const requiredCount = typeof requiredPlayers === "number" ? requiredPlayers : undefined;
-
-      const mergedPlayers = summaryPlayers.map(player => ({
-        ...player,
-        status: (updatedStatuses[player.id] as PlayerSummary["status"]) ?? player.status ?? "invited",
-        race: player.race ?? (raceMapping as Record<string, string>)[player.id],
-      }));
-
-      const enoughPlayers = requiredCount ? mergedPlayers.length >= requiredCount : mergedPlayers.length > 0;
-      const everyoneReady = mergedPlayers.every(p => p.status === "joined" || p.status === "dummy");
+      const enoughPlayers = requiredPlayers ? mergedPlayers.length >= requiredPlayers : mergedPlayers.length > 0;
+      const everyoneReady = mergedPlayers.every(player => player.status === "joined" || player.status === "dummy");
       const updatedStatus = enoughPlayers && everyoneReady ? "in-progress" : "waiting";
 
       await dbAdapter.setDocument(`gameSummaries/${gameId}`, {
@@ -691,10 +701,8 @@ export const api = onRequest({ invoker: "public" }, async (req : Request, res : 
       });
 
       await dbAdapter.setDocument(`games/${gameId}`, {
-        ...updatedState,
-        playerStatuses: updatedStatuses,
+        ...workingState,
         status: updatedStatus,
-        summaryPlayers: mergedPlayers,
       });
 
       res.status(200).json({ ok: true });

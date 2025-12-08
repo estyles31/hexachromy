@@ -3,7 +3,12 @@ import type { HoveredSystemInfo } from "../../modules/types";
 export default function InfoPanel({ gameState, hoveredSystem }: { gameState: any; hoveredSystem: HoveredSystemInfo | null }) {
   const phase = gameState?.phase ?? "—";
   const currentPlayer = gameState?.currentPlayer ?? "—";
-  const players = Array.isArray(gameState?.players) ? gameState.players : [];
+  const players =
+    gameState && typeof gameState.players === "object" && !Array.isArray(gameState.players)
+      ? (Object.values(gameState.players) as Array<{ id: string; name?: string; race?: string }>)
+      : Array.isArray(gameState?.players)
+        ? gameState.players
+        : [];
   const raceMapping =
     gameState?.options?.races && typeof gameState.options.races === "object"
       ? (gameState.options.races as Record<string, string>)

@@ -48,8 +48,6 @@ export interface AddPlayerContext<State = unknown> {
 
 export interface AddPlayerResult<State = unknown> {
   state: State;
-  players?: PlayerSummary[];
-  playerStatuses?: Record<string, PlayerSummary["status"]>;
 }
 
 export interface GameBackendModule<State = unknown, Move = unknown, LegalMoves = unknown> {

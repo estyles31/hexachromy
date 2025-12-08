@@ -42,13 +42,15 @@ export function ThroneworldSystemLayer({
 }: Props) {
   const [hoverPreview, setHoverPreview] = useState<HoverPreview | null>(null);
 
+  const playerIds = useMemo(() => Object.keys(gameState.players ?? {}), [gameState.players]);
+
   const playerColorMap = useMemo(() => {
     const map: Record<string, string> = {};
-    gameState.playerIds.forEach((playerId, index) => {
+    playerIds.forEach((playerId, index) => {
       map[playerId] = PLAYER_COLORS[index % PLAYER_COLORS.length];
     });
     return map;
-  }, [gameState.playerIds]);
+  }, [playerIds]);
 
   if (!boardGeometry) return null;
 

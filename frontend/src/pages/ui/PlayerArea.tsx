@@ -9,20 +9,17 @@ type PlayerSummary = {
 export default function PlayerArea({ gameState }: { gameState: any }) {
   const players: PlayerSummary[] = Array.isArray(gameState.players)
     ? gameState.players
-    : Array.isArray(gameState.playerIds)
-      ? gameState.playerIds.map((id: string) => ({ id, name: id }))
-      : [];
-
-  const playerStatuses =
-    gameState && typeof gameState.playerStatuses === "object" && gameState.playerStatuses !== null
-      ? (gameState.playerStatuses as Record<string, string>)
-      : {};
+    : gameState && typeof gameState.players === "object" && !Array.isArray(gameState.players)
+      ? (Object.values(gameState.players) as PlayerSummary[])
+      : Array.isArray(gameState.playerIds)
+        ? gameState.playerIds.map((id: string) => ({ id, name: id }))
+        : [];
 
   return (
     <div className="player-area">
       <h3 className="player-area__title">Players</h3>
       {players.map(player => {
-        const status = playerStatuses[player.id] ?? "joined";
+        const status = (player as { status?: string }).status ?? "joined";
         const race = player.race;
 
         return (

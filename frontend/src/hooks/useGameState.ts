@@ -45,11 +45,24 @@ export function useGameState<T extends BaseGameState = BaseGameState>(gameId: st
           throw new Error(message || `Failed to load game ${gameId}`);
         }
 
-        const data = (await response.json()) as T & {
-          playerStatuses?: Record<string, string>;
-        };
+        const data = (await response.json()) as T;
 
-        const playerStatus = user ? data?.playerStatuses?.[user.uid] : undefined;
+        const playerStatus = user
+          ? (() => {
+              const players = (data as { players?: unknown }).players;
+              if (players && typeof players === "object" && !Array.isArray(players)) {
+                const playerRecord = (players as Record<string, { status?: string }>)[user.uid];
+                return playerRecord?.status;
+              }
+              if (Array.isArray(players)) {
+                const match = (players as Array<{ id?: string; status?: string }>).find(
+                  player => player.id === user.uid,
+                );
+                return match?.status;
+              }
+              return undefined;
+            })()
+          : undefined;
 
         if (user && playerStatus === "invited" && !joinAttempts.current[gameId]) {
           joinAttempts.current[gameId] = true;

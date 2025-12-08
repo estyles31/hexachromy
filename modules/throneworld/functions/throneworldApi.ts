@@ -103,7 +103,7 @@ function prepareThroneworldCreateGame(context: PrepareCreateGameContext): Prepar
 async function addThroneworldPlayer(
   context: AddPlayerContext<ThroneworldGameState>,
 ): Promise<AddPlayerResult<ThroneworldGameState>> {
-  const result = await addPlayerToThroneworldGame({
+  const updatedState = await addPlayerToThroneworldGame({
     gameId: context.gameId,
     state: context.state,
     playerId: context.playerId,
@@ -112,9 +112,7 @@ async function addThroneworldPlayer(
   });
 
   return {
-    state: result.state,
-    players: result.summaryPlayers,
-    playerStatuses: result.state.playerStatuses,
+    state: updatedState,
   } satisfies AddPlayerResult<ThroneworldGameState>;
 }
 
