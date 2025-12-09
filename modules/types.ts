@@ -1,5 +1,12 @@
-import type { GameDefinition } from "../shared/models/GameDefinition.js";
-import type { PlayerSummary } from "../shared/models/GameSummary.js";
+import type { GameDefinition } from "../shared/models/GameDefinition";
+import type { GameStartContext } from "../shared/models/GameStartContext";
+import type { PlayerSummary } from "../shared/models/GameSummary";
+
+export interface BoardGeometry 
+{ 
+  width: number,
+  height: number
+}
 
 export interface GameDatabaseAdapter {
   /** Reads a Firestore document by path and returns the typed data or null. */
@@ -10,17 +17,6 @@ export interface GameDatabaseAdapter {
   updateDocument(path: string, data: Record<string, unknown>): Promise<void>;
   /** Deletes a Firestore document. */
   deleteDocument(path: string): Promise<void>;
-}
-
-export interface CreateGameContext<State = unknown> {
-  gameId: string;
-  playerIds: string[];
-  scenario?: string;
-  db: GameDatabaseAdapter;
-  /** Optional opaque metadata forwarded from the base API layer. */
-  options?: Record<string, unknown>;
-  /** The module must return the initial state for persistence. */
-  returnState?: (state: State) => void;
 }
 
 export interface CommitMoveContext<Move = unknown> {
@@ -54,7 +50,7 @@ export interface AddPlayerResult<State = unknown> {
 
 export interface GameBackendModule<State = unknown, Move = unknown, LegalMoves = unknown> {
   id: string;
-  createGame(context: CreateGameContext<State>): Promise<State> | State;
+  createGame(context: GameStartContext): Promise<State> | State;
   commitMove(context: CommitMoveContext<Move>): Promise<State> | State;
   getLegalMoves(context: GetLegalMovesContext<State>): Promise<LegalMoves> | LegalMoves;
 }
@@ -76,7 +72,6 @@ export interface PrepareCreateGameContext {
   requestBody: Record<string, unknown>;
   creationOptions: Record<string, unknown>;
   players: PlayerSummary[];
-  resolvedBoardId?: string;
   defaultScenario?: string;
 }
 
@@ -87,23 +82,9 @@ export interface PrepareCreateGameResult {
   players?: PlayerSummary[];
 }
 
-export interface BuildPlayerResponseContext<State = unknown> {
+export interface GetPlayerViewContext {
   gameId: string;
   playerId: string;
-  state: State;
   db: GameDatabaseAdapter;
 }
 
-export interface GameBackendApi<State = unknown> {
-  ensureGameDefinition?: (context: EnsureGameDefinitionContext) => Promise<GameDefinition | null>;
-  prepareCreateGame?: (context: PrepareCreateGameContext) => Promise<PrepareCreateGameResult> | PrepareCreateGameResult;
-  buildPlayerResponse?: (
-    context: BuildPlayerResponseContext<State>,
-  ) => Promise<Record<string, unknown>> | Record<string, unknown>;
-  addPlayer?: (context: AddPlayerContext<State>) => Promise<AddPlayerResult<State>> | AddPlayerResult<State>;
-}
-
-export interface GameBackendRegistration<State = unknown, Move = unknown, LegalMoves = unknown> {
-  backend: GameBackendModule<State, Move, LegalMoves>;
-  api?: GameBackendApi<State>;
-}

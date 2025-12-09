@@ -1,0 +1,51 @@
+/* /frontend/src/pages/game/PlayerArea.css */
+.player-area {
+  background: #1a1a1a;
+  padding: 10px;
+  overflow-y: auto;
+  color: #d5d5d5;
+}
+
+.player-area__title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 0 0 10px;
+  font-size: 1.1rem;
+  letter-spacing: 0.04em;
+}
+
+.player-panel {
+  background: #2a2a2a;
+  margin-bottom: 8px;
+  padding: 8px;
+  border-radius: 6px;
+}
+
+.player-name {
+  font-weight: 700;
+}
+
+.player-score {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 600;
+  color: #ffd700;
+}
+
+.star-icon {
+  font-size: 1.2em;
+  color: #ffd700;
+}
+
+.player-meta {
+  font-size: 0.95rem;
+  color: #d5d5d5;
+}
+
+.player-status {
+  font-size: 0.85rem;
+  color: #a5a5a5;
+  margin-top: 4px;
+}

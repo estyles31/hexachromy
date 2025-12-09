@@ -8,7 +8,7 @@ interface UnitCounterProps {
   size?: number;
 }
 
-export function UnitCounter({ unit, quantity = 1, size = 64 } : UnitCounterProps) {
+export default function UnitCounter({ unit, quantity = 1, size = 64 } : UnitCounterProps) {
   const { id: unitId, Symbol: glyph, Type, Cargo: cargo = null } = unit;
 
   // Look up style from JSON

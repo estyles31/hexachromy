@@ -1,118 +1,19 @@
-import type { GameDefinition, GameDefinitionOption } from "../../../../shared/models/GameDefinition";
+import type { GameDefinition } from "../../../../shared/models/GameDefinition";
 
-export interface ThroneworldBoardDefinition {
-  id: string;
-  name: string;
-  playerCount: number;
-  scenario: string;
-  description?: string;
-  boardImage: string;
-}
+export const ThroneworldGameDefinition : GameDefinition = 
+{
+  id: "throneworld",
+  name: "Throne World",
+  description: "",
 
-export interface ThroneworldGameDefinition extends GameDefinition {
-  id: "throneworld";
-  name: string;
-  description?: string;
-  boards: ThroneworldBoardDefinition[];
-  defaultBoardId: string;
-  options?: GameDefinitionOption[];
-}
-
-export function buildThroneworldDefinition(): ThroneworldGameDefinition {
-  return {
-    id: "throneworld",
-    name: "Throneworld",
-    description: "Explore, expand, and vie for the Throneworld.",
-    defaultBoardId: "standard-4p",
-    boards: [
+  options: [ 
       {
-        id: "duel-2p",
-        name: "Duel Map",
-        playerCount: 2,
-        scenario: "2p",
-        description: "Tight two-player duel layout.",
-        boardImage: "/modules/throneworld/boards/throneworld-2p.svg",
-      },
-      {
-        id: "trio-3p",
-        name: "Trinary Frontier",
-        playerCount: 3,
-        scenario: "3p",
-        description: "Three-player balance of distance and pressure.",
-        boardImage: "/modules/throneworld/boards/throneworld-3p.svg",
-      },
-      {
-        id: "standard-4p",
-        name: "Core Skirmish",
-        playerCount: 4,
-        scenario: "4p",
-        description: "Baseline four-player setup.",
-        boardImage: "/modules/throneworld/boards/throneworld-4p.svg",
-      },
-      {
-        id: "expanse-5p",
-        name: "Outer Expanse",
-        playerCount: 5,
-        scenario: "5p",
-        description: "Five-player reach across the spiral arms.",
-        boardImage: "/modules/throneworld/boards/throneworld-5p.svg",
-      },
-      {
-        id: "standard-6p",
-        name: "Full Constellation",
-        playerCount: 6,
-        scenario: "6p",
-        description: "Classic six-player experience.",
-        boardImage: "/modules/throneworld/boards/throneworld-6p.svg",
-      },
-    ],
-    options: [
-      {
-        id: "boardId",
+        id: "boardImage",
         label: "Board",
-        description: "Choose a map sized to your player count.",
-        type: "select",
-        required: true,
-        defaultValue: "standard-4p",
-        choices: [
-          {
-            value: "duel-2p",
-            label: "Duel Map — 2 players",
-            description: "Head-to-head board",
-            metadata: { playerCount: 2, scenario: "2p", boardImage: "/modules/throneworld/boards/throneworld-2p.svg" },
-          },
-          {
-            value: "trio-3p",
-            label: "Trinary Frontier — 3 players",
-            description: "Three-player balance",
-            metadata: { playerCount: 3, scenario: "3p", boardImage: "/modules/throneworld/boards/throneworld-3p.svg" },
-          },
-          {
-            value: "standard-4p",
-            label: "Core Skirmish — 4 players",
-            description: "Four-player default",
-            metadata: { playerCount: 4, scenario: "4p", boardImage: "/modules/throneworld/boards/throneworld-4p.svg" },
-          },
-          {
-            value: "expanse-5p",
-            label: "Outer Expanse — 5 players",
-            description: "Five-player spread",
-            metadata: { playerCount: 5, scenario: "5p", boardImage: "/modules/throneworld/boards/throneworld-5p.svg" },
-          },
-          {
-            value: "standard-6p",
-            label: "Full Constellation — 6 players",
-            description: "Six-player epic",
-            metadata: { playerCount: 6, scenario: "6p", boardImage: "/modules/throneworld/boards/throneworld-6p.svg" },
-          },
-        ],
-      },
-      {
-        id: "startScannedForAll",
-        label: "Start with all tiles scanned",
-        description: "Debug: reveal every system for all players",
-        type: "checkbox",
-        defaultValue: false,
+        type: "text",
+        visible: false,
+        defaultValue: "throneworld-6p.svg",
+        description: "The board to play on."
       },
       {
         id: "raceAssignment",
@@ -126,13 +27,6 @@ export function buildThroneworldDefinition(): ThroneworldGameDefinition {
         ],
       },
       {
-        id: "forceRandomRaces",
-        label: "Force random races",
-        description: "Override any player picks with random races (currently always on)",
-        type: "checkbox",
-        defaultValue: true,
-      },
-      {
         id: "homeworldAssignment",
         label: "Homeworld assignment",
         description: "Random now; later can follow player order",
@@ -143,6 +37,59 @@ export function buildThroneworldDefinition(): ThroneworldGameDefinition {
           { value: "playerOrder", label: "Player order (future)" },
         ],
       },
+      {
+        id: "startScannedForAll",
+        label: "Start with all tiles scanned",
+        description: "Debug: reveal every system for all players",
+        type: "checkbox",
+        defaultValue: false,
+      }
     ],
-  };
+  scenarios: [
+     {
+        id: "duel-2p",
+        label: "2 Player Duel",
+        playerCount: { value: 2 },
+        // description: "Tight two-player duel layout.",
+        settings: {
+          fixed: { boardImage: "/modules/throneworld/boards/throneworld-2p.svg" }
+        },
+      },
+      {
+        id: "trio-3p",
+        label: "3 Player",
+        playerCount: { value: 3 },
+        // description: "Three-player balance of distance and pressure.",
+        settings: { 
+          fixed: { boardImage: "/modules/throneworld/boards/throneworld-3p.svg" }
+        },
+      },
+      {
+        id: "standard-4p",
+        label: "4 Player Standard",
+        playerCount: { value: 4 },
+        // description: "Baseline four-player setup.",
+        settings: { 
+          fixed: { boardImage: "/modules/throneworld/boards/throneworld-4p.svg" }
+        },
+      },
+      {
+        id: "expanse-5p",
+        label: "5 Player",
+        playerCount: { value: 5 },
+        // description: "Five-player reach across the spiral arms.",
+        settings: { 
+          fixed: { boardImage: "/modules/throneworld/boards/throneworld-5p.svg" }
+        },
+      },
+      {
+        id: "standard-6p",
+        label: "6 Player Full Game",
+        playerCount: { value: 6 },
+        // description: "Classic six-player experience.",
+        settings: { 
+          fixed: { boardImage: "/modules/throneworld/boards/throneworld-6p.svg" }
+        },
+      },
+  ],
 }

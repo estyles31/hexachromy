@@ -1,3 +1,4 @@
+import type { BoardGeometry } from "../../../types";
 import { BOARD_HEXES, getWorldType, isInPlay, type WorldType } from "./BoardLayout.ThroneWorld";
 
 export const HEX_RADIUS = 64;
@@ -18,14 +19,15 @@ export interface HexGeometry {
   worldType: WorldType;
 }
 
-export interface BoardGeometry {
-  width: number;
-  height: number;
+export interface ThroneworldBoardGeometry extends BoardGeometry {
+  // width: number;
+  // height: number;
   hexes: Record<string, HexGeometry>;
+  hexRadius: number;
   margin: number;
 }
 
-export function computeBoardGeometry(playerCount: number): BoardGeometry {
+export function computeBoardGeometry(playerCount: number): ThroneworldBoardGeometry {
   const playableHexes = BOARD_HEXES.filter(h => isInPlay(h.id, playerCount));
 
   if (playableHexes.length === 0) {
@@ -75,5 +77,6 @@ export function computeBoardGeometry(playerCount: number): BoardGeometry {
     height,
     hexes: hexMap,
     margin: MARGIN,
+    hexRadius: HEX_RADIUS
   };
 }

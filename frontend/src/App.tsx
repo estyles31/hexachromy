@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route, useParams } from "react-router-dom";
-import LobbyPage from "./pages/LobbyPage";
-import GamePage from "./pages/GamePage";
+import LobbyPage from "./pages/lobby/LobbyPage";
+import GamePage from "./pages/game/GamePage";
 import { useGameState } from "./hooks/useGameState";
 
 function GamePageWrapper() {

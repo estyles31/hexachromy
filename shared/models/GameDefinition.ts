@@ -1,3 +1,5 @@
+import type { ScenarioDefinition } from "./ScenarioDefinition";
+
 export type GameDefinitionOptionType = "select" | "checkbox" | "text";
 
 export interface GameDefinitionOptionChoice {
@@ -12,6 +14,7 @@ export interface GameDefinitionOptionBase {
   label: string;
   description?: string;
   required?: boolean;
+  visible?: boolean;
   type: GameDefinitionOptionType;
 }
 
@@ -41,5 +44,7 @@ export interface GameDefinition {
   id: string;
   name: string;
   description?: string;
+
   options?: GameDefinitionOption[];
+  scenarios: ScenarioDefinition[];
 }

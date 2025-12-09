@@ -1,7 +1,9 @@
+// /frontend/src/hooks/useGameState.ts
 import { useEffect, useRef, useState } from "react";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { auth } from "../firebase";
-import { authFetch } from "../utils/authFetch";
+import { authFetch } from "../auth/authFetch";
+import type { GameState } from "../../../shared/models/GameState";
 
 interface HookState<T> {
   state: T | null;
@@ -14,7 +16,7 @@ export interface BaseGameState {
   [key: string]: unknown;
 }
 
-export function useGameState<T extends BaseGameState = BaseGameState>(gameId: string): HookState<T> {
+export function useGameState<T extends GameState<unknown> = GameState<unknown>>(gameId: string): HookState<T> {
   const [state, setState] = useState<T | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<Error | null>(null);

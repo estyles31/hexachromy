@@ -8,9 +8,10 @@
     "types": ["node"]
   },
   "include": [
-    "src/**/*",
+    "./src/**/*",
     "../shared/**/*",
-    "../modules/*",
+    "../modules/frontend.js",
+    "../modules/FrontendModuleDefinition.js",
     "../modules/**/*",
   ],
   "exclude": [

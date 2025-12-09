@@ -1,7 +1,6 @@
-import type { GameBackendRegistration } from "./types";
 import { throneworldBackend } from "./throneworld/functions/throneworldGame";
-import { throneworldApi } from "./throneworld/functions/throneworldApi";
+import type { BackendModuleDefinition } from "./BackendModuleDefinition";
 
-export const backendModules: Record<string, GameBackendRegistration<any>> = {
-  throneworld: { backend: throneworldBackend, api: throneworldApi },
+export const backendModules: Record<string, BackendModuleDefinition> = {
+  throneworld: throneworldBackend,
 };

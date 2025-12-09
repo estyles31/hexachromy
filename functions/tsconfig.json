@@ -17,7 +17,8 @@
     "../shared/**/*",
     "../modules/*/functions/**/*",
     "../modules/*/shared/**/*",
-    "../modules/*/backend.ts"
+    "../modules/backend.ts",
+    "../modules/BackendModuleDefinition.ts"
   ],
   "exclude": [
     "node_modules",

@@ -13,7 +13,7 @@
     "moduleResolution": "bundler",
     "baseUrl": ".",
     "paths": {
-      "@game-modules": ["../modules/frontend.ts"],
+      "@game-modules": ["../modules/FrontendModuleDefinition.ts"],
       "react": ["./node_modules/@types/react"],
       "react/jsx-runtime": ["./node_modules/@types/react/jsx-runtime.d.ts"]
     },
