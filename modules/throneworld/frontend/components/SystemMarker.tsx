@@ -1,3 +1,4 @@
+// /modules/throneworld/frontend/components/SystemMarker.tsx
 import { systemStyles } from "../config/systemStyles";
 import type { SystemDefinition } from "../../shared/models/Systems.ThroneWorld";
 import type { ThroneworldSystemDetails } from "../../shared/models/GameState.Throneworld";

@@ -14,15 +14,15 @@ export default function BoardCanvas<S,I>({
   module,
   onInspect,
 }: Props<S,I>) {
-  const { width, height, geometry } =
-    module.getBoardGeometry(gameState);
+  const geometry = module.getBoardGeometry(gameState);
+  
 
   return (
     <div className="board-container">
       <svg
-        width={width}
-        height={height}
-        viewBox={`0 0 ${width} ${height}`}
+        width={geometry.width}
+        height={geometry.height}
+        viewBox={`0 0 ${geometry.width} ${geometry.height}`}
         onMouseLeave={() => onInspect?.(null)}
       >
         {module.renderBoard({

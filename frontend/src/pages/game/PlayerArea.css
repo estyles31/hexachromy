@@ -1,10 +1,15 @@
+/* /frontend/src/pages/game/PlayerArea.css */
 .player-area {
   background: #1a1a1a;
   padding: 10px;
   overflow-y: auto;
+  color: #d5d5d5;
 }
 
 .player-area__title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin: 0 0 10px;
   font-size: 1.1rem;
   letter-spacing: 0.04em;
@@ -19,7 +24,19 @@
 
 .player-name {
   font-weight: 700;
-  margin-bottom: 4px;
+}
+
+.player-score {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 600;
+  color: #ffd700;
+}
+
+.star-icon {
+  font-size: 1.2em;
+  color: #ffd700;
 }
 
 .player-meta {

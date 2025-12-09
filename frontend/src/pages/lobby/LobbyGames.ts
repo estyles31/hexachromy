@@ -1,22 +1,13 @@
+// /frontend/srt/pages/lobby/LobbyGames.ts
 import { useEffect, useState } from "react";
 import { authFetch } from "../../auth/authFetch";
-import { useAuth } from "src/auth/useAuth";
-
-export interface LobbyGame {
-  id: string;
-  name: string;
-  gameType: string;
-  status: string;
-  players: {
-    uid: string;
-    displayName?: string;
-  }[];
-}
+import { useAuth } from "../../auth/useAuth";
+import type { GameSummary } from "../../../../shared/models/GameSummary";
 
 export function useLobbyGames() {
   const user = useAuth();
 
-  const [games, setGames] = useState<LobbyGame[]>([]);
+  const [games, setGames] = useState<GameSummary[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -35,7 +26,7 @@ export function useLobbyGames() {
           throw new Error(`Failed to load games (${res.status})`);
         }
 
-        const data = (await res.json()) as LobbyGame[];
+        const data = (await res.json()) as GameSummary[];
         if (!cancelled) {
           setGames(data);
         }

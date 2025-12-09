@@ -13,6 +13,5 @@ export interface GameSummary {
   players: PlayerSummary[];
   status: GameStatus;
   gameType: string;
-  boardId?: string;
   options?: Record<string, unknown>;
 }

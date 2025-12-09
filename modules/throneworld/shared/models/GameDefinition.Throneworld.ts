@@ -11,6 +11,7 @@ export const ThroneworldGameDefinition : GameDefinition =
         id: "boardImage",
         label: "Board",
         type: "text",
+        visible: false,
         defaultValue: "throneworld-6p.svg",
         description: "The board to play on."
       },

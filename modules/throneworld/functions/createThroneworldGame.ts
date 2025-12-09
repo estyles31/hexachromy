@@ -1,3 +1,4 @@
+// /modules/throneworld/functions/createThroneworldGame.ts
 import { randomInt } from "crypto";
 import {
     BOARD_HEXES,
@@ -17,16 +18,20 @@ import type { Player, PlayerStatus } from "../../../shared/models/GameState";
 import type { SystemDefinition, SystemPool } from "../shared/models/Systems.ThroneWorld";
 import systemsJson from "../shared/data/systems.throneworld.json";
 import racesJson from "../shared/data/races.throneworld.json";
-import { GameStartContext } from "../../types";
+import { GameStartContext } from "../../../shared/models/GameStartContext";
 import { ThroneworldFaction } from "../shared/models/Faction.ThroneWorld";
+import { PlayerSlot } from "../../../shared/models/PlayerSlot";
 
 // TODO: extract this to a shared file
 const PLAYER_COLORS = ["#ff7043", "#4dd0e1", "#ce93d8", "#aed581", "#ffd54f", "#90caf9"];
 
 export async function createGame(ctx: GameStartContext): Promise<ThroneworldGameState> {
+    const filledPlayers = playerSlotsToPlayers(ctx.playerSlots);
+
     const { state, playerViews } = buildInitialGameDocuments({
         gameId: ctx.gameId,
-        players: ctx.players,
+        playerSlots: ctx.playerSlots,  
+        players: filledPlayers,
         options: ctx.options,
         name: ctx.name,
         scenario: ctx.scenario.id,
@@ -73,6 +78,34 @@ function shuffle<T>(items: T[]): T[] {
     }
     return arr;
 }
+
+function playerSlotsToPlayers(slots: PlayerSlot[]): Player[] {
+  return slots
+    .filter(slot => slot.type === "human" || slot.type === "bot")
+    .map(slot => {
+      if (slot.type === "human") {
+        return {
+          uid: slot.uid,
+          displayName: slot.displayName,
+          status: "joined" as const,
+        };
+      } else {
+        return {
+          uid: slot.botId,
+          displayName: slot.displayName,
+          status: "dummy" as const,
+        };
+      }
+    });
+}
+
+function allSlotsFilled(slots: PlayerSlot[]): boolean {
+  return slots.every(slot => slot.type !== "open");
+}
+
+// function getFilledSlotCount(slots: PlayerSlot[]): number {
+//   return slots.filter(slot => slot.type !== "open").length;
+// }
 
 function normalizeWorldType(worldType: WorldType): NormalizedWorldType {
     const normalized = worldType.toLowerCase();
@@ -146,6 +179,7 @@ function resolveHomeworldOrder(players: Player[]): Player[] {
 
 interface BuildInitialParams {
     gameId: string;
+    playerSlots: PlayerSlot[];
     players: Player[];
     options: Record<string, unknown | null>;
     name?: string;
@@ -168,14 +202,14 @@ export function buildInitialGameDocuments(
 } {
     const {
         gameId,
+        playerSlots,
         players,
         options,
     } = params;
 
+    const totalSlots = playerSlots.length;
+    const allFilled = allSlotsFilled(playerSlots);
     const name = params.name ?? undefined;
-
-    // Player count is either the required count or just number of player IDs
-    const playerCount = params.requiredPlayers ?? players.length;
 
     // Game options we actually use right now
     const startScannedForAll = Boolean(options.startScannedForAll);
@@ -226,9 +260,9 @@ export function buildInitialGameDocuments(
 
     // Place systems on the board
     for (const hex of BOARD_HEXES) {
-        if (!isInPlay(hex.id, playerCount)) continue;
+        if (!isInPlay(hex.id, totalSlots)) continue;
 
-        const worldType = normalizeWorldType(getWorldType(hex.id, playerCount));
+        const worldType = normalizeWorldType(getWorldType(hex.id, totalSlots));
         if (worldType === "notinplay") continue;
 
         // Homeworlds
@@ -293,18 +327,9 @@ export function buildInitialGameDocuments(
         throw new Error("Not all players received a homeworld assignment");
     }
 
-    const hasEnoughPlayers =
-        typeof params.requiredPlayers === "number"
-            ? players.length >= params.requiredPlayers
-            : players.length > 0;
-
-    const allPlayersReady =
-        hasEnoughPlayers &&
-        players.every(
-            p =>
-                p.status === "joined" ||
-                p.status === "dummy",
-        );
+    const allPlayersReady = allFilled && players.every(
+        p => p.status === "joined" || p.status === "dummy"
+    );
 
     // Build the final ThroneworldGameState
     const state: ThroneworldGameState = {

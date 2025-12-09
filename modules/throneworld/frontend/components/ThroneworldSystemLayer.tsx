@@ -1,3 +1,4 @@
+// /modules/throneworld/frontend/components/ThroneworldSystemLayer.tsx
 import { useState } from "react";
 import type { ThroneworldBoardView, RenderableSystem } from "../models/ThroneworldBoardView";
 import type InspectContext from "../../../../shared/models/InspectContext";

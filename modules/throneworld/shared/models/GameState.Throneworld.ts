@@ -1,4 +1,3 @@
-import type { GameDefinitionOption } from "../../../../shared/models/GameDefinition.js";
 import type { GameState, Player } from "../../../../shared/models/GameState.js";
 import type { ColumnId } from "./BoardLayout.ThroneWorld";
 import type { SystemDefinition } from "./Systems.ThroneWorld";
@@ -43,6 +42,7 @@ export interface ThroneworldGameState extends GameState<ThroneworldState>
 {
   gameType: "throneworld";
   players: Record<string, ThroneworldPlayerState>;
+  playerView?: ThroneworldPlayerView;
 }
 
 export type ThroneworldState = {
@@ -50,5 +50,4 @@ export type ThroneworldState = {
   currentPlayer?: string;
 
   systems: Record<string, ThroneworldPublicSystemState>;
-  playerView?: ThroneworldPlayerView;
 }

@@ -1,5 +1,6 @@
-import type { FrontendModuleDefinition } from "@game-modules";
+import type { FrontendModuleDefinition } from "../../../../modules/FrontendModuleDefinition";
 import type { GameState } from "../../../../shared/models/GameState";
+import "./GameInfoArea.css"
 
 interface GameInfoAreaProps {
   gameState: GameState<any>;

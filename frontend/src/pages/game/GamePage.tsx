@@ -1,3 +1,4 @@
+// /src/pages/game/GamePage.tsx
 import { useState } from "react";
 import type { GameState } from "../../../../shared/models/GameState";
 import type { FrontendModuleDefinition } from "../../../../modules/FrontendModuleDefinition";
@@ -6,6 +7,7 @@ import { getFrontendModule } from "../../modules/getFrontendModule";
 import type InspectContext from "../../../../shared/models/InspectContext";
 import PlayerArea from "./PlayerArea";
 import GameInfoArea from "./GameInfoArea";
+import "./GamePage.css";
 
 export default function GamePage({ gameState }: { gameState: GameState }) {
   const [inspected, setInspected] = useState<InspectContext<unknown> | null>(null);
@@ -18,11 +20,13 @@ export default function GamePage({ gameState }: { gameState: GameState }) {
 
   return (
     <div className="game-root">
-      <BoardCanvas
-        gameState={gameState}
-        module={module}
-        onInspect={setInspected}
-      />
+      <div className="board-container">
+        <BoardCanvas
+          gameState={gameState}
+          module={module}
+          onInspect={setInspected}
+        />
+      </div>
 
       <div className="right-panel">
         <GameInfoArea module={module} gameState={gameState} />
@@ -38,18 +42,16 @@ export default function GamePage({ gameState }: { gameState: GameState }) {
             Show hover info
           </label>
         )}
-
       </div>
 
       {showInfoPanel && module.renderInfoPanel && (
-        <div className="info-panel">
+        <div className="info-panel-container">
           {module.renderInfoPanel({
             gameState,
             inspected,
           })}
         </div>
       )}
-
     </div>
   );
 }

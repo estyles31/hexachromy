@@ -1,15 +1,9 @@
 import type { GameDefinition } from "../shared/models/GameDefinition";
 import type { GameState } from "../shared/models/GameState";
 import type InspectContext from "../shared/models/InspectContext";
+import type { BoardGeometry } from "./types";
 
 export type VictoryPoints = Record<string, number>;
-
-export interface BoardGeometry 
-{ 
-  width: number,
-  height: number,
-  geometry?: unknown
-}
 
 export interface FrontendModuleDefinition<State, InspectPayload = unknown> {
   getGameDefinition() : GameDefinition;

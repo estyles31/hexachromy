@@ -14,6 +14,7 @@ export interface GameDefinitionOptionBase {
   label: string;
   description?: string;
   required?: boolean;
+  visible?: boolean;
   type: GameDefinitionOptionType;
 }
 

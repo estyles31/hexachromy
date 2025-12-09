@@ -1,7 +1,7 @@
 import type { ThroneworldGameState } from "../../shared/models/GameState.Throneworld";
 import type HoveredSystemInfo from "../models/HoveredSystemInfo";
 import type InspectContext from "../../../../shared/models/InspectContext";
-import "ThroneworldInfoPanel.css";
+import "./ThroneworldInfoPanel.css";
 
 export default function ThroneworldInfoPanel({
   gameState,

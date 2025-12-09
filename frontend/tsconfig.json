@@ -8,7 +8,7 @@
     "types": ["node"]
   },
   "include": [
-    "src/**/*",
+    "./src/**/*",
     "../shared/**/*",
     "../modules/frontend.js",
     "../modules/FrontendModuleDefinition.js",

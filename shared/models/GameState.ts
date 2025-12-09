@@ -25,4 +25,5 @@ export interface GameState<State = unknown> {
 
     createdAt: number;
     status: GameStatus;
+    playerView?: unknown; //extra data that is available to the current player
 }

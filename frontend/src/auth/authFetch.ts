@@ -1,4 +1,5 @@
 import type { User } from "firebase/auth";
+import { useAuth } from "./useAuth";
 
 /**
  * Fetch helper that injects the Firebase ID token for the given user.
@@ -17,6 +18,10 @@ export async function authFetch(
   input: RequestInfo | URL,
   init?: AuthFetchOptions,
 ): Promise<Response> {
+  if(!user) {
+    user = useAuth();
+  }
+
   if (!user) {
     throw new Error("Authentication required");
   }

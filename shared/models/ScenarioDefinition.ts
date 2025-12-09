@@ -40,9 +40,9 @@ export function formatPlayerCount(spec: PlayerCountSpec): string {
     const max = spec.max ?? spec.value;
 
     if(min == max)
-        return `{spec.value} players`;
+        return `${spec.value} players`;
 
-    return `{spec.min}-{spec.max} players`;
+    return `${spec.min}-${spec.max} players`;
 }
 
 

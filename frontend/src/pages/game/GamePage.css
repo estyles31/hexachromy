@@ -1,3 +1,4 @@
+/* //src/pages/game/GamePage.css */
 /* Root game layout */
 .game-root {
   display: grid;
@@ -36,6 +37,15 @@
 .info-panel-container {
   position: absolute;
   right: 320px;        /* align next to right panel */
+  bottom: 24px;
+  max-width: min(420px, 45vw);
+  z-index: 1000;
+}
+
+/* Floating inspect / hover info panel */
+.info-panel-container {
+  position: fixed;      /* Changed from absolute to fixed */
+  right: 330px;         /* 320px panel + 10px margin */
   bottom: 24px;
   max-width: min(420px, 45vw);
   z-index: 1000;

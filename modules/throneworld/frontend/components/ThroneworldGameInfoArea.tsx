@@ -11,7 +11,7 @@ export default function ThroneworldGameInfoArea({
         padding: "6px 8px",
         borderRadius: 4,
         marginTop: 4,
-        color: "#111",
+        color: "#ddd",
       }}
     >
       <div className="tw-current-phase" style={{ fontWeight: "bold" }}>

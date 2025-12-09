@@ -1,4 +1,4 @@
-import "./PlayerArea.css";
+// /frontend/src/pages/game/PlayerArea.tsx
 import "./PlayerArea.css";
 import type { GameState } from "../../../../shared/models/GameState";
 import type { FrontendModuleDefinition } from "../../../../modules/FrontendModuleDefinition";
@@ -22,6 +22,7 @@ export default function PlayerArea<State>({
           <div className="player-area__title">
             <span className="player-name">{player.displayName}</span>
             <span className="player-score">
+              <span className="star-icon">★</span>
               {victoryPoints[playerId] ?? 0}
             </span>
           </div>

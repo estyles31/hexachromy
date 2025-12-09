@@ -1,6 +1,12 @@
 import type { GameDefinition } from "../shared/models/GameDefinition";
-import type { Player  } from "../shared/models/GameState";
+import type { GameStartContext } from "../shared/models/GameStartContext";
 import type { PlayerSummary } from "../shared/models/GameSummary";
+
+export interface BoardGeometry 
+{ 
+  width: number,
+  height: number
+}
 
 export interface GameDatabaseAdapter {
   /** Reads a Firestore document by path and returns the typed data or null. */
@@ -12,24 +18,6 @@ export interface GameDatabaseAdapter {
   /** Deletes a Firestore document. */
   deleteDocument(path: string): Promise<void>;
 }
-
-export interface GameStartContext {
-  gameId: string;
-  gameType: string;
-
-  scenario: {
-    id: string;
-    playerCount: number;
-  };
-
-  players: Array<Player>;
-
-  options: Record<string, unknown | null>;
-  name?: string;
-
-  db: GameDatabaseAdapter;
-}
-
 
 export interface CommitMoveContext<Move = unknown> {
   gameId: string;
@@ -84,7 +72,6 @@ export interface PrepareCreateGameContext {
   requestBody: Record<string, unknown>;
   creationOptions: Record<string, unknown>;
   players: PlayerSummary[];
-  resolvedBoardId?: string;
   defaultScenario?: string;
 }
 

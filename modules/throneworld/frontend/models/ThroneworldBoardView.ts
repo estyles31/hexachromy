@@ -1,5 +1,6 @@
+// /modules/throneworld/frontend/models/ThroneworldBoardView.ts
 import type { ThroneworldGameState, ThroneworldSystemDetails } from "../../shared/models/GameState.Throneworld";
-import type { BoardGeometry } from "../../shared/models/BoardGeometry.ThroneWorld";
+import type { ThroneworldBoardGeometry } from "../../shared/models/BoardGeometry.ThroneWorld";
 
 export interface ThroneworldBoardView {
     systems: RenderableSystem[];
@@ -32,7 +33,7 @@ export interface RenderableSystem {
 
 interface BuildBoardViewParams {
     game: ThroneworldGameState;
-    boardGeometry: BoardGeometry;
+    boardGeometry: ThroneworldBoardGeometry;
     playerColors: Record<string, string>;
 }
 
@@ -40,6 +41,9 @@ export function buildThroneworldBoardView(
     params: BuildBoardViewParams
 ): ThroneworldBoardView {
     const { game, boardGeometry, playerColors } = params;
+
+    // DEBUG: Log the entire playerView structure
+    console.log("🔍 Building board view - playerView:", game.playerView);
 
     const systems: RenderableSystem[] = [];
 
@@ -57,7 +61,7 @@ export function buildThroneworldBoardView(
                     hexRadius: boardGeometry.hexRadius,
                 },
                 publicSystem,
-                playerView: game.state.playerView?.systems?.[hexId],
+                playerView: game.playerView?.systems[hexId],
                 playerColors,
             })
         );
@@ -97,6 +101,14 @@ function buildRenderableSystem(
         playerColors,
     } = params;
 
+    // DEBUG: Log each system's view data
+    // console.log(`🔍 System ${hexId}:`, {
+    //     revealed: publicSystem.revealed,
+    //     hasPlayerView: Boolean(playerView),
+    //     playerView,
+    //     scannedBy: publicSystem.scannedBy,
+    // });
+
     const isRevealed = publicSystem.revealed || worldType === "homeworld";
     const hasPrivateView = Boolean(playerView);
     const canHoverReveal = isRevealed || hasPrivateView;
@@ -129,6 +141,12 @@ function buildRenderableSystem(
             : [];
 
     const hideUnits = Boolean(owner);
+
+    // console.log(`🔍 System ${hexId} hover config:`, {
+    //     allowed: canHoverReveal,
+    //     revealed: isRevealed || hasPrivateView,
+    //     resolvedDev: resolvedDetails.dev,
+    // });
 
     return {
         hexId,

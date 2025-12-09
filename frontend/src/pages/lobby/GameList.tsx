@@ -1,4 +1,4 @@
-import type { LobbyGame } from "./LobbyGames";
+import type { GameSummary } from "../../../../shared/models/GameSummary";
 
 export function GameList({
   games,
@@ -6,7 +6,7 @@ export function GameList({
   error,
   onSelect,
 }: {
-  games: LobbyGame[];
+  games: GameSummary[];
   loading: boolean;
   error: string | null;
   onSelect: (gameId: string) => void;
@@ -40,7 +40,7 @@ export function GameList({
             {game.gameType} — {game.status}
           </div>
           <div className="players">
-            {game.players.map(p => p.displayName ?? p.uid).join(", ")}
+            {game.players.map(p => p.name ?? p.id).join(", ")}
           </div>
         </li>
       ))}
