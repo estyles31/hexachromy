@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { auth } from "../firebase";
-import { authFetch } from "../utils/authFetch";
+import { authFetch } from "../auth/authFetch";
 
 interface HookState<T> {
   state: T | null;

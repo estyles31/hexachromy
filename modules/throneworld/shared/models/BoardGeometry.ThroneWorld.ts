@@ -22,6 +22,7 @@ export interface BoardGeometry {
   width: number;
   height: number;
   hexes: Record<string, HexGeometry>;
+  hexRadius: number;
   margin: number;
 }
 
@@ -75,5 +76,6 @@ export function computeBoardGeometry(playerCount: number): BoardGeometry {
     height,
     hexes: hexMap,
     margin: MARGIN,
+    hexRadius: HEX_RADIUS
   };
 }

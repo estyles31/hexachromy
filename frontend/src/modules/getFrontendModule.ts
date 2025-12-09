@@ -1,6 +1,7 @@
-import { frontendModules } from "@game-modules";
-import type { FrontendModuleDefinition } from "./types";
+import type { FrontendModuleDefinition } from "../../../modules/FrontendModuleDefinition";
+import { frontendModules } from "../../../modules/frontend";
 
-export function getFrontendModule(gameType: string): FrontendModuleDefinition | undefined {
+
+export function getFrontendModule(gameType: string): FrontendModuleDefinition<any> | undefined {
   return frontendModules[gameType];
 }

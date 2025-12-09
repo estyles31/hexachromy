@@ -1,4 +1,5 @@
-import type { PlayerSummary } from "../../../../shared/models/GameSummary.js";
+import type { GameDefinitionOption } from "../../../../shared/models/GameDefinition.js";
+import type { GameState, Player } from "../../../../shared/models/GameState.js";
 import type { ColumnId } from "./BoardLayout.ThroneWorld";
 import type { SystemDefinition } from "./Systems.ThroneWorld";
 
@@ -24,45 +25,30 @@ export interface ThroneworldPublicSystemState {
   details?: ThroneworldSystemDetails;
 }
 
+export interface ThroneworldPlayerState extends Player {
+  race: string;
+  color: string;  
+  resources: number;  //current resources
+}
+
 export interface ThroneworldPlayerView {
   playerId: string;
   systems: Record<string, ThroneworldSystemDetails>;
 }
 
-export type ThroneworldPlayerStatus = "joined" | "invited" | "dummy";
-export type ThroneworldGameStatus = "waiting" | "in-progress";
 export type ThroneworldRaceAssignment = "random" | "playerChoice";
 export type ThroneworldHomeworldAssignment = "random" | "playerOrder";
 
-export interface ThroneworldGameOptions {
-  startScannedForAll?: boolean;
-  raceAssignment?: ThroneworldRaceAssignment;
-  forceRandomRaces?: boolean;
-  homeworldAssignment?: ThroneworldHomeworldAssignment;
-  races?: Record<string, string>;
-  playerStatuses?: Record<string, ThroneworldPlayerStatus>;
-  boardId?: string;
-  name?: string;
-  playerSummaries?: PlayerSummary[];
-  requiredPlayers?: number;
-}
-
-export interface ThroneworldGameState {
-  gameId: string;
-  name?: string;
-  createdAt: number;
-  scenario: string;
-  boardId: string;
-  playerIds: string[];
-  playerStatuses: Record<string, ThroneworldPlayerStatus>;
-  systems: Record<string, ThroneworldPublicSystemState>;
+export interface ThroneworldGameState extends GameState<ThroneworldState> 
+{
   gameType: "throneworld";
-  status: ThroneworldGameStatus;
-  summaryPlayers?: PlayerSummary[];
-  options?: ThroneworldGameOptions;
+  players: Record<string, ThroneworldPlayerState>;
 }
 
-export interface ThroneworldGameView extends ThroneworldGameState {
-  /** Private information for the requesting player only. */
+export type ThroneworldState = {
+  currentPhase: string;
+  currentPlayer?: string;
+
+  systems: Record<string, ThroneworldPublicSystemState>;
   playerView?: ThroneworldPlayerView;
 }

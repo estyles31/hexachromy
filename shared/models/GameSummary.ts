@@ -1,12 +1,10 @@
+import type { PlayerStatus } from "./GameState";
 export type GameStatus = "waiting" | "in-progress" | "completed";
-
-export type PlayerSlotStatus = "joined" | "invited" | "dummy";
 
 export interface PlayerSummary {
   id: string;
   name: string;
-  status: PlayerSlotStatus;
-  race?: string;
+  status: PlayerStatus;
 }
 
 export interface GameSummary {
