@@ -43,7 +43,7 @@ export function buildThroneworldBoardView(
     const { game, boardGeometry, playerColors } = params;
 
     // DEBUG: Log the entire playerView structure
-    console.log("🔍 Building board view - playerView:", game.playerView);
+    // console.log("🔍 Building board view - playerView:", game.playerView);
 
     const systems: RenderableSystem[] = [];
 

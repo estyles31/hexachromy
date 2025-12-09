@@ -15,7 +15,7 @@ export default function ThroneworldInfoPanel({
   const systemInfo = inspected?.data;
   const hexId = systemInfo?.hexId ?? "unknown";
   const revealed = systemInfo?.revealed ??false;
-  const system = gameState.state.systems[hexId]?.details;
+  const system = systemInfo?.details ?? gameState.state.systems[hexId]?.details;
 
   if (!system) {
     return (
@@ -34,7 +34,7 @@ export default function ThroneworldInfoPanel({
     );
   }
 
-  const owner = system.owner ?? "Unclaimed";
+  const owner = system?.owner ?? "Unclaimed";
 
   return (
     <div className="throneworld-info">

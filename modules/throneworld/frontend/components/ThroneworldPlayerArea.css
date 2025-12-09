@@ -1,0 +1,5 @@
+.tw-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center; /* optional, keeps them vertically aligned */
+}

@@ -11,7 +11,7 @@ import type { GameState } from "../../../shared/models/GameState";
 import type HoveredSystemInfo from "./models/HoveredSystemInfo";
 import type { VictoryPoints } from "../../FrontendModuleDefinition";
 import { ThroneworldGameDefinition } from "../shared/models/GameDefinition.Throneworld";
-import type { BoardGeometry } from "../../types";
+import type { BoardGeometry } from "../../../shared/models/BoardGeometry";
 import ThroneworldBoard from "./components/ThroneworldBoard";
 
 

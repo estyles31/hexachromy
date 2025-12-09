@@ -1,7 +1,7 @@
 // functions/src/services/database.ts
 import admin from "firebase-admin";
 import { getFirestore } from "firebase-admin/firestore";
-import type { GameDatabaseAdapter } from "../../../modules/types.js";
+import type { GameDatabaseAdapter } from "../../../shared/models/GameDatabaseAdapter";
 
 // Initialize Firebase Admin
 const app = admin.apps.length ? admin.app() : admin.initializeApp();

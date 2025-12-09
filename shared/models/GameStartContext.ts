@@ -1,5 +1,5 @@
-// modules/types.ts (relevant section)
-import type { GameDatabaseAdapter } from "../../modules/types";
+// /shared/models/GameStartContext.ts
+import type { GameDatabaseAdapter } from "./GameDatabaseAdapter";
 import type { PlayerSlot } from "./PlayerSlot";
 
 export interface GameStartContext {

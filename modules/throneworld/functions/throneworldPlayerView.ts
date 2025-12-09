@@ -1,5 +1,5 @@
 // /modules/throneworld/functions/throneworldPlayerView.ts
-import { GameDatabaseAdapter } from "../../types";
+import { GameDatabaseAdapter } from "../../../shared/models/GameDatabaseAdapter";
 import { ThroneworldPlayerView } from "../shared/models/GameState.Throneworld";
 
 export async function getPlayerView({

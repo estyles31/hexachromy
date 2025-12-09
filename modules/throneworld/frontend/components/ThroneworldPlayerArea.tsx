@@ -1,5 +1,6 @@
 import type { ThroneworldGameState } from "../../shared/models/GameState.Throneworld";
 import { getProductionForPlayer } from "../../shared/models/Production.ThroneWorld";
+import "./ThroneworldPlayerArea.css";
 
 export default function ThroneworldPlayerArea({
   gameState,
@@ -28,12 +29,14 @@ export default function ThroneworldPlayerArea({
         {player.race}
       </div>
 
-      <div className="tw-resources">
-        Resources: {player.resources}
-      </div>
+      <div className="tw-row">
+        <div className="tw-resources">
+          Resources: {player.resources}
+        </div>
 
-      <div className="tw-production">
-        Production: +{production}
+        <div className="tw-production">
+          Production: +{production}
+        </div>
       </div>
     </div>
   );

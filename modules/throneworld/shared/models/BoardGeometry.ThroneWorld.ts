@@ -1,4 +1,4 @@
-import type { BoardGeometry } from "../../../types";
+import type { BoardGeometry } from "../../../../shared/models/BoardGeometry";
 import { BOARD_HEXES, getWorldType, isInPlay, type WorldType } from "./BoardLayout.ThroneWorld";
 
 export const HEX_RADIUS = 64;
