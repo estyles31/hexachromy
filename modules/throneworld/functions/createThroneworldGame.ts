@@ -18,7 +18,7 @@ import type { Player, PlayerStatus } from "../../../shared/models/GameState";
 import type { SystemDefinition, SystemPool } from "../shared/models/Systems.ThroneWorld";
 import systemsJson from "../shared/data/systems.throneworld.json";
 import racesJson from "../shared/data/races.throneworld.json";
-import { GameStartContext } from "../../../shared/models/GameStartContext";
+import { GameStartContext } from "../../../shared/models/ApiContexts";
 import { ThroneworldFaction } from "../shared/models/Faction.ThroneWorld";
 import { PlayerSlot } from "../../../shared/models/PlayerSlot";
 
@@ -349,8 +349,12 @@ export function buildInitialGameDocuments(
 
         state: {
             systems,
-            currentPhase: "Beginning",
+            currentPhase: "StartGame",
         },
+
+        version: 0,
+        actionSequence: 0,
+        playerUndoStacks: {},
     };
 
     return { state, playerViews };

@@ -8,6 +8,7 @@ import type InspectContext from "../../../../shared/models/InspectContext";
 import PlayerArea from "./PlayerArea";
 import GameInfoArea from "./GameInfoArea";
 import "./GamePage.css";
+import ActionHistory from "../../components/ActionHistory";
 
 export default function GamePage({ gameState }: { gameState: GameState }) {
   const [inspected, setInspected] = useState<InspectContext<unknown> | null>(null);
@@ -17,6 +18,12 @@ export default function GamePage({ gameState }: { gameState: GameState }) {
   if (!module) {
     return <div>Unsupported game type: {gameState.gameType}</div>;
   }
+
+  // Build player names map for action history
+  const playerNames = Object.fromEntries(
+    Object.entries(gameState.players)
+      .map(([id, player]) => [id, player.displayName || "Unknown"])
+  );
 
   return (
     <div className="game-root">
@@ -52,6 +59,15 @@ export default function GamePage({ gameState }: { gameState: GameState }) {
           })}
         </div>
       )}
+
+      {/* NEW: Action History in lower left */}
+      <div className="action-history-container">
+        <ActionHistory 
+          gameId={gameState.gameId}
+          gameVersion={gameState.version}
+          playerNames={playerNames}
+        />
+      </div>
     </div>
   );
 }

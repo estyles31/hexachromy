@@ -7,8 +7,11 @@ import { buildPlayerSummaries } from "../services/profiles.js";
 import { backendModules } from "../../../modules/backend.js";
 import type { GameSummary } from "../../../shared/models/GameSummary.js";
 import type { AuthenticatedRequest } from "../middleware/auth.js";
+import { gameActionsRouter } from "./gameActions.js";
 
 export const gamesRouter = Router();
+
+gamesRouter.use("/", gameActionsRouter);
 
 // POST /games - Create a new game
 gamesRouter.post("/", async (req: Request, res: Response) => {

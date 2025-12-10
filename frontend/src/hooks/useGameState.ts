@@ -9,6 +9,7 @@ interface HookState<T> {
   state: T | null;
   loading: boolean;
   error: Error | null;
+  refetch: () => void;  // NEW: Function to trigger reload
 }
 
 export interface BaseGameState {
@@ -20,8 +21,14 @@ export function useGameState<T extends GameState<unknown> = GameState<unknown>>(
   const [state, setState] = useState<T | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<Error | null>(null);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);  // NEW: Trigger for refetch
   const [user] = useAuthState(auth);
   const joinAttempts = useRef<Record<string, boolean>>({});
+
+  // NEW: Function to trigger refetch
+  const refetch = () => {
+    setRefreshTrigger(prev => prev + 1);
+  };
 
   useEffect(() => {
     if (!gameId) return;
@@ -97,7 +104,7 @@ export function useGameState<T extends GameState<unknown> = GameState<unknown>>(
     void loadGame();
 
     return () => controller.abort();
-  }, [gameId, user]);
+  }, [gameId, user, refreshTrigger]);  // NEW: Added refreshTrigger dependency
 
-  return { state, loading, error };
+  return { state, loading, error, refetch };  // NEW: Return refetch function
 }

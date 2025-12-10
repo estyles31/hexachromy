@@ -35,19 +35,20 @@
 
 /* Floating inspect / hover info panel */
 .info-panel-container {
-  position: absolute;
-  right: 320px;        /* align next to right panel */
+  position: fixed;
+  right: 330px;         /* 320px panel + 10px margin */
   bottom: 24px;
   max-width: min(420px, 45vw);
   z-index: 1000;
 }
 
-/* Floating inspect / hover info panel */
-.info-panel-container {
-  position: fixed;      /* Changed from absolute to fixed */
-  right: 330px;         /* 320px panel + 10px margin */
+/* Floating action history panel (lower left) */
+.action-history-container {
+  position: fixed;
+  left: 24px;
   bottom: 24px;
-  max-width: min(420px, 45vw);
+  width: 400px;
+  max-height: 500px;
   z-index: 1000;
 }
 
@@ -55,5 +56,10 @@
 @media (max-width: 1100px) {
   .info-panel-container {
     right: 16px;
+  }
+  
+  .action-history-container {
+    left: 16px;
+    width: 350px;
   }
 }
