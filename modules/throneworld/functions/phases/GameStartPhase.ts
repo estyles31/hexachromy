@@ -16,7 +16,7 @@ export class GameStartPhase extends Phase {
     };
   }
 
-  async executeAction(ctx: PhaseContext, playerId: string, action: GameAction): Promise<ActionResponse> {
+  async executePhaseAction(ctx: PhaseContext, playerId: string, action: GameAction): Promise<ActionResponse> {
     // TODO: Handle actions like:
     // - { type: "choose_race", raceId: "Buralti" }
     // - { type: "choose_homeworld", hexId: "A5" }

@@ -12,7 +12,7 @@ export class EndPhase extends Phase {
     };
   }
 
-  async executeAction(ctx: PhaseContext, playerId: string, action: GameAction): Promise<ActionResponse> {
+  async executePhaseAction(ctx: PhaseContext, playerId: string, action: GameAction): Promise<ActionResponse> {
     return {
       success: false,
       error: "End phase actions not yet implemented",
