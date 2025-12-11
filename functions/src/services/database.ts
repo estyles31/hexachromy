@@ -7,6 +7,9 @@ import type { GameDatabaseAdapter, Transaction } from "../../../shared/models/Ga
 const app = admin.apps.length ? admin.app() : admin.initializeApp();
 export const db = getFirestore(app);
 
+// Enable ignoreUndefinedProperties to allow undefined values
+db.settings({ ignoreUndefinedProperties: true });
+
 // Transaction wrapper for Firestore
 class FirestoreTransaction implements Transaction {
   constructor(private firestoreTransaction: FirebaseFirestore.Transaction) {}

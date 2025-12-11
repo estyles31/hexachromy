@@ -1,3 +1,5 @@
+// /modules/throneworld/shared/models/Faction.ThroneWorld.ts
+
 export interface ThroneworldFaction {
   id: string;            // "B", "P", "Q", "T", "V", "Z"
   Name: string;

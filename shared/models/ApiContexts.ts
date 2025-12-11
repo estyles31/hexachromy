@@ -33,10 +33,27 @@ export interface GetPlayerViewContext {
 // Actions and Legal Actions
 // ============================================================================
 
+export type RenderHintCategory = "button" | "hex-select" | "input" | "custom";
+
+export interface RenderHint {
+  category: RenderHintCategory;
+  label?: string;
+  description?: string;
+  icon?: string;
+  
+  // For hex-select or other board interactions
+  highlightHexes?: string[];
+  message?: string;
+  
+  // For custom components
+  customComponent?: string;
+}
+
 export interface GameAction {
   type: string;
   undoable: boolean;
   expectedVersion?: number;  // For optimistic concurrency control
+  renderHint?: RenderHint;   // Optional hint for frontend rendering
   [key: string]: unknown;
 }
 

@@ -1,3 +1,4 @@
+// /modules/throneworld/shared/models/Factions.ThroneWorld.ts
 import raw from "../data/races.throneworld.json";
 import type { ThroneworldFaction } from "./Faction.ThroneWorld";
 

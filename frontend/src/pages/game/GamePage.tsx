@@ -9,6 +9,7 @@ import PlayerArea from "./PlayerArea";
 import GameInfoArea from "./GameInfoArea";
 import "./GamePage.css";
 import ActionHistory from "../../components/ActionHistory";
+import ActionPanel from "../../components/ActionPanel";
 
 export default function GamePage({ gameState }: { gameState: GameState }) {
   const [inspected, setInspected] = useState<InspectContext<unknown> | null>(null);
@@ -50,6 +51,11 @@ export default function GamePage({ gameState }: { gameState: GameState }) {
           </label>
         )}
       </div>
+
+      <ActionPanel gameId={gameState.gameId}
+                   gameVersion={gameState.version} 
+                   onActionTaken={() => {} }/>
+                   
 
       {showInfoPanel && module.renderInfoPanel && (
         <div className="info-panel-container">

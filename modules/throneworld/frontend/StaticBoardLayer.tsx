@@ -1,13 +1,14 @@
-import type { BoardGeometry } from "../shared/models/BoardGeometry.ThroneWorld";
+import type { ThroneworldBoardGeometry } from "../shared/models/BoardGeometry.ThroneWorld";
+import type { ThroneworldGameState } from "../shared/models/GameState.Throneworld";
 
 const BOARD_IMAGE_BASE = "/modules/throneworld/boards";
 
 export default function StaticBoardLayer({
   gameState,
   boardGeometry,
-}: { gameState: any; boardGeometry?: BoardGeometry }) {
-  const scenario = typeof gameState.scenario === "string" && gameState.scenario.trim().length > 0
-    ? gameState.scenario
+}: { gameState: ThroneworldGameState; boardGeometry?: ThroneworldBoardGeometry }) {
+  const scenario = typeof gameState.options.scenario === "string" && gameState.options.scenario.trim().length > 0
+    ? gameState.options.scenario
     : "6p";
 
   const boardImage = `${BOARD_IMAGE_BASE}/throneworld-${scenario}.svg`;

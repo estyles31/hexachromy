@@ -1,4 +1,5 @@
 import type { GameSummary } from "../../../../shared/models/GameSummary";
+import "./GameList.css";
 
 export function GameList({
   games,

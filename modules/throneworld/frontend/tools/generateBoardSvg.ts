@@ -11,14 +11,12 @@ import {
   BOARD_HEXES,
   getWorldType,
   isInPlay,
+  scenarioIds,
   type WorldType
 } from "../../shared/models/BoardLayout.ThroneWorld";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
-// Which player counts to generate boards for
-const PLAYER_COUNTS = [2, 3, 4, 5, 6];
 
 // Hex geometry (flat-top)
 const HEX_RADIUS = 64;
@@ -48,22 +46,22 @@ export async function generateBoardSvgs() {
   const outDir = path.resolve(__dirname, "../public/boards");
   fs.mkdirSync(outDir, { recursive: true });
 
-  for (const pc of PLAYER_COUNTS) {
-  const svg = generateSvgForPlayerCount(pc);
-  const fileName = `throneworld-${pc}p.svg`;
-  const outPath = path.join(outDir, fileName);
-  fs.writeFileSync(outPath, svg, "utf-8");
-  console.log(`Wrote ${outPath}`);
+  for (const scen of scenarioIds) {
+    const svg = generateSvgForScenario(scen);
+    const fileName = `throneworld-${scen}.svg`;
+    const outPath = path.join(outDir, fileName);
+    fs.writeFileSync(outPath, svg, "utf-8");
+    console.log(`Wrote ${outPath}`);
   }
 }
 
 /* ───────── Board Generator ───────── */
 
-function generateSvgForPlayerCount(playerCount: number): string {
-  const playable = BOARD_HEXES.filter(h => isInPlay(h.id, playerCount));
+function generateSvgForScenario(scenarioId: string): string {
+  const playable = BOARD_HEXES.filter(h => isInPlay(h.id, scenarioId));
 
   if (playable.length === 0) {
-    throw new Error(`No playable hexes for playerCount=${playerCount}`);
+    throw new Error(`No playable hexes for scenarioId=${scenarioId}`);
   }
 
   const hexes: HexRender[] = [];
@@ -77,7 +75,7 @@ function generateSvgForPlayerCount(playerCount: number): string {
     const cx = hex.colIndex * X_SPACING;
     const cy = hex.row * Y_SPACING;
 
-    const worldType = getWorldType(hex.id, playerCount);
+    const worldType = getWorldType(hex.id, scenarioId);
 
     hexes.push({
       id: hex.id,

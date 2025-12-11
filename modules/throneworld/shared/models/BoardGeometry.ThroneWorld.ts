@@ -27,11 +27,11 @@ export interface ThroneworldBoardGeometry extends BoardGeometry {
   margin: number;
 }
 
-export function computeBoardGeometry(playerCount: number): ThroneworldBoardGeometry {
-  const playableHexes = BOARD_HEXES.filter(h => isInPlay(h.id, playerCount));
+export function computeBoardGeometry(scenario: string): ThroneworldBoardGeometry {
+  const playableHexes = BOARD_HEXES.filter(h => isInPlay(h.id, scenario));
 
   if (playableHexes.length === 0) {
-    throw new Error(`No playable hexes for player count ${playerCount}`);
+    throw new Error(`No playable hexes for scenario ${scenario}`);
   }
 
   let minX = Infinity;
@@ -42,7 +42,7 @@ export function computeBoardGeometry(playerCount: number): ThroneworldBoardGeome
   const hexes: HexGeometry[] = playableHexes.map(hex => {
     const cx = hex.colIndex * X_SPACING;
     const cy = hex.row * Y_SPACING;
-    const worldType = getWorldType(hex.id, playerCount);
+    const worldType = getWorldType(hex.id, scenario);
 
     minX = Math.min(minX, cx - HEX_RADIUS);
     maxX = Math.max(maxX, cx + HEX_RADIUS);

@@ -14,6 +14,12 @@ export interface PhaseContext {
 export abstract class Phase {
   abstract readonly name: string;
 
+   /**
+   * Called when phase begins - handles automated actions
+   * Returns events/animations that should be displayed
+   */
+  async onPhaseStart?(ctx: PhaseContext): Promise<void>;
+
   /**
    * Get all legal actions for a specific player in this phase
    * Override this to add phase-specific actions

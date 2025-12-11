@@ -118,7 +118,7 @@ function buildRenderableSystem(
         playerView ??
         {
             systemId: hexId,
-            owner: null,
+            owner: undefined,
             dev: 0,
             spaceTech: 0,
             groundTech: 0,

@@ -1,7 +1,8 @@
+import type { GameAction } from "../shared/models/ApiContexts";
 import type { GameDefinition } from "../shared/models/GameDefinition";
 import type { GameState } from "../shared/models/GameState";
 import type InspectContext from "../shared/models/InspectContext";
-import type { BoardGeometry } from "./types";
+import type { BoardGeometry } from "../shared/models/BoardGeometry";
 
 export type VictoryPoints = Record<string, number>;
 
@@ -29,5 +30,12 @@ export interface FrontendModuleDefinition<State, InspectPayload = unknown> {
   renderInfoPanel?: (params:{
     gameState: GameState<State>;
     inspected: InspectContext<InspectPayload> | null;
+  }) => React.JSX.Element;
+
+  renderActions?: (params:{
+    actions : GameAction[],
+    message?: string,
+    onExecuteAction: (action: GameAction) => void,
+    executing: boolean,
   }) => React.JSX.Element;
 }

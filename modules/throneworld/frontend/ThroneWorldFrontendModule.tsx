@@ -17,8 +17,7 @@ import ThroneworldBoard from "./components/ThroneworldBoard";
 
 export const ThroneworldFrontendModule: FrontendModuleDefinition<ThroneworldState, HoveredSystemInfo> = {
   getBoardGeometry: (gameState: ThroneworldGameState) => {
-    const playerCount = Object.entries(gameState.players).length;
-    const geometry = computeBoardGeometry(playerCount);
+    const geometry = computeBoardGeometry(String(gameState.options.scenario));
     return geometry;
   },
   getGameDefinition: () => ThroneworldGameDefinition,

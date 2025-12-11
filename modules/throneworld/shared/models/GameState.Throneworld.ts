@@ -11,7 +11,7 @@ export interface HexLocation {
 
 export interface ThroneworldSystemDetails extends SystemDefinition {
   systemId: string;
-  owner: string | null;
+  owner?: string;
 }
 
 export interface ThroneworldPublicSystemState {
@@ -25,8 +25,9 @@ export interface ThroneworldPublicSystemState {
 }
 
 export interface ThroneworldPlayerState extends Player {
-  race: string;
-  color: string;  
+  race?: string;
+  color: string;
+  tech: { Ground: number, Space: number, Comm: number, Jump: number };
   resources: number;  //current resources
 }
 
@@ -49,5 +50,6 @@ export type ThroneworldState = {
   currentPhase: string;
   currentPlayer?: string;
 
+  turnOrder?: string[];
   systems: Record<string, ThroneworldPublicSystemState>;
 }

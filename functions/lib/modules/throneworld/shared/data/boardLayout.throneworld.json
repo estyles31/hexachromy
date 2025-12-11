@@ -50,8 +50,8 @@
         "I13": "NotInPlay",
         "I15": "NotInPlay"
     },
-    "worldTypesByPlayers": {
-        "2": {
+    "worldTypesByScenario": {
+        "2p": {
             "B6": "Fringe",
             "B12": "Fringe",
             "C5": "NotInPlay",
@@ -80,7 +80,7 @@
             "H16": "NotInPlay",
             "I9": "Homeworld"
         },
-        "3": {
+        "3p": {
             "B6": "Fringe",
             "B12": "Fringe",
             "D6": "Inner",
@@ -101,7 +101,7 @@
             "I7": "NotInPlay",
             "I11": "NotInPlay"
         },
-        "4": {
+        "4p": {
             "B6": "Fringe",
             "B12": "Fringe",
             "C3": "Fringe",
@@ -124,7 +124,7 @@
             "H14": "NotInPlay",
             "I9": "Homeworld"
         },
-        "5": {
+        "5p": {
             "C3": "Fringe",
             "C15": "Fringe",
             "D2": "Homeworld",
@@ -143,7 +143,7 @@
             "I13": "Homeworld",
             "I15": "Fringe"
         },
-        "6": {
+        "6p": {
             "A3": "Fringe",
             "A5": "Homeworld",
             "A9": "NotInPlay",

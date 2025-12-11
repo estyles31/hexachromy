@@ -22,7 +22,7 @@ export interface BoardHex {
   rowIndexInColumn: number;
 
   baseWorldType: WorldType;
-  overridesByPlayers: Partial<Record<number, WorldType>>;
+  overridesByScenario: Partial<Record<string, WorldType>>;
 }
 
 
@@ -48,11 +48,12 @@ interface RawLayout {
   worldTypes: WorldType[];
   columns: Record<string, number[]>;
   baseWorldTypes: Record<string, WorldType>;
-  worldTypesByPlayers: Record<string, Record<string, WorldType>>;
+  worldTypesByScenario: Record<string, Record<string, WorldType>>;
   defaultWorldType: WorldType;
 }
 
 const raw = data as unknown as RawLayout;
+export const scenarioIds = Object.keys(raw.worldTypesByScenario);
 
 /* ───────────────────────── */
 /* Helpers                   */
@@ -82,12 +83,12 @@ Object.entries(raw.columns).forEach(([col, rows]) => {
       raw.baseWorldTypes[id] ??
       raw.defaultWorldType;
 
-    const overridesByPlayers: Partial<Record<number, WorldType>> = {};
+    const overridesByScenario: Partial<Record<string, WorldType>> = {};
 
-    Object.entries(raw.worldTypesByPlayers).forEach(
-      ([playerCount, map]) => {
+    Object.entries(raw.worldTypesByScenario).forEach(
+      ([scenarioId, map]) => {
         if (map[id]) {
-          overridesByPlayers[Number(playerCount)] = map[id];
+          overridesByScenario[scenarioId] = map[id];
         }
       }
     );
@@ -99,7 +100,7 @@ Object.entries(raw.columns).forEach(([col, rows]) => {
       colIndex: colIndex(col as ColumnId),
       rowIndexInColumn,
       baseWorldType,
-      overridesByPlayers
+      overridesByScenario
     });
   });
 });
@@ -117,23 +118,23 @@ export const BOARD_HEXES_BY_ID: Record<string, BoardHex> =
 
 export function getWorldType(
   hexId: string,
-  playerCount: number
+  scenarioId: string
 ): WorldType {
 
   const hex = BOARD_HEXES_BY_ID[hexId];
   if (!hex) throw new Error(`Unknown hex: ${hexId}`);
 
   return (
-    hex.overridesByPlayers[playerCount] ??
+    hex.overridesByScenario[scenarioId] ??
     hex.baseWorldType
   );
 }
 
 export function isInPlay(
   hexId: string,
-  playerCount: number
+  scenarioId: string
 ): boolean {
-  return getWorldType(hexId, playerCount) !== "NotInPlay";
+  return getWorldType(hexId, scenarioId) !== "NotInPlay";
 }
 
 
@@ -156,7 +157,7 @@ function assertAllHexReferencesValid() {
 
   Object.keys(raw.baseWorldTypes).forEach(check);
 
-  Object.values(raw.worldTypesByPlayers).forEach(map =>
+  Object.values(raw.worldTypesByScenario).forEach(map =>
     Object.keys(map).forEach(check)
   );
 }

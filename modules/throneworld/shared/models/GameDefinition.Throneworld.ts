@@ -8,14 +8,6 @@ export const ThroneworldGameDefinition : GameDefinition =
 
   options: [ 
       {
-        id: "boardImage",
-        label: "Board",
-        type: "text",
-        visible: false,
-        defaultValue: "throneworld-6p.svg",
-        description: "The board to play on."
-      },
-      {
         id: "raceAssignment",
         label: "Race assignment",
         description: "Random for now; future option to let players pick",
@@ -47,49 +39,34 @@ export const ThroneworldGameDefinition : GameDefinition =
     ],
   scenarios: [
      {
-        id: "duel-2p",
+        id: "2p",
         label: "2 Player Duel",
         playerCount: { value: 2 },
         // description: "Tight two-player duel layout.",
-        settings: {
-          fixed: { boardImage: "/modules/throneworld/boards/throneworld-2p.svg" }
-        },
       },
       {
-        id: "trio-3p",
+        id: "3p",
         label: "3 Player",
         playerCount: { value: 3 },
         // description: "Three-player balance of distance and pressure.",
-        settings: { 
-          fixed: { boardImage: "/modules/throneworld/boards/throneworld-3p.svg" }
-        },
       },
       {
-        id: "standard-4p",
+        id: "4p",
         label: "4 Player Standard",
         playerCount: { value: 4 },
         // description: "Baseline four-player setup.",
-        settings: { 
-          fixed: { boardImage: "/modules/throneworld/boards/throneworld-4p.svg" }
-        },
       },
       {
-        id: "expanse-5p",
+        id: "5p",
         label: "5 Player",
         playerCount: { value: 5 },
         // description: "Five-player reach across the spiral arms.",
-        settings: { 
-          fixed: { boardImage: "/modules/throneworld/boards/throneworld-5p.svg" }
-        },
       },
       {
-        id: "standard-6p",
+        id: "6p",
         label: "6 Player Full Game",
         playerCount: { value: 6 },
         // description: "Classic six-player experience.",
-        settings: { 
-          fixed: { boardImage: "/modules/throneworld/boards/throneworld-6p.svg" }
-        },
       },
   ],
 }

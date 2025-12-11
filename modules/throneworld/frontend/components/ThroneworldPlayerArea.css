@@ -1,5 +1,30 @@
+/* // /modules/throneworld/frontend/components/ThroneworldPlayerArea.css */
 .tw-row {
   display: flex;
   justify-content: space-between;
   align-items: center; /* optional, keeps them vertically aligned */
+}
+
+.tw-tech-row {
+  display: flex;
+  gap: 12px;
+  margin-top: 2px;
+  padding-top: 6px;
+}
+
+.tw-tech-item {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 13px;
+  cursor: help;
+}
+
+.tw-tech-icon {
+  font-size: 16px;
+}
+
+.tw-tech-value {
+  font-weight: 600;
+  font-family: monospace;
 }
