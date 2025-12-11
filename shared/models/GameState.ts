@@ -22,6 +22,9 @@ export interface GameState<State = unknown> {
   /** Player list. */
   players: Record<string, Player>;
 
+  // this controls how the players are listed in the interface, and can be used by the module however you want
+  playerOrder: string[]; 
+
   /** Options set at game creation */
   options: Record<string, unknown | null>;
 

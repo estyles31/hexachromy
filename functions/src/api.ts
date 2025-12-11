@@ -41,6 +41,8 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
     error: err.code || "internal",
     message: err.message || "Internal server error",
   });
+
+  next();
 });
 
 export const api = onRequest({ invoker: "public" }, app);

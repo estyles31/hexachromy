@@ -1,6 +1,8 @@
 // /modules/throneworld/frontend/models/ThroneworldBoardView.ts
-import type { ThroneworldGameState, ThroneworldSystemDetails } from "../../shared/models/GameState.Throneworld";
+import type { ThroneworldGameState } from "../../shared/models/GameState.Throneworld";
 import type { ThroneworldBoardGeometry } from "../../shared/models/BoardGeometry.ThroneWorld";
+import type { ThroneworldPublicSystemState, ThroneworldSystemDetails } from "../../shared/models/Systems.ThroneWorld";
+import type { WorldType } from "../../shared/models/BoardLayout.ThroneWorld";
 
 export interface ThroneworldBoardView {
     systems: RenderableSystem[];
@@ -8,7 +10,7 @@ export interface ThroneworldBoardView {
 
 export interface RenderableSystem {
     hexId: string;
-    worldType: string;
+    worldType: WorldType;
 
     position: {
         x: number;
@@ -72,18 +74,14 @@ export function buildThroneworldBoardView(
 
 interface BuildRenderableSystemParams {
     hexId: string;
-    worldType: string;
+    worldType: WorldType;
     position: {
         x: number;
         y: number;
         hexRadius: number;
     };
 
-    publicSystem: {
-        revealed: boolean;
-        details?: ThroneworldSystemDetails;
-        scannedBy?: string[];
-    };
+    publicSystem: ThroneworldPublicSystemState;
 
     playerView?: ThroneworldSystemDetails;
     playerColors: Record<string, string>;
@@ -109,16 +107,15 @@ function buildRenderableSystem(
     //     scannedBy: publicSystem.scannedBy,
     // });
 
-    const isRevealed = publicSystem.revealed || worldType === "homeworld";
+    const isRevealed = publicSystem.revealed || worldType === "Homeworld";
     const hasPrivateView = Boolean(playerView);
     const canHoverReveal = isRevealed || hasPrivateView;
 
     const resolvedDetails: ThroneworldSystemDetails =
-        publicSystem.details ??
-        playerView ??
-        {
+        publicSystem.details
+        ?? playerView 
+        ?? {
             systemId: hexId,
-            owner: undefined,
             dev: 0,
             spaceTech: 0,
             groundTech: 0,

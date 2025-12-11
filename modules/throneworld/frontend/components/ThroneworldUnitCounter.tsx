@@ -1,9 +1,9 @@
 // import React from "react";
-import type { ThroneworldUnit } from "../../shared/models/UnitType.ThroneWorld";
+import type { ThroneworldUnitType } from "../../shared/models/UnitType.ThroneWorld";
 import { counterStyles } from "../config/counterStyles";
 
 interface UnitCounterProps {
-  unit: ThroneworldUnit;
+  unit: ThroneworldUnitType;
   quantity?: number;
   size?: number;
 }

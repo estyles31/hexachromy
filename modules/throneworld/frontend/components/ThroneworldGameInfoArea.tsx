@@ -1,10 +1,10 @@
+import { useGameStateContext } from "../../../../shared-frontend/contexts/GameStateContext";
 import type { ThroneworldGameState } from "../../shared/models/GameState.Throneworld";
 
 export default function ThroneworldGameInfoArea({
-  gameState
 }: {
-  gameState: ThroneworldGameState;
 }) {
+  const gameState = useGameStateContext() as ThroneworldGameState;
   return (
     <div className="tw-game-info"
       style={{

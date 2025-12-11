@@ -1,12 +1,12 @@
 // /modules/throneworld/frontend/components/SystemMarker.tsx
 import { systemStyles } from "../config/systemStyles";
-import type { SystemDefinition } from "../../shared/models/Systems.ThroneWorld";
-import type { ThroneworldSystemDetails } from "../../shared/models/GameState.Throneworld";
+import type { ThroneworldSystemDetails } from "../../shared/models/Systems.ThroneWorld";
 import { UNITS } from "../../shared/models/UnitTypes.ThroneWorld";
+import type { WorldType } from "../../shared/models/BoardLayout.ThroneWorld";
 
 interface Props {
-  system: ThroneworldSystemDetails | SystemDefinition;
-  worldType: string;
+  system: ThroneworldSystemDetails;
+  worldType: WorldType;
   ownerColor?: string;
   size?: number;
   revealed?: boolean;
@@ -83,14 +83,13 @@ export function SystemMarker({
   onHover,
   hideUnits = false,
 }: Props) {
-  worldType = worldType.toLowerCase();
   const styleKey = worldType as keyof typeof systemStyles;
   const style = systemStyles[styleKey] ?? systemStyles.default;
 
-  const isHomeworld = worldType === "homeworld";
+  const isHomeworld = worldType === "Homeworld";
 
-  revealed = revealed || worldType === "homeworld";
-  const typeLabel = worldType == "throneworld" ? "TW" : worldType.charAt(0).toUpperCase();
+  revealed = revealed || worldType === "Homeworld";
+  const typeLabel = worldType == "Throneworld" ? "TW" : worldType.charAt(0).toUpperCase();
 
   const shouldRenderScanners = !revealed;
   const scannerMarkers = shouldRenderScanners ? scannerColors.slice(0, 6) : [];
@@ -235,7 +234,7 @@ export function SystemMarker({
           })}
           
           {/* Tech level at top of column */}
-          {system.spaceTech > 0 && worldType !== "homeworld" && (
+          {system.spaceTech > 0 && worldType !== "Homeworld" && (
             <text
               x={size * LAYOUT.spaceColumn.x}
               y={size * (1 - LAYOUT.spaceColumn.bottomPadding) - spaceEntries.length * size * LAYOUT.spaceColumn.lineHeight}
@@ -277,7 +276,7 @@ export function SystemMarker({
           })}
           
           {/* Tech level at top of column */}
-          {system.groundTech > 0 && worldType !== "homeworld" && (
+          {system.groundTech > 0 && worldType !== "Homeworld" && (
             <text
               x={size * LAYOUT.groundColumn.x}
               y={size * (1 - LAYOUT.groundColumn.bottomPadding) - groundEntries.length * size * LAYOUT.groundColumn.lineHeight}

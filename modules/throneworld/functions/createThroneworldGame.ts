@@ -4,18 +4,15 @@ import {
     BOARD_HEXES,
     getWorldType,
     isInPlay,
-    type WorldType,
 } from "../shared/models/BoardLayout.ThroneWorld";
 import type {
     ThroneworldGameState,
     ThroneworldPlayerView,
-    ThroneworldSystemDetails,
     ThroneworldPlayerState,
-    ThroneworldWorldType,
     ThroneworldState,
 } from "../shared/models/GameState.Throneworld";
 import type { Player, PlayerStatus } from "../../../shared/models/GameState";
-import type { SystemDefinition, SystemPool } from "../shared/models/Systems.ThroneWorld";
+import type { SystemPool, ThroneworldSystemDetails } from "../shared/models/Systems.ThroneWorld";
 import systemsJson from "../shared/data/systems.throneworld.json";
 import { GameStartContext } from "../../../shared/models/ApiContexts";
 import { PlayerSlot } from "../../../shared/models/PlayerSlot";
@@ -50,9 +47,10 @@ export async function createGame(ctx: GameStartContext): Promise<ThroneworldGame
 }
 
 const SYSTEM_POOLS = systemsJson as SystemPool;
-type SystemTile = { systemId: string; definition: SystemDefinition };
+type SystemTile = { systemId: string; definition: ThroneworldSystemDetails };
 
-const HOMEWORLD_BASE: SystemDefinition = {
+const HOMEWORLD_BASE: ThroneworldSystemDetails = {
+    systemId: "homeworld",
     dev: 10,
     spaceTech: 0,
     groundTech: 0,
@@ -62,7 +60,6 @@ const HOMEWORLD_BASE: SystemDefinition = {
 
 
 type PoolKey = keyof SystemPool;
-type NormalizedWorldType = ThroneworldWorldType | "notinplay";
 
 /* ------------------------------------------------------------------ */
 /* Helpers                                                            */
@@ -105,20 +102,6 @@ function allSlotsFilled(slots: PlayerSlot[]): boolean {
 //   return slots.filter(slot => slot.type !== "open").length;
 // }
 
-function normalizeWorldType(worldType: WorldType): NormalizedWorldType {
-    const normalized = worldType.toLowerCase();
-    if (
-        normalized === "outer" ||
-        normalized === "inner" ||
-        normalized === "fringe" ||
-        normalized === "throneworld"
-    ) {
-        return normalized;
-    }
-    if (normalized === "homeworld") return "homeworld";
-    return "notinplay";
-}
-
 function buildSystemPool(poolKey: PoolKey): SystemTile[] {
     return SYSTEM_POOLS[poolKey].map((definition, idx) => ({
         systemId: `${poolKey}-${idx}`,
@@ -156,7 +139,7 @@ interface BuildInitialParams {
     players: Player[];
     options: Record<string, unknown | null>;
     name?: string;
-    scenario?: string;        // e.g. "standard-4p", but we mostly care about playerCount
+    scenario: string;        // e.g. "4p", "6p", "4p-alt"
     requiredPlayers?: number; // if you want to enforce a min player count
 }
 
@@ -178,6 +161,7 @@ export async function buildInitialGameDocuments(
         playerSlots,
         players,
         options,
+        scenario,
     } = params;
 
     const allFilled = allSlotsFilled(playerSlots);
@@ -211,10 +195,10 @@ export async function buildInitialGameDocuments(
 
     // System pools: outer / inner / fringe / throneworld
     const pools: Record<PoolKey, SystemTile[]> = {
-        outer: buildSystemPool("outer"),
-        inner: buildSystemPool("inner"),
-        fringe: buildSystemPool("fringe"),
-        throneworld: buildSystemPool("throneworld"),
+        Outer: buildSystemPool("Outer"),
+        Inner: buildSystemPool("Inner"),
+        Fringe: buildSystemPool("Fringe"),
+        Throneworld: buildSystemPool("Throneworld"),
     };
 
     const systems: ThroneworldState["systems"] = {} as ThroneworldState["systems"];
@@ -227,16 +211,15 @@ export async function buildInitialGameDocuments(
         playerViews[player.uid] = { playerId: player.uid, systems: {} };
     }
 
-    const scenario = String(options.scenario);
     // Place systems on the board
     for (const hex of BOARD_HEXES) {
         if (!isInPlay(hex.id, String(scenario))) continue;
 
-        const worldType = normalizeWorldType(getWorldType(hex.id, scenario));
-        if (worldType === "notinplay") continue;
+        const worldType = getWorldType(hex.id, scenario);
+        if (worldType === "NotInPlay") continue;
 
         // Homeworlds
-        if (worldType === "homeworld") {
+        if (worldType === "Homeworld") {
                 systems[hex.id] = {
                     hexId: hex.id,
                     location: { col: hex.col, row: hex.row },
@@ -244,9 +227,11 @@ export async function buildInitialGameDocuments(
                     revealed: true,
                     scannedBy: [],
                     details: {
-                        systemId: `homeworld-${hex.id}`,
                         ...HOMEWORLD_BASE,
+                        systemId: `Homeworld-${hex.id}`,
                     } as ThroneworldSystemDetails,
+                    unitsOnPlanet: {},
+                    fleetsInSpace: {}
             };
 
             continue;
@@ -261,8 +246,8 @@ export async function buildInitialGameDocuments(
 
         const { systemId, definition } = drawRandomSystem(pool);
         const details: ThroneworldSystemDetails = {
-            systemId,
             ...definition,
+            systemId,
         };
 
         const revealed = false;        // not revealed at start, unless you add a debug flag
@@ -275,6 +260,8 @@ export async function buildInitialGameDocuments(
             revealed,
             scannedBy,
             ...(revealed ? { details } : {}),
+            unitsOnPlanet: {},
+            fleetsInSpace: {},
         };
 
         // Neutral view knows the full system contents
@@ -300,6 +287,7 @@ export async function buildInitialGameDocuments(
 
         status: allPlayersReady ? "in-progress" : "waiting",
         players: throneworldPlayers,
+        playerOrder: shuffle(players.map((player) => player.uid)),
 
         options: {
             ...options,

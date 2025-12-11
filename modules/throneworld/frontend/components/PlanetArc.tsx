@@ -1,9 +1,10 @@
 //PlanetArc.tsx
+import type { WorldType } from "../../shared/models/BoardLayout.ThroneWorld";
 import { planetStyles, type PlanetStyleKey } from "../config/planetStyles";
 
 interface Props {
   dev: number;
-  worldType: string;       // "outer" | "inner" | "fringe" | "throneworld" | "homeworld"
+  worldType: WorldType;       // "outer" | "inner" | "fringe" | "throneworld" | "homeworld"
   cx: number;
   cy: number;
   r: number;               // hex radius (from center to a vertex)
@@ -11,14 +12,12 @@ interface Props {
 }
 
 export default function PlanetArc({ dev, worldType, cx, cy, r, ownerColor }: Props) {
-  worldType = worldType.toLowerCase();
-
   // Determine style source
-  const styleKey = ((worldType === "homeworld" || worldType === "throneworld") 
+  const styleKey = ((worldType === "Homeworld" || worldType === "Throneworld") 
                     ? worldType
                     : `dev${dev}`) as PlanetStyleKey;
 
-  const style = planetStyles[styleKey];
+  const style = planetStyles[styleKey] ?? planetStyles["default"];
 
   // Gradient ID must be unique per hex so use cx/cy combo
   const gradientId = `planet-grad-${cx}-${cy}`;

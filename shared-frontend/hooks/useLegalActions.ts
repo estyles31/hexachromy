@@ -1,9 +1,9 @@
 // /frontend/src/hooks/useLegalActions.ts
 import { useState, useEffect } from "react";
 import { auth } from "../firebase";
-import { authFetch } from "../auth/authFetch";
+import { authFetch } from "../../frontend/src/auth/authFetch";
 import { useAuthState } from "react-firebase-hooks/auth";
-import type { LegalActionsResponse } from "../../../shared/models/ApiContexts";
+import type { LegalActionsResponse } from "../../shared/models/ApiContexts";
 
 export function useLegalActions(gameId: string, gameVersion: number) {
   const [user] = useAuthState(auth);

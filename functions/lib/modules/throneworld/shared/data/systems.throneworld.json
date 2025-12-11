@@ -1,5 +1,5 @@
 {
-    "outer": [
+    "Outer": [
         { "dev": 0, "spaceTech": 0, "groundTech": 0, "spaceUnits": {}, "groundUnits": {} },
         { "dev": 0, "spaceTech": 0, "groundTech": 0, "spaceUnits": {}, "groundUnits": {} },
         { "dev": 0, "spaceTech": 0, "groundTech": 0, "spaceUnits": {}, "groundUnits": {} },
@@ -38,7 +38,7 @@
         { "dev": 5, "spaceTech": 4, "groundTech": 3, "spaceUnits": { "P": 4, "F": 2 }, "groundUnits": { "L": 4 } },
         { "dev": 6, "spaceTech": 0, "groundTech": 5, "spaceUnits": {}, "groundUnits": { "C": 1, "A": 2, "H": 1 } }
     ],
-    "fringe": [
+    "Fringe": [
         { "dev": 0, "spaceTech": 0, "groundTech": 0, "spaceUnits": {}, "groundUnits": {} },
         { "dev": 0, "spaceTech": 0, "groundTech": 0, "spaceUnits": {}, "groundUnits": {} },
         { "dev": 0, "spaceTech": 0, "groundTech": 0, "spaceUnits": {}, "groundUnits": {} },
@@ -57,7 +57,7 @@
         { "dev": 3, "spaceTech": 1, "groundTech": 1, "spaceUnits": { "P": 1, "F": 2 }, "groundUnits": { "H": 1, "L": 1 } },
         { "dev": 3, "spaceTech": 1, "groundTech": 2, "spaceUnits": { "M": 1, "F": 5 }, "groundUnits": { "L": 2 } }
     ],
-    "inner": [
+    "Inner": [
         { "dev": 5, "spaceTech": 5, "groundTech": 4, "spaceUnits": { "P": 1, "M": 2, "F": 5 }, "groundUnits": { "H": 2 } },
         { "dev": 5, "spaceTech": 5, "groundTech": 2, "spaceUnits": { "M": 1, "F": 5 }, "groundUnits": { "C": 1, "A": 2, "H": 2 } },
         { "dev": 5, "spaceTech": 4, "groundTech": 4, "spaceUnits": { "B": 4, "P": 2 }, "groundUnits": { "H": 2, "L": 2 } },
@@ -71,7 +71,7 @@
         { "dev": 6, "spaceTech": 3, "groundTech": 4, "spaceUnits": { "Sh": 2, "P": 2, "M": 1, "F": 6 }, "groundUnits": { "C": 2, "A": 2 } },
         { "dev": 6, "spaceTech": 3, "groundTech": 5, "spaceUnits": { "Sh": 2, "B": 2 }, "groundUnits": { "H": 2, "L": 1 } }
     ],
-    "throneworld": [
+    "Throneworld": [
         { "dev": 10, "spaceTech": 4, "groundTech": 4, "spaceUnits": { "B": 10, "P": 5 }, "groundUnits": { "H": 10, "L": 5 } },
         { "dev": 10, "spaceTech": 5, "groundTech": 5, "spaceUnits": { "Sh": 3, "P": 3, "F": 6 }, "groundUnits": { "C": 3, "A": 3, "H": 1 } },
         { "dev": 10, "spaceTech": 6, "groundTech": 4, "spaceUnits": { "Sh": 4, "B": 4 }, "groundUnits": { "C": 4, "A": 4 } },

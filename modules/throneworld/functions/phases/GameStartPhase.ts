@@ -4,6 +4,9 @@ import type { LegalActionsResponse, ActionResponse, GameAction } from "../../../
 import type { ThroneworldGameState } from "../../shared/models/GameState.Throneworld";
 import { Factions } from "../../shared/models/Factions.ThroneWorld";
 import { randomInt } from "crypto";
+import { buildUnit } from "../../shared/models/Unit.Throneworld";
+import { addUnitToSystem } from "../../shared/models/Systems.ThroneWorld";
+import { UNITS } from "../../shared/models/UnitTypes.ThroneWorld";
 
 interface RaceChoiceAction extends GameAction {
   type: "choose_race";
@@ -28,25 +31,10 @@ export class GameStartPhase extends Phase {
     const raceMode = this.getRaceAssignmentMode(state);
     const homeworldMode = this.getHomeworldAssignmentMode(state);
 
-    // If both are random, assign everything and transition immediately
-    if (raceMode === "random" && homeworldMode === "random") {
-      this.assignRacesRandomly(state);
-      this.assignHomeworldsRandomly(state);
-      
-      // Set turn order for the game
+      // Set turn order to start the game
       const playerIds = this.shuffle(Object.keys(state.players));
-      state.state.turnOrder = playerIds;
+      state.playerOrder = playerIds;
       state.state.currentPlayer = playerIds[0];
-      
-      state.state.currentPhase = "Outreach";
-      return;
-    }
-
-    // At least one is playerOrder, so set up turn-based selection
-    const playerIds = Object.keys(state.players);
-    const shuffled = this.shuffle(playerIds);
-    state.state.turnOrder = shuffled;
-    state.state.currentPlayer = shuffled[0];
 
     // If races are random, assign them now
     if (raceMode === "random") {
@@ -57,11 +45,16 @@ export class GameStartPhase extends Phase {
     if (homeworldMode === "random") {
       this.assignHomeworldsRandomly(state);
     }
+    // If both are random, assign everything and transition immediately
+    if (raceMode === "random" && homeworldMode === "random") {     
+      state.state.currentPhase = "Outreach";
+      return;
+    }
 
     // If current player is a bot, auto-complete their setup
-    const firstPlayer = state.players[shuffled[0]];
+    const firstPlayer = state.players[state.playerOrder[0]];
     if (firstPlayer.status === "dummy") {
-      this.autoCompleteBotSetup(state, shuffled[0]);
+      this.autoCompleteBotSetup(state, state.playerOrder[0]);
       this.advanceToNextPlayer(state);
     }
   }
@@ -261,7 +254,7 @@ export class GameStartPhase extends Phase {
   }
 
   private advanceToNextPlayer(state: ThroneworldGameState): void {
-    const order = state.state.turnOrder || [];
+    const order = state.playerOrder || [];
     const currentIndex = order.indexOf(state.state.currentPlayer || "");
     
     if (currentIndex === -1) return;
@@ -364,12 +357,22 @@ export class GameStartPhase extends Phase {
       spaceTech: 0,
       groundTech: 0,
       spaceUnits: {
-        d: 1,  // 1 Shield
-        S: 2,  // 2 Survey Teams
+        Sh: 1,  // 1 Shield
+        Sv: 2,  // 2 Survey Teams
       },
       groundUnits: player.race === "Q" ? { qC: 2 } : { C: 2 },
     };
 
+    const bunkerId = player.race === "Q" ? "qC" : "C";
+
+    console.log(JSON.stringify(UNITS));
+
+    //build 2 Command Bunkers, 2 Survey Teams, and a Shield
+    addUnitToSystem(system, buildUnit(bunkerId, playerId));
+    addUnitToSystem(system, buildUnit(bunkerId, playerId));
+    addUnitToSystem(system, buildUnit("St", playerId));
+    addUnitToSystem(system, buildUnit("St", playerId));
+    addUnitToSystem(system, buildUnit("Sh", playerId));
     system.revealed = true;
     system.scannedBy = [playerId];
     player.resources = hwProduction;
@@ -388,7 +391,7 @@ export class GameStartPhase extends Phase {
     const availableHexes: string[] = [];
 
     for (const [hexId, system] of Object.entries(systems)) {
-      if (system.worldType === "homeworld" && !system.details?.owner) {
+      if (system.worldType === "Homeworld" && !system.details?.owner) {
         availableHexes.push(hexId);
       }
     }
@@ -400,7 +403,7 @@ export class GameStartPhase extends Phase {
     const systems = state.state.systems;
     
     for (const system of Object.values(systems)) {
-      if (system.worldType === "homeworld" && system.details?.owner === playerId) {
+      if (system.worldType === "Homeworld" && system.details?.owner === playerId) {
         return true;
       }
     }

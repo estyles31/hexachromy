@@ -1,6 +1,6 @@
 // /frontend/src/components/ActionPanel.tsx
 import { useState, useEffect } from "react";
-import { auth } from "../firebase";
+import { auth } from "../../../shared-frontend/firebase";
 import { authFetch } from "../auth/authFetch";
 import { useAuthState } from "react-firebase-hooks/auth";
 import type { GameAction, LegalActionsResponse } from "../../../shared/models/ApiContexts";

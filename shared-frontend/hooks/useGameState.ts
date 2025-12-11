@@ -1,15 +1,15 @@
 // /frontend/src/hooks/useGameState.ts
 import { useEffect, useRef, useState } from "react";
 import { useAuthState } from "react-firebase-hooks/auth";
-import { auth } from "../firebase";
-import { authFetch } from "../auth/authFetch";
-import type { GameState } from "../../../shared/models/GameState";
+import { auth, firestore } from "../firebase";
+import { doc, onSnapshot } from "firebase/firestore";
+import { authFetch } from "../../frontend/src/auth/authFetch";
+import type { GameState } from "../../shared/models/GameState";
 
 interface HookState<T> {
   state: T | null;
   loading: boolean;
   error: Error | null;
-  refetch: () => void;  // NEW: Function to trigger reload
 }
 
 export interface BaseGameState {
@@ -21,33 +21,22 @@ export function useGameState<T extends GameState<unknown> = GameState<unknown>>(
   const [state, setState] = useState<T | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<Error | null>(null);
-  const [refreshTrigger, setRefreshTrigger] = useState(0);  // NEW: Trigger for refetch
   const [user] = useAuthState(auth);
   const joinAttempts = useRef<Record<string, boolean>>({});
-
-  // NEW: Function to trigger refetch
-  const refetch = () => {
-    setRefreshTrigger(prev => prev + 1);
-  };
+  const hasInitialLoad = useRef(false);
 
   useEffect(() => {
-    if (!gameId) return;
+    if (!gameId || !user) return;
 
     joinAttempts.current[gameId] = false;
 
-    const controller = new AbortController();
-    setLoading(true);
-    setError(null);
-
-    const loadGame = async () => {
+    // Initial load via API (handles join logic and player-specific views)
+    const initialLoad = async () => {
       try {
-        if (!user) {
-          throw new Error("Authentication required");
-        }
+        setLoading(true);
+        setError(null);
 
-        const response = await authFetch(user, `/api/games/${gameId}`, {
-          signal: controller.signal,
-        });
+        const response = await authFetch(user, `/api/games/${gameId}`);
 
         if (!response.ok) {
           const message = await response.text();
@@ -60,6 +49,7 @@ export function useGameState<T extends GameState<unknown> = GameState<unknown>>(
 
         const playerStatus = user ? data?.playerStatuses?.[user.uid] : undefined;
 
+        // Auto-join if invited
         if (user && playerStatus === "invited" && !joinAttempts.current[gameId]) {
           joinAttempts.current[gameId] = true;
 
@@ -73,9 +63,7 @@ export function useGameState<T extends GameState<unknown> = GameState<unknown>>(
               throw new Error(failure || "Failed to join game");
             }
 
-            const refreshed = await authFetch(user, `/api/games/${gameId}`, {
-              signal: controller.signal,
-            });
+            const refreshed = await authFetch(user, `/api/games/${gameId}`);
 
             if (!refreshed.ok) {
               const failure = await refreshed.text();
@@ -84,6 +72,7 @@ export function useGameState<T extends GameState<unknown> = GameState<unknown>>(
 
             const refreshedData = (await refreshed.json()) as T;
             setState(refreshedData);
+            hasInitialLoad.current = true;
             return;
           } catch (joinErr) {
             setError(joinErr instanceof Error ? joinErr : new Error("Failed to join game"));
@@ -93,18 +82,39 @@ export function useGameState<T extends GameState<unknown> = GameState<unknown>>(
         }
 
         setState(data);
+        hasInitialLoad.current = true;
       } catch (err) {
-        if ((err as Error)?.name === "AbortError") return;
         setError(err instanceof Error ? err : new Error("Unknown error"));
       } finally {
         setLoading(false);
       }
     };
 
-    void loadGame();
+    void initialLoad();
+  }, [gameId, user]);
 
-    return () => controller.abort();
-  }, [gameId, user, refreshTrigger]);  // NEW: Added refreshTrigger dependency
+  // Set up Firestore listener after initial load
+  useEffect(() => {
+    if (!gameId || !hasInitialLoad.current) return;
 
-  return { state, loading, error, refetch };  // NEW: Return refetch function
+    const docRef = doc(firestore, `games/${gameId}`);
+    
+    const unsubscribe = onSnapshot(
+      docRef,
+      (snapshot) => {
+        if (snapshot.exists()) {
+          const newState = snapshot.data() as T;
+          setState(newState);
+        }
+      },
+      (err) => {
+        console.error("Firestore listener error:", err);
+        setError(err);
+      }
+    );
+
+    return () => unsubscribe();
+  }, [gameId, hasInitialLoad.current]);
+
+  return { state, loading, error };
 }

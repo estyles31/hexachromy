@@ -10,10 +10,16 @@ import GameInfoArea from "./GameInfoArea";
 import "./GamePage.css";
 import ActionHistory from "../../components/ActionHistory";
 import ActionPanel from "../../components/ActionPanel";
+import { 
+  GameStateProvider, 
+  PlayersProvider, 
+  GameSpecificStateProvider 
+} from "../../../../shared-frontend/contexts/GameStateContext";
 
 export default function GamePage({ gameState }: { gameState: GameState }) {
   const [inspected, setInspected] = useState<InspectContext<unknown> | null>(null);
   const [showInfoPanel, setShowInfoPanel] = useState(true);
+  
   const module = getFrontendModule(gameState.gameType) as FrontendModuleDefinition<unknown, unknown>;
 
   if (!module) {
@@ -26,54 +32,65 @@ export default function GamePage({ gameState }: { gameState: GameState }) {
       .map(([id, player]) => [id, player.displayName || "Unknown"])
   );
 
+  const handleActionTaken = () => {
+    // With Firestore listener, no need to manually refetch
+    // The listener will automatically update when state changes
+    // But we keep this for any other side effects
+    window.dispatchEvent(new Event("gameStateChanged"));
+  };
+
   return (
-    <div className="game-root">
-      <div className="board-container">
-        <BoardCanvas
-          gameState={gameState}
-          module={module}
-          onInspect={setInspected}
-        />
-      </div>
+    <GameStateProvider gameState={gameState}>
+      <PlayersProvider players={gameState.players}>
+        <GameSpecificStateProvider state={gameState.state}>
+          <div className="game-root">
+            <div className="board-container">
+              <BoardCanvas
+                gameState={gameState}
+                module={module}
+                onInspect={setInspected}
+              />
+            </div>
 
-      <div className="right-panel">
-        <GameInfoArea module={module} gameState={gameState} />
-        <PlayerArea module={module} gameState={gameState} />
-        
-        {module.renderInfoPanel && (
-          <label>
-            <input
-              type="checkbox"
-              checked={showInfoPanel}
-              onChange={e => setShowInfoPanel(e.target.checked)}
-            />
-            Show hover info
-          </label>
-        )}
-      </div>
+            <div className="right-panel">
+              <ActionPanel 
+                gameId={gameState.gameId}
+                gameVersion={gameState.version} 
+                onActionTaken={handleActionTaken}
+              />
+              
+              <GameInfoArea module={module} gameState={gameState} />
+              <PlayerArea module={module} gameState={gameState} />
+              
+              {module.InfoPanelComponent && (
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={showInfoPanel}
+                    onChange={e => setShowInfoPanel(e.target.checked)}
+                  />
+                  Show hover info
+                </label>
+              )}
+            </div>
 
-      <ActionPanel gameId={gameState.gameId}
-                   gameVersion={gameState.version} 
-                   onActionTaken={() => {} }/>
-                   
+            {showInfoPanel && module.InfoPanelComponent && (
+              <div className="info-panel-container">
+                <module.InfoPanelComponent inspected={inspected} />
+              </div>
+            )}
 
-      {showInfoPanel && module.renderInfoPanel && (
-        <div className="info-panel-container">
-          {module.renderInfoPanel({
-            gameState,
-            inspected,
-          })}
-        </div>
-      )}
-
-      {/* NEW: Action History in lower left */}
-      <div className="action-history-container">
-        <ActionHistory 
-          gameId={gameState.gameId}
-          gameVersion={gameState.version}
-          playerNames={playerNames}
-        />
-      </div>
-    </div>
+            {/* Action History in lower left */}
+            <div className="action-history-container">
+              <ActionHistory 
+                gameId={gameState.gameId}
+                gameVersion={gameState.version}
+                playerNames={playerNames}
+              />
+            </div>
+          </div>
+        </GameSpecificStateProvider>
+      </PlayersProvider>
+    </GameStateProvider>
   );
 }

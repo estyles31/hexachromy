@@ -33,7 +33,7 @@
     "src/**/*",
     "../shared/**/*",
     "../modules/*",
-    "../modules/**/*",
+    "../modules/**/*", "../shared-frontend/hooks", "../shared-frontend/contexts", "../shared-frontend/firebase.ts",
   ],
   "exclude": [
     "../functions/**/*",

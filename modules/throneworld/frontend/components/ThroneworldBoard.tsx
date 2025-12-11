@@ -31,6 +31,10 @@ export default function ThroneworldBoard({ gameState, boardGeometry, onInspect }
     [gameState, boardGeometry, playerColors]
   );
 
+  
+    // DEBUG: Log the entire playerView structure
+    // console.log("🔍 Logging board view:", boardView);
+
   return (
     <>
       <StaticBoardLayer gameState={gameState} boardGeometry={boardGeometry} />

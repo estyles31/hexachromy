@@ -1,5 +1,5 @@
 // /modules/throneworld/frontend/hooks/useThroneworldActions.ts
-import { useLegalActions } from "../../../../frontend/src/hooks/useLegalActions";
+import { useLegalActions } from "../../../../shared-frontend/hooks/useLegalActions";
 
 export function useThroneworldActions(gameId: string, gameVersion: number) {
   const { legalActions, loading } = useLegalActions(gameId, gameVersion);

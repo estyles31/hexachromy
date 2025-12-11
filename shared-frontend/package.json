@@ -1,0 +1,13 @@
+
+{
+  "name": "shared-frontend",
+  "private": true,
+  "main": "src/index.ts",
+  "peerDependencies": {
+    "firebase": "*",
+    "firebase-tools": "*",
+    "react": "*",
+    "react-dom": "*",
+    "react-firebase-hooks": "*"
+  }
+}

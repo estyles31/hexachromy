@@ -6,36 +6,20 @@ import type { BoardGeometry } from "../shared/models/BoardGeometry";
 
 export type VictoryPoints = Record<string, number>;
 
-export interface FrontendModuleDefinition<State, InspectPayload = unknown> {
+export interface FrontendModuleDefinition<State = unknown, InspectPayload = unknown> {
   getGameDefinition() : GameDefinition;
   getBoardGeometry(gameState: GameState<State>): BoardGeometry;
-
-  renderBoard(params: {
-    gameState: GameState<State>;
-    boardGeometry?: unknown;
-    onInspect?: (context: InspectContext<InspectPayload> | null) => void;
-  }): React.JSX.Element;
-
   getVictoryPoints(params: { gameState: GameState<State> }): VictoryPoints;
 
-  renderPlayerArea?: (params: {
+  MainBoardComponent?: React.ComponentType<{
     gameState: GameState<State>;
-    playerId: string;
-  }) => React.JSX.Element;
+    boardGeometry?: BoardGeometry;
+    onInspect?: (context: InspectContext<InspectPayload> | null) => void; 
+  }>;
 
-  renderGameInfoArea?: (params:{
-    gameState: GameState<State>;
-  }) => React.JSX.Element;
-
-  renderInfoPanel?: (params:{
-    gameState: GameState<State>;
-    inspected: InspectContext<InspectPayload> | null;
-  }) => React.JSX.Element;
-
-  renderActions?: (params:{
-    actions : GameAction[],
-    message?: string,
-    onExecuteAction: (action: GameAction) => void,
-    executing: boolean,
-  }) => React.JSX.Element;
+  PlayerAreaComponent?: React.ComponentType<{playerId: string}>;
+  GameInfoAreaComponent?: React.ComponentType<Record<never,never>>;
+  InfoPanelComponent?: React.ComponentType<{ inspected: InspectContext<InspectPayload> | null}>;
+  ActionInterfaceComponent?: 
+    React.ComponentType<{ actions : GameAction[], message?: string, onExecuteAction: (action: GameAction) => void, executing: boolean }>
 }

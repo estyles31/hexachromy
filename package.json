@@ -1,8 +1,11 @@
 {
+  "private": true,
   "devDependencies": {
     "cpy-cli": "^6.0.0"
   },
-  "dependencies": {
-    "react-draggable": "^4.5.0"
-  }
+  "workspaces": [
+    "frontend",
+    "functions",
+    "shared-frontend"
+  ]
 }

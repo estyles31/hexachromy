@@ -21,21 +21,21 @@ export const ThroneworldFrontendModule: FrontendModuleDefinition<ThroneworldStat
     return geometry;
   },
   getGameDefinition: () => ThroneworldGameDefinition,
-  renderBoard,
-  renderPlayerArea,
-  renderGameInfoArea,
-  renderInfoPanel,
+  MainBoardComponent,
+  PlayerAreaComponent: ThroneworldPlayerArea,
+  GameInfoAreaComponent: ThroneworldGameInfoArea,
+  InfoPanelComponent: ThroneworldInfoPanel,
   getVictoryPoints,
 };
 
-function renderBoard(params: {
+function MainBoardComponent(params: {
   gameState: GameState<ThroneworldState>;
   boardGeometry?: BoardGeometry;
   onInspect?: (context: InspectContext<HoveredSystemInfo> | null) => void;
 }) {
-  const { boardGeometry, onInspect } = params;
+  const onInspect = params.onInspect;
   const gameState = params.gameState as ThroneworldGameState;
-  const geometry = boardGeometry as ThroneworldBoardGeometry;
+  const geometry = params.boardGeometry as ThroneworldBoardGeometry;
 
   if (!geometry || !geometry.hexes) {
     return <div>ERROR RENDERING BOARD</div>;
@@ -47,33 +47,6 @@ function renderBoard(params: {
       boardGeometry={geometry}
       onInspect={onInspect}
     />
-  );
-}
-
-function renderPlayerArea(params: { gameState: GameState<ThroneworldState>, playerId: string }) {
-  const gameState = params.gameState as ThroneworldGameState;
-  return (
-    <>
-      <ThroneworldPlayerArea gameState={gameState} playerId={params.playerId} />
-    </>
-  );
-}
-
-function renderGameInfoArea(params: { gameState: GameState<ThroneworldState> }) {
-  const gameState = params.gameState as ThroneworldGameState;
-  return (
-    <>
-      <ThroneworldGameInfoArea gameState={gameState} />
-    </>
-  );
-}
-
-function renderInfoPanel(params: { gameState: GameState<ThroneworldState>, inspected: InspectContext<HoveredSystemInfo> | null }) {
-  const gameState = params.gameState as ThroneworldGameState;
-  return (
-    <>
-      <ThroneworldInfoPanel gameState={gameState} inspected={params.inspected} />
-    </>
   );
 }
 

@@ -2,15 +2,16 @@ import type { ThroneworldGameState } from "../../shared/models/GameState.Thronew
 import type HoveredSystemInfo from "../models/HoveredSystemInfo";
 import type InspectContext from "../../../../shared/models/InspectContext";
 import "./ThroneworldInfoPanel.css";
+import { useGameStateContext } from "../../../../shared-frontend/contexts/GameStateContext";
 
 export default function ThroneworldInfoPanel({
-  gameState,
   inspected,
 }: {
-  gameState: ThroneworldGameState;
   inspected: InspectContext<HoveredSystemInfo> | null;
 }) {
   if (!inspected) return null;
+
+  const gameState = useGameStateContext() as ThroneworldGameState;
 
   const systemInfo = inspected?.data;
   const hexId = systemInfo?.hexId ?? "unknown";
