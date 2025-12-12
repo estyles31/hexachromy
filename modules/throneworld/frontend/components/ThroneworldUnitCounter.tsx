@@ -1,104 +1,166 @@
-// import React from "react";
 import type { ThroneworldUnitType } from "../../shared/models/UnitType.ThroneWorld";
 import { counterStyles } from "../config/counterStyles";
 
 interface UnitCounterProps {
   unit: ThroneworldUnitType;
-  quantity?: number;
+  quantity: number;
   size?: number;
+  hasMoved: boolean;
+  playerColor: string;
 }
 
-export default function UnitCounter({ unit, quantity = 1, size = 64 } : UnitCounterProps) {
-  const { id: unitId, Symbol: glyph, Type, Cargo: cargo = null } = unit;
+export default function UnitCounter({
+  unit,
+  quantity,
+  size = 32,
+  hasMoved,
+  playerColor,      
+}: UnitCounterProps) {
+  const { id: unitId, Symbol: glyph, Type, Cargo: cargo = null} = unit;
 
-  // Look up style from JSON
-  const styleKey = Type.toLowerCase() as keyof typeof counterStyles;
-  const style = counterStyles[styleKey];
-
-  const background = style.background;
-  const borderColor = style.border;
-  const textColor = style.text;
+  const isSpace = Type === "Space";
+  const domainColor = isSpace ? "#1766e5ff" : "#e1854cff"; // blue/orange ring
 
   const borderWidth = 2;
 
   // Sizing
   const fontSizeSymbol = size * 0.55;
-  const fontSizeId = size * 0.22;
-  const fontSizeCargo = size * 0.20;
-  const badgeRadius = size * 0.18;
+  const fontSizeId = size * 0.24;
+  const badgeRadius = size * 0.22;
+  const badgeFont = size * 0.22;
+
+  const cargoRadius = size * 0.22;
+  const cargoFont = size * 0.22;
+
+  // Visual indicators for moved/used units
+  const isCommandBunker = unitId === "C" || unitId === "qC";
+  const showMovedIndicator = hasMoved && !isCommandBunker;
+  const showUsedIndicator = hasMoved && isCommandBunker;
+
+  // Cargo style
+  let cargoFill = cargo && cargo > 0 ? "#c0f9d8ff" : "#df71acff"; // greenish for +, reddish for -
+  if (cargo === 0 || cargo === null) cargoFill = "transparent";
 
   return (
     <svg width={size} height={size}>
-      {/* Background */}
+      {/* Base counter shape (player color) */}
       <rect
-        x={0}
-        y={0}
         width={size}
         height={size}
-        rx={5}
-        fill={background}
-        stroke={borderColor}
+        rx={4}
+        fill={playerColor}
+        stroke="#000"
         strokeWidth={borderWidth}
+        opacity={showMovedIndicator ? 0.65 : 1.0}
       />
 
-      {/* Symbol (centered) */}
+      {/* Diagonal "moved" stripe */}
+      {showMovedIndicator && (
+        <line
+          x1={0}
+          y1={0}
+          x2={size}
+          y2={size}
+          stroke="#000"
+          strokeWidth={3}
+          opacity={0.4}
+        />
+      )}
+
+      {/* UNIT SYMBOL (center) */}
       <text
         x="50%"
-        y="56%"
+        y="54%"
         fontSize={fontSizeSymbol}
         textAnchor="middle"
         dominantBaseline="middle"
-        fill={textColor}
+        fill="white"
+        opacity={showMovedIndicator ? 0.75 : 1.0}
       >
         {glyph}
       </text>
 
-      {/* Unit ID top-left */}
+      {/* UNIT ID with DOMAIN RING */}
+      <circle
+        cx={size * 0.20}
+        cy={size * 0.22}
+        r={size * 0.16}
+        fill="white"
+        stroke={domainColor}
+        strokeWidth={2}
+      />
       <text
-        x={size * 0.14}
-        y={size * 0.25}
+        x={size * 0.20}
+        y={size * 0.22}
         fontSize={fontSizeId}
+        textAnchor="middle"
+        dominantBaseline="middle"
+        fill="#000"
         fontWeight="bold"
-        fill={textColor}
       >
         {unitId}
       </text>
 
-      {/* Cargo indicator */}
-      {cargo !== null && cargo !== 0 && (
-        <text
-          x={size * 0.14}
-          y={size * 0.90}
-          fontSize={fontSizeCargo}
-          fill={textColor}
-        >
-          {cargo > 0 ? `+${cargo}` : cargo}
-        </text>
-      )}
-
-      {/* Quantity badge */}
+      {/* QUANTITY BADGE (lower-left) */}
       {quantity > 1 && (
         <>
           <circle
-            cx={size - badgeRadius * 1.15}
-            cy={badgeRadius * 1.15}
+            cx={size * 0.22}
+            cy={size * 0.78}
             r={badgeRadius}
-            fill={textColor}
-            stroke={borderColor}
-            strokeWidth={1.5}
+            fill="#000"
+            stroke="white"
+            strokeWidth={1.3}
           />
           <text
-            x={size - badgeRadius * 1.15}
-            y={badgeRadius * 1.15 + 1}
-            fontSize={fontSizeCargo}
-            fontWeight="bold"
-            dominantBaseline="middle"
+            x={size * 0.22}
+            y={size * 0.78 + 1}
+            fontSize={badgeFont}
             textAnchor="middle"
-            fill={background}  /* invert for contrast */
+            dominantBaseline="middle"
+            fill="white"
+            fontWeight="bold"
           >
             {quantity}
           </text>
         </>
+      )}
+
+      {/* CARGO BADGE (lower-right) */}
+      {cargo !== null && cargo !== 0 && (
+        <>
+          <circle
+            cx={size * 0.78}
+            cy={size * 0.78}
+            r={cargoRadius}
+            fill={cargoFill}
+            stroke="white"
+            strokeWidth={1.3}
+          />
+          <text
+            x={size * 0.78}
+            y={size * 0.78 + 1}
+            fontSize={cargoFont}
+            textAnchor="middle"
+            dominantBaseline="middle"
+            fill="white"
+            fontWeight="bold"
+          >
+            {cargo > 0 ? `+${cargo}` : cargo}
+          </text>
+        </>
+      )}
+
+      {/* Used indicator for command bunkers */}
+      {showUsedIndicator && (
+        <circle
+          cx={size * 0.85}
+          cy={size * 0.18}
+          r={size * 0.12}
+          fill="red"
+          stroke="black"
+          strokeWidth={1}
+        />
       )}
     </svg>
   );

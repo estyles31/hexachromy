@@ -6,6 +6,7 @@ import type HoveredSystemInfo from "../models/HoveredSystemInfo";
 
 import { SystemMarker } from "./SystemMarker";
 import PlanetArc from "./PlanetArc";
+import HexUnitsLayer from "./HexUnitsLayer";
 
 interface Props {
   boardView: ThroneworldBoardView;
@@ -41,11 +42,11 @@ export default function ThroneworldSystemLayer({
 
         // Marker positioning relative to hex center
         const markerX =
-          x - hexRadius * 0.55 + hexRadius * -0.2;
+          x - hexRadius * 0.55 + hexRadius * -0.3;
         const markerY =
           y - hexRadius * (Math.sqrt(3) / 2) +
           hexRadius * 0.5 +
-          hexRadius * 0.08;
+          hexRadius * 0.1;
 
         return (
           <g key={hexId}>
@@ -60,6 +61,10 @@ export default function ThroneworldSystemLayer({
                 ownerColor={marker.ownerColor}
               />
             )}
+
+            {/* Units */}
+            <HexUnitsLayer hexCenter={{x, y}} hexRadius={hexRadius} 
+                           system={sys} playerColors={sys.playerColors}/>
 
             {/* System marker */}
             <g transform={`translate(${markerX}, ${markerY})`}>
@@ -109,7 +114,7 @@ export default function ThroneworldSystemLayer({
             system={hoverPreview.system.hover.system}
             worldType={hoverPreview.system.worldType}
             revealed={hoverPreview.system.hover.revealed}
-            size={125}
+            size={80}
             ownerColor={hoverPreview.system.marker.ownerColor}
             hideUnits={hoverPreview.system.marker.hideUnits}
           />

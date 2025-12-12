@@ -91,7 +91,7 @@ export function SystemMarker({
   revealed = revealed || worldType === "Homeworld";
   const typeLabel = worldType == "Throneworld" ? "TW" : worldType.charAt(0).toUpperCase();
 
-  const shouldRenderScanners = !revealed;
+  const shouldRenderScanners = true;  //turns out we need these even when revealed
   const scannerMarkers = shouldRenderScanners ? scannerColors.slice(0, 6) : [];
 
   const renderScannerMarkers = () =>

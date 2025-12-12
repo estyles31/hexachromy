@@ -3,6 +3,8 @@ import type { ThroneworldGameState } from "../../shared/models/GameState.Thronew
 import type { ThroneworldBoardGeometry } from "../../shared/models/BoardGeometry.ThroneWorld";
 import type { ThroneworldPublicSystemState, ThroneworldSystemDetails } from "../../shared/models/Systems.ThroneWorld";
 import type { WorldType } from "../../shared/models/BoardLayout.ThroneWorld";
+import type { Fleet } from "../../shared/models/Fleets.Throneworld";
+import type { ThroneworldUnit } from "../../shared/models/Unit.Throneworld";
 
 export interface ThroneworldBoardView {
     systems: RenderableSystem[];
@@ -11,6 +13,7 @@ export interface ThroneworldBoardView {
 export interface RenderableSystem {
     hexId: string;
     worldType: WorldType;
+    owner?: string;
 
     position: {
         x: number;
@@ -31,6 +34,10 @@ export interface RenderableSystem {
         system: ThroneworldSystemDetails;
         revealed: boolean;
     };
+
+    groundUnits: Record<string, ThroneworldUnit[]>;
+    fleets: Record<string, Fleet[]>;
+    playerColors: Record<string, string>;
 }
 
 interface BuildBoardViewParams {
@@ -149,6 +156,7 @@ function buildRenderableSystem(
         hexId,
         worldType,
         position,
+        owner: publicSystem.details?.owner,
 
         marker: {
             system: resolvedDetails,
@@ -163,5 +171,9 @@ function buildRenderableSystem(
             system: resolvedDetails,
             revealed: isRevealed || hasPrivateView,
         },
+
+        fleets: publicSystem.fleetsInSpace,
+        groundUnits: publicSystem.unitsOnPlanet,
+        playerColors: playerColors,
     };
 }

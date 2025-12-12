@@ -37,6 +37,18 @@ export default memo(function ThroneworldPlayerArea({ playerId }: { playerId: str
         <div className="tw-faction-name" >
           {Factions[player.race as FactionID]?.Name}
         </div>
+        <div className="tw-row-left">
+          <div className="tw-resources">
+            💰 {player.resources}
+          </div>
+
+          <div className="tw-production">
+            (+{production})
+          </div>
+        </div>
+      </div>
+
+      <div className="tw-row-left">
         {player.tech && (
           <div className="tw-tech-row">
             <div className="tw-tech-item" title="Ground Technology">
@@ -57,16 +69,6 @@ export default memo(function ThroneworldPlayerArea({ playerId }: { playerId: str
             </div>
           </div>
         )}
-      </div>
-
-      <div className="tw-row-left">
-        <div className="tw-resources">
-          💰 {player.resources}
-        </div>
-
-        <div className="tw-production">
-          (+{production})
-        </div>
       </div>
     </div>
   );

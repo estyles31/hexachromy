@@ -14,7 +14,7 @@
 .tw-tech-row {
   display:flex;
   gap: 12px;
-  margin-bottom: 6px;
+  margin: 4px 6px 0px 6px;
 }
 
 .tw-tech-item {
@@ -40,6 +40,6 @@
 }
 
 .tw-faction-name {
-  font-weight: bold;
-  font-size: 16px;
+  font-weight: 500;
+  font-size: 18px;
 }

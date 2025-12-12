@@ -6,6 +6,7 @@ import { doc, onSnapshot } from "firebase/firestore";
 import { authFetch } from "../../frontend/src/auth/authFetch";
 import type { GameState } from "../../shared/models/GameState";
 
+
 interface HookState<T> {
   state: T | null;
   loading: boolean;
@@ -16,105 +17,94 @@ export interface BaseGameState {
   gameType: string;
   [key: string]: unknown;
 }
-
-export function useGameState<T extends GameState<unknown> = GameState<unknown>>(gameId: string): HookState<T> {
+export function useGameState<T extends GameState<unknown>>(gameId: string): HookState<T> {
   const [state, setState] = useState<T | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const [user] = useAuthState(auth);
-  const joinAttempts = useRef<Record<string, boolean>>({});
-  const hasInitialLoad = useRef(false);
 
+  const baseRef = useRef<any>(null);
+  const viewRef = useRef<any>(null);
+  const apiLoadedRef = useRef(false);
+
+  // 1. API load (canonical full state)
   useEffect(() => {
     if (!gameId || !user) return;
 
-    joinAttempts.current[gameId] = false;
+    setLoading(true);
+    apiLoadedRef.current = false;
 
-    // Initial load via API (handles join logic and player-specific views)
-    const initialLoad = async () => {
+    (async () => {
       try {
-        setLoading(true);
-        setError(null);
-
         const response = await authFetch(user, `/api/games/${gameId}`);
+        if (!response.ok) throw new Error(await response.text());
 
-        if (!response.ok) {
-          const message = await response.text();
-          throw new Error(message || `Failed to load game ${gameId}`);
-        }
+        const fullState = await response.json();
+        setState(fullState);
 
-        const data = (await response.json()) as T & {
-          playerStatuses?: Record<string, string>;
-        };
+        // Set these so future patches know the current values
+        baseRef.current = fullState;
+        viewRef.current = {};
 
-        const playerStatus = user ? data?.playerStatuses?.[user.uid] : undefined;
-
-        // Auto-join if invited
-        if (user && playerStatus === "invited" && !joinAttempts.current[gameId]) {
-          joinAttempts.current[gameId] = true;
-
-          try {
-            const joinResponse = await authFetch(user, `/api/games/${gameId}/join`, {
-              method: "POST",
-            });
-
-            if (!joinResponse.ok) {
-              const failure = await joinResponse.text();
-              throw new Error(failure || "Failed to join game");
-            }
-
-            const refreshed = await authFetch(user, `/api/games/${gameId}`);
-
-            if (!refreshed.ok) {
-              const failure = await refreshed.text();
-              throw new Error(failure || "Failed to refresh game after joining");
-            }
-
-            const refreshedData = (await refreshed.json()) as T;
-            setState(refreshedData);
-            hasInitialLoad.current = true;
-            return;
-          } catch (joinErr) {
-            setError(joinErr instanceof Error ? joinErr : new Error("Failed to join game"));
-            setLoading(false);
-            return;
-          }
-        }
-
-        setState(data);
-        hasInitialLoad.current = true;
+        apiLoadedRef.current = true;
+        setLoading(false);
       } catch (err) {
-        setError(err instanceof Error ? err : new Error("Unknown error"));
-      } finally {
+        setError(err as Error);
         setLoading(false);
       }
+    })();
+  }, [gameId, user?.uid]);
+
+  // 2. Firestore listeners (patches only)
+  useEffect(() => {
+    if (!gameId || !user) return;
+
+    const gameDocRef = doc(firestore, `games/${gameId}`);
+    const viewDocRef = doc(firestore, `games/${gameId}/playerViews/${user.uid}`);
+
+    const applyPatch = () => {
+      if (!apiLoadedRef.current) return;
+
+      setState({
+        ...baseRef.current,
+        ...(viewRef.current ?? {}),
+      });
     };
 
-    void initialLoad();
-  }, [gameId, user]);
-
-  // Set up Firestore listener after initial load
-  useEffect(() => {
-    if (!gameId || !hasInitialLoad.current) return;
-
-    const docRef = doc(firestore, `games/${gameId}`);
-    
-    const unsubscribe = onSnapshot(
-      docRef,
-      (snapshot) => {
-        if (snapshot.exists()) {
-          const newState = snapshot.data() as T;
-          setState(newState);
-        }
-      },
-      (err) => {
-        console.error("Firestore listener error:", err);
-        setError(err);
+    const unsubGame = onSnapshot(gameDocRef, (snap) => {
+      if (snap.exists()) {
+        baseRef.current = {
+          ...baseRef.current,
+          ...snap.data(), // patch only base fields
+        };
+        applyPatch();
       }
-    );
+    },
+      (err) => {
+        // Permission denied? Normal. Just ignore player view.
+        console.warn("PlayerView snapshot error:", err);
 
-    return () => unsubscribe();
-  }, [gameId, hasInitialLoad.current]);
+        // Ensure view remains an empty object, NOT undefined.
+        viewRef.current = {};
+
+        applyPatch(); // still merge base state
+      });
+
+    const unsubView = onSnapshot(viewDocRef, (snap) => {
+      if (snap.exists()) {
+        viewRef.current = {
+          ...viewRef.current,
+          ...snap.data(), // patch only view fields
+        };
+        applyPatch();
+      }
+    });
+
+    return () => {
+      unsubGame();
+      unsubView();
+    };
+  }, [gameId, user?.uid]);
 
   return { state, loading, error };
 }
