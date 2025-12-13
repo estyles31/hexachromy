@@ -370,8 +370,8 @@ export class GameStartPhase extends Phase {
     //build 2 Command Bunkers, 2 Survey Teams, and a Shield
     addUnitToSystem(system, buildUnit(bunkerId, playerId));
     addUnitToSystem(system, buildUnit(bunkerId, playerId));
-    addUnitToSystem(system, buildUnit("St", playerId));
-    addUnitToSystem(system, buildUnit("St", playerId));
+    addUnitToSystem(system, buildUnit("Sv", playerId));
+    addUnitToSystem(system, buildUnit("Sv", playerId));
     addUnitToSystem(system, buildUnit("Sh", playerId));
     system.revealed = true;
     system.scannedBy = [playerId];

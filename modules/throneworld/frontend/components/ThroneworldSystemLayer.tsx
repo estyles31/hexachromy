@@ -7,6 +7,7 @@ import type HoveredSystemInfo from "../models/HoveredSystemInfo";
 import { SystemMarker } from "./SystemMarker";
 import PlanetArc from "./PlanetArc";
 import HexUnitsLayer from "./HexUnitsLayer";
+import { DEFAULT_SIZE as sysMarkerSize } from "./SystemMarker";
 
 interface Props {
   boardView: ThroneworldBoardView;
@@ -41,12 +42,8 @@ export default function ThroneworldSystemLayer({
         const { x, y, hexRadius } = position;
 
         // Marker positioning relative to hex center
-        const markerX =
-          x - hexRadius * 0.55 + hexRadius * -0.3;
-        const markerY =
-          y - hexRadius * (Math.sqrt(3) / 2) +
-          hexRadius * 0.5 +
-          hexRadius * 0.1;
+        const markerX = x - hexRadius + 0.33 * sysMarkerSize;
+        const markerY = y - 0.5 * sysMarkerSize;
 
         return (
           <g key={hexId}>

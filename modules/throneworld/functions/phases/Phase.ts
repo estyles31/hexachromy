@@ -30,6 +30,9 @@ export abstract class Phase {
       type: "chat",
       undoable: true,
       message: "",  // Player will fill this in
+      renderHint: {
+        category: "custom",
+      }
     };
 
     const phaseActions = await this.getPhaseSpecificActions(ctx, playerId);

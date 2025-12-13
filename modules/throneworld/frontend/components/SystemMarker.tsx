@@ -151,7 +151,7 @@ export function SystemMarker({
     : Object.entries(system.groundUnits).filter(([, count]) => count && count > 0);
 
   return (
-    <svg 
+    <svg className="game-object"
       width={size} 
       height={size}
       onMouseEnter={() => onHover?.(true)}

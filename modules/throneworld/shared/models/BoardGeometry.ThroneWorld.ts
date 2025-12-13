@@ -1,16 +1,16 @@
 import type { BoardGeometry } from "../../../../shared/models/BoardGeometry";
 import { BOARD_HEXES, getWorldType, isInPlay, type WorldType } from "./BoardLayout.ThroneWorld";
 
-export const HEX_RADIUS = 92;
-const HEX_PADDING = 1;
+export const HEX_RADIUS = 86;
+export const HEX_PADDING = 1;
 
-const HEX_WIDTH = HEX_RADIUS * 2;
-const HEX_HEIGHT = Math.sqrt(3) * HEX_RADIUS;
+export const HEX_WIDTH = HEX_RADIUS * 2;
+export const HEX_HEIGHT = Math.sqrt(3) * HEX_RADIUS;
 
-const X_SPACING = HEX_WIDTH * 0.75 + HEX_PADDING;
-const Y_SPACING = HEX_HEIGHT * 0.5 + HEX_PADDING;
+export const X_SPACING = HEX_WIDTH * 0.75 + HEX_PADDING;
+export const Y_SPACING = HEX_HEIGHT * 0.5 + HEX_PADDING;
 
-const MARGIN = 20;
+export const MARGIN = 20;
 
 export interface HexGeometry {
   hexId: string;
@@ -46,8 +46,8 @@ export function computeBoardGeometry(scenario: string): ThroneworldBoardGeometry
 
     minX = Math.min(minX, cx - HEX_RADIUS);
     maxX = Math.max(maxX, cx + HEX_RADIUS);
-    minY = Math.min(minY, cy - HEX_RADIUS);
-    maxY = Math.max(maxY, cy + HEX_RADIUS);
+    minY = Math.min(minY, cy - HEX_HEIGHT / 2);
+    maxY = Math.max(maxY, cy + HEX_HEIGHT / 2);
 
     return {
       hexId: hex.id,

@@ -1,5 +1,4 @@
 import type { ThroneworldUnitType } from "../../shared/models/UnitType.ThroneWorld";
-import { counterStyles } from "../config/counterStyles";
 
 interface UnitCounterProps {
   unit: ThroneworldUnitType;
@@ -19,14 +18,14 @@ export default function UnitCounter({
   const { id: unitId, Symbol: glyph, Type, Cargo: cargo = null} = unit;
 
   const isSpace = Type === "Space";
-  const domainColor = isSpace ? "#1766e5ff" : "#e1854cff"; // blue/orange ring
+  const domainColor = isSpace ? "#3f89ffff" : "#ff9a5bff"; // blue/orange ring
 
   const borderWidth = 2;
 
   // Sizing
   const fontSizeSymbol = size * 0.55;
   const fontSizeId = size * 0.24;
-  const badgeRadius = size * 0.22;
+  const badgeRadius = size * 0.2;
   const badgeFont = size * 0.22;
 
   const cargoRadius = size * 0.22;
@@ -42,7 +41,7 @@ export default function UnitCounter({
   if (cargo === 0 || cargo === null) cargoFill = "transparent";
 
   return (
-    <svg width={size} height={size}>
+    <svg width={size} height={size} className="game-object">
       {/* Base counter shape (player color) */}
       <rect
         width={size}
@@ -69,8 +68,8 @@ export default function UnitCounter({
 
       {/* UNIT SYMBOL (center) */}
       <text
-        x="50%"
-        y="54%"
+        x="55%"
+        y="55%"
         fontSize={fontSizeSymbol}
         textAnchor="middle"
         dominantBaseline="middle"
@@ -85,7 +84,7 @@ export default function UnitCounter({
         cx={size * 0.20}
         cy={size * 0.22}
         r={size * 0.16}
-        fill="white"
+        fill={domainColor}
         stroke={domainColor}
         strokeWidth={2}
       />
@@ -108,9 +107,9 @@ export default function UnitCounter({
             cx={size * 0.22}
             cy={size * 0.78}
             r={badgeRadius}
-            fill="#000"
-            stroke="white"
-            strokeWidth={1.3}
+            fill={domainColor}
+            stroke="#fff"
+            strokeWidth={1}
           />
           <text
             x={size * 0.22}
@@ -118,7 +117,7 @@ export default function UnitCounter({
             fontSize={badgeFont}
             textAnchor="middle"
             dominantBaseline="middle"
-            fill="white"
+            fill="#000"
             fontWeight="bold"
           >
             {quantity}

@@ -4,7 +4,7 @@ import type { ThroneworldUnit } from "../../shared/models/Unit.Throneworld";
 import { UNITS, type UnitId } from "../../shared/models/UnitTypes.ThroneWorld";
 import type { RenderableSystem } from "../models/ThroneworldBoardView";
 import UnitCounter from "./ThroneworldUnitCounter";
-import { Fleet } from "../../shared/models/Fleets.Throneworld";
+import type { Fleet } from "../../shared/models/Fleets.Throneworld";
 
 interface UnitGroup {
     unitTypeId: UnitId;
@@ -59,22 +59,24 @@ function getFleetSlots(hexRadius: number, counterSize: number) {
     const topY = -hexRadius * 0.86;
 
     return {
-        // Enemy fleets: 2 slots, left → right
+        // Enemy fleets
         enemySlots: [
-            { x: upperRightX - 2 * counterSize - 1, 
+            { x: upperRightX - 1.5 * counterSize - 3, 
               y: topY },
-            { x: upperRightX - counterSize, 
+            { x: upperRightX - 2.5 * counterSize - 6, 
               y: topY  },
         ],
 
-        // Friendly fleets: 3 slots, mid → left → right
+        // Friendly fleets
         friendlySlots: [
-            { x: upperRightX - counterSize - 1, 
+            { x: upperRightX - counterSize - 3, 
               y: topY + counterSize + 2 },
-            { x: upperRightX - 2 * counterSize - 1, 
+            { x: upperRightX - 2 * counterSize - 6, 
               y: topY + counterSize + 2  },
             { x: upperRightX, 
               y: topY + counterSize + 2 },
+            { x: upperRightX - 0.5 * counterSize, 
+              y: topY  },
         ],
     };
 }
@@ -86,28 +88,22 @@ function getGroundSlots(hexRadius: number, counterSize: number) {
     const bottomY = hexRadius * 0.86 - counterSize - 2;
 
     return {
-        // Friendly ground: 2 rows, aligned right, bottom
-        // [3],[2],[4] = middle row (3 slots, mid → left → right)
-        // [1],[0] = bottom row (2 slots, right → left)
+        // Friendly ground
         friendlySlots: [
-            { x: lowerRightX - counterSize,
+            { x: lowerRightX - 1.5 * counterSize - 3,
               y: bottomY },
-            { x: lowerRightX - 2 * counterSize - 1,
+            { x: lowerRightX - 0.5 * counterSize,
               y: bottomY },
-            { x: rightX - 2 * counterSize - 1,
-              y: bottomY - counterSize - 1 },
-            { x: rightX - 3 * counterSize - 2,
+            { x: rightX - 2 * counterSize - 3,
               y: bottomY - counterSize - 1 },
             { x: rightX - counterSize,
               y: bottomY - counterSize - 1 },
         ],
 
-        // Enemy ground: one row, above friendly ground units, left → right
+        // Enemy ground
         enemySlots: [
-            { x: rightX - 2 * counterSize - 1, 
-              y: bottomY - 2 * counterSize - 2 },
-            { x: rightX - counterSize, 
-              y: bottomY - 2 * counterSize - 2 },
+            { x: rightX - 3 * counterSize - 6,
+              y: bottomY - counterSize - 1 },
         ],
     };
 }
@@ -135,10 +131,14 @@ export default function HexUnitsLayer({
     hexCenter,
     hexRadius,
     playerColors,
-    debugSlots = true
+    debugSlots = false
 }: Props) {
     const counterSize = 32;
     const ownerId = system.owner ?? null; // adjust if your prop is ownerId instead
+
+    if(system.fleets && ownerId && (system.fleets[ownerId].length > 0)) {
+        console.log("Fleets - " + JSON.stringify(system.fleets) );
+    }
 
     // ----- GROUND UNITS: Split into friendly/enemy based on owner -----
     const friendlyGroundGroups: UnitGroup[] = [];

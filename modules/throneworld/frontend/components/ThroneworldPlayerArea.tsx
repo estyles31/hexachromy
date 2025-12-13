@@ -60,7 +60,7 @@ export default memo(function ThroneworldPlayerArea({ playerId }: { playerId: str
               <span className="tw-tech-value">{player.tech.Space}</span>
             </div>
             <div className="tw-tech-item" title="Jump Technology">
-              <span className="tw-tech-icon">⚡</span>
+              <span className="tw-tech-icon">↗️</span>
               <span className="tw-tech-value">{player.tech.Jump}</span>
             </div>
             <div className="tw-tech-item" title="Communication Technology">
