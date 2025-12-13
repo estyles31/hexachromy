@@ -65,7 +65,6 @@
   overflow: hidden;
   position: relative;
   user-select: none;
-  /* Default cursor removed - let individual elements control it */
 }
 
 .board-container.dragging {
@@ -81,7 +80,7 @@
   width: fit-content;
   height: fit-content;
   will-change: transform;
-  cursor: grab; /* Grab cursor on the board itself */
+  cursor: grab;
 }
 
 .board-transform-wrapper svg {

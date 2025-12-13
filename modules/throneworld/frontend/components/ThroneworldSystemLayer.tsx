@@ -3,15 +3,17 @@ import { useState } from "react";
 import type { ThroneworldBoardView, RenderableSystem } from "../models/ThroneworldBoardView";
 import type InspectContext from "../../../../shared/models/InspectContext";
 import type HoveredSystemInfo from "../models/HoveredSystemInfo";
-
 import { SystemMarker } from "./SystemMarker";
 import PlanetArc from "./PlanetArc";
 import HexUnitsLayer from "./HexUnitsLayer";
 import { DEFAULT_SIZE as sysMarkerSize } from "./SystemMarker";
+import type { GameAction } from "../../../../shared/models/ApiContexts";
 
 interface Props {
   boardView: ThroneworldBoardView;
   onInspect?: (ctx: InspectContext<HoveredSystemInfo> | null) => void;
+  onHexClick?: (hexId: string) => void;
+  clickableHexes?: Map<string, GameAction>;
 }
 
 interface HoverPreview {
@@ -25,8 +27,15 @@ interface HoverPreview {
 export default function ThroneworldSystemLayer({
   boardView,
   onInspect,
+  onHexClick,
+  clickableHexes = new Map(),
 }: Props) {
   const [hoverPreview, setHoverPreview] = useState<HoverPreview | null>(null);
+  const handleSystemClick = (hexId: string) => {
+    if (clickableHexes.has(hexId) && onHexClick) {
+      onHexClick(hexId);
+    }
+  };
 
   return (
     <>
@@ -45,9 +54,14 @@ export default function ThroneworldSystemLayer({
         const markerX = x - hexRadius + 0.33 * sysMarkerSize;
         const markerY = y - 0.5 * sysMarkerSize;
 
+        const isClickable = clickableHexes.has(hexId);
+
         return (
-          <g key={hexId}>
-            {/* Planet arc (only when allowed) */}
+            <g key={hexId}
+                onClick={isClickable ? () => handleSystemClick(hexId) : undefined}
+                style={{ cursor: isClickable ? 'pointer' : undefined }}
+            >
+            {/* Planet arc (only when revealed) */}
             {marker.revealed && (
               <PlanetArc
                 cx={x}
@@ -66,11 +80,7 @@ export default function ThroneworldSystemLayer({
             {/* System marker */}
             <g transform={`translate(${markerX}, ${markerY})`}>
               <SystemMarker
-                system={
-                  marker.revealed
-                    ? marker.system
-                    : marker.system
-                }
+                system={ marker.system }
                 worldType={worldType}
                 revealed={marker.revealed}
                 ownerColor={marker.ownerColor}

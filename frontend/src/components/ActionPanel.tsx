@@ -1,9 +1,6 @@
 // /frontend/src/components/ActionPanel.tsx
-import { useState, useEffect } from "react";
-import { auth } from "../../../shared-frontend/firebase";
-import { authFetch } from "../auth/authFetch";
-import { useAuthState } from "react-firebase-hooks/auth";
-import type { GameAction, LegalActionsResponse } from "../../../shared/models/ApiContexts";
+import { useLegalActions } from "../../../shared-frontend/hooks/useLegalActions";
+import { useActionExecutor } from "../hooks/useActionExecutor";
 import "./ActionPanel.css";
 
 interface Props {
@@ -17,64 +14,8 @@ export default function ActionPanel({
   gameVersion, 
   onActionTaken
 }: Props) {
-  const [user] = useAuthState(auth);
-  const [legalActions, setLegalActions] = useState<LegalActionsResponse | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [executing, setExecuting] = useState(false);
-
-  // Load legal actions
-  useEffect(() => {
-    if (!user) return;
-
-    const loadActions = async () => {
-      try {
-        const response = await authFetch(user, `/api/games/${gameId}/actions`);
-        if (response.ok) {
-          const data = await response.json();
-          setLegalActions(data);
-        }
-      } catch (error) {
-        console.error("Error loading legal actions:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadActions();
-  }, [gameId, user, gameVersion]);
-
-  const executeAction = async (action: GameAction) => {
-    if (!user || executing) return;
-
-    setExecuting(true);
-    try {
-      const response = await authFetch(user, `/api/games/${gameId}/action`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          action: {
-            ...action,
-            expectedVersion: gameVersion,
-          },
-        }),
-      });
-
-      if (response.ok) {
-        onActionTaken();
-      } else if (response.status === 409) {
-        alert("Game state changed. Please refresh.");
-        onActionTaken();
-      } else {
-        const error = await response.json();
-        alert(error.error || "Failed to execute action");
-      }
-    } catch (error) {
-      console.error("Error executing action:", error);
-      alert("Failed to execute action");
-    } finally {
-      setExecuting(false);
-    }
-  };
+  const { legalActions, loading } = useLegalActions(gameId, gameVersion);
+  const { executeAction, executing } = useActionExecutor(gameId, gameVersion, onActionTaken);
 
   if (loading) {
     return <div className="action-panel loading">Loading actions...</div>;

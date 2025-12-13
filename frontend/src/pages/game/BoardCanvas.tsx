@@ -3,18 +3,21 @@ import { useState, useRef } from "react";
 import type { FrontendModuleDefinition } from "../../../../modules/FrontendModuleDefinition";
 import type InspectContext from "../../../../shared/models/InspectContext";
 import type { GameState } from "../../../../shared/models/GameState";
-
+import { useLegalActions } from "../../../../shared-frontend/hooks/useLegalActions";
+import { useActionExecutor } from "../../hooks/useActionExecutor";
 
 interface Props<S, I> {
   gameState: GameState<S>;
   module: FrontendModuleDefinition<S, I>;
   onInspect?: (context: InspectContext<I> | null) => void;
+  onActionTaken: () => void;
 }
 
 export default function BoardCanvas<S, I>({
   gameState,
   module,
   onInspect,
+  onActionTaken,
 }: Props<S, I>) {
   const geometry = module.getBoardGeometry(gameState);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -22,6 +25,10 @@ export default function BoardCanvas<S, I>({
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+
+  // Fetch legal actions for the current player
+  const { legalActions } = useLegalActions(gameState.gameId, gameState.version);
+  const { executeAction } = useActionExecutor(gameState.gameId, gameState.version, onActionTaken);
 
   const handleZoomIn = () => {
     setScale(prev => Math.min(prev + 0.1, 3.0));
@@ -115,7 +122,8 @@ export default function BoardCanvas<S, I>({
             }}
           >
             {module.MainBoardComponent
-              && <module.MainBoardComponent gameState={gameState} boardGeometry={geometry} onInspect={onInspect} />
+              && <module.MainBoardComponent gameState={gameState} boardGeometry={geometry} onInspect={onInspect}
+                                legalActions={legalActions?.actions} onExecuteAction={executeAction} />
             }
           </svg>
         </div>

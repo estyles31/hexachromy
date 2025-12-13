@@ -15,6 +15,8 @@ export interface FrontendModuleDefinition<State = unknown, InspectPayload = unkn
     gameState: GameState<State>;
     boardGeometry?: BoardGeometry;
     onInspect?: (context: InspectContext<InspectPayload> | null) => void; 
+    legalActions?: GameAction[];
+    onExecuteAction: (action: GameAction) => void;
   }>;
 
   PlayerAreaComponent?: React.ComponentType<{playerId: string}>;

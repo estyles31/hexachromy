@@ -13,6 +13,7 @@ import type { VictoryPoints } from "../../FrontendModuleDefinition";
 import { ThroneworldGameDefinition } from "../shared/models/GameDefinition.Throneworld";
 import type { BoardGeometry } from "../../../shared/models/BoardGeometry";
 import ThroneworldBoard from "./components/ThroneworldBoard";
+import type { GameAction } from "../../../shared/models/ApiContexts";
 
 
 export const ThroneworldFrontendModule: FrontendModuleDefinition<ThroneworldState, HoveredSystemInfo> = {
@@ -32,8 +33,9 @@ function MainBoardComponent(params: {
   gameState: GameState<ThroneworldState>;
   boardGeometry?: BoardGeometry;
   onInspect?: (context: InspectContext<HoveredSystemInfo> | null) => void;
+  legalActions?: GameAction[];
+  onExecuteAction: (action: GameAction) => void;
 }) {
-  const onInspect = params.onInspect;
   const gameState = params.gameState as ThroneworldGameState;
   const geometry = params.boardGeometry as ThroneworldBoardGeometry;
 
@@ -45,7 +47,9 @@ function MainBoardComponent(params: {
     <ThroneworldBoard 
       gameState={gameState}
       boardGeometry={geometry}
-      onInspect={onInspect}
+      onInspect={params.onInspect}
+      legalActions={params.legalActions}
+      onExecuteAction={params.onExecuteAction}
     />
   );
 }

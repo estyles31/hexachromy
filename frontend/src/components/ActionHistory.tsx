@@ -114,7 +114,9 @@ export default function ActionHistory({ gameId, gameVersion, playerNames }: Prop
       const response = await authFetch(user, `/api/games/${gameId}/undo`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ expectedVersion: gameVersion }),
+        // Don't send expectedVersion - let the backend handle version checking
+        // based on the actual current state
+        body: JSON.stringify({}),
       });
 
       if (response.ok) {

@@ -4,13 +4,13 @@ import { BOARD_HEXES, getWorldType, isInPlay, type WorldType } from "./BoardLayo
 export const HEX_RADIUS = 86;
 export const HEX_PADDING = 1;
 
-export const HEX_WIDTH = HEX_RADIUS * 2;
-export const HEX_HEIGHT = Math.sqrt(3) * HEX_RADIUS;
+const HEX_WIDTH = HEX_RADIUS * 2;
+const HEX_HEIGHT = Math.sqrt(3) * HEX_RADIUS;
 
-export const X_SPACING = HEX_WIDTH * 0.75 + HEX_PADDING;
-export const Y_SPACING = HEX_HEIGHT * 0.5 + HEX_PADDING;
+const X_SPACING = HEX_WIDTH * 0.75 + HEX_PADDING;
+const Y_SPACING = HEX_HEIGHT * 0.5 + HEX_PADDING;
 
-export const MARGIN = 20;
+const MARGIN = 20;
 
 export interface HexGeometry {
   hexId: string;
@@ -20,11 +20,22 @@ export interface HexGeometry {
 }
 
 export interface ThroneworldBoardGeometry extends BoardGeometry {
-  // width: number;
-  // height: number;
   hexes: Record<string, HexGeometry>;
   hexRadius: number;
   margin: number;
+}
+
+/**
+ * Get SVG polygon points for a flat-top hexagon
+ */
+export function getHexagonPoints(cx: number, cy: number, r: number): string {
+  const angles = [0, 60, 120, 180, 240, 300];
+  return angles.map(deg => {
+    const rad = (deg * Math.PI) / 180;
+    const x = cx + r * Math.cos(rad);
+    const y = cy + r * Math.sin(rad);
+    return `${x.toFixed(2)},${y.toFixed(2)}`;
+  }).join(" ");
 }
 
 export function computeBoardGeometry(scenario: string): ThroneworldBoardGeometry {
@@ -44,6 +55,9 @@ export function computeBoardGeometry(scenario: string): ThroneworldBoardGeometry
     const cy = hex.row * Y_SPACING;
     const worldType = getWorldType(hex.id, scenario);
 
+    // For flat-top hexagons:
+    // - Horizontal extent: center ± HEX_RADIUS (distance to left/right vertices)
+    // - Vertical extent: center ± HEX_HEIGHT / 2 (distance to top/bottom flat edges)
     minX = Math.min(minX, cx - HEX_RADIUS);
     maxX = Math.max(maxX, cx + HEX_RADIUS);
     minY = Math.min(minY, cy - HEX_HEIGHT / 2);
