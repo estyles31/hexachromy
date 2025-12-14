@@ -17,6 +17,11 @@ export interface FrontendModuleDefinition<State = unknown, InspectPayload = unkn
     onInspect?: (context: InspectContext<InspectPayload> | null) => void; 
     legalActions?: GameAction[];
     onExecuteAction: (action: GameAction) => void;
+    activeParameterSelection?: {
+      parameterName: string;
+      highlightedHexes?: string[];
+      onHexSelected: (hexId: string) => void;
+    };
   }>;
 
   PlayerAreaComponent?: React.ComponentType<{playerId: string}>;

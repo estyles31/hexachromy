@@ -1,6 +1,6 @@
 // /modules/throneworld/functions/phases/Phase.ts
 import type { ThroneworldGameState } from "../../shared/models/GameState.Throneworld";
-import type { GameAction, LegalActionsResponse, ActionResponse } from "../../../../shared/models/ApiContexts";
+import type { GameAction, LegalActionsResponse, ActionResponse, ParameterValuesResponse } from "../../../../shared/models/ApiContexts";
 import type { GameDatabaseAdapter } from "../../../../shared/models/GameDatabaseAdapter";
 
 export interface PhaseContext {
@@ -54,6 +54,23 @@ export abstract class Phase {
   }
 
   /**
+   * Get legal values for a parameter in a multi-parameter action
+   * Override in subclasses that support multi-parameter actions
+   */
+  async getParameterValues(
+    ctx: PhaseContext,
+    playerId: string,
+    actionType: string,
+    parameterName: string,
+    partialParameters: Record<string, unknown>
+  ): Promise<ParameterValuesResponse> {
+    return {
+      values: [],
+      error: "Parameter queries not supported in this phase",
+    };
+  }
+
+  /**
    * Validate and execute an action
    * Handles chat automatically, delegates to executePhaseAction for game actions
    */
@@ -97,35 +114,22 @@ export abstract class Phase {
       };
     }
 
-    // Chat action succeeds immediately - no state changes needed
-    // The action itself being in the ActionLog is the record
-    const undoAction: GameAction = {
-      type: "unchat",
-      undoable: false,  // Unchat is not itself undoable
-    };
-
+    // Chat doesn't modify game state, just records in action log
     return {
       success: true,
-      stateChanges: ctx.gameState,  // No changes to game state
-      undoAction,
+      message: `${ctx.gameState.players[playerId]?.displayName || "Player"}: ${message}`,
     };
   }
 
   /**
-   * Apply an undo action directly without recording it in action history
-   * Default implementation: just execute the undo action normally
-   * Override this if your phase needs special undo handling
+   * Apply an undo action without recording it in history
+   * Override in subclasses if needed
    */
   async applyUndo(ctx: PhaseContext, playerId: string, undoAction: GameAction): Promise<ActionResponse> {
-    // For unchat, just succeed without doing anything
-    if (undoAction.type === "unchat") {
-      return {
-        success: true,
-        stateChanges: ctx.gameState,  // No changes needed
-      };
-    }
-
-    return this.executeAction(ctx, playerId, undoAction);
+    return {
+      success: false,
+      error: "Undo not implemented for this phase",
+    };
   }
 
   /**

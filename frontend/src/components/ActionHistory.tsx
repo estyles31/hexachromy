@@ -111,12 +111,21 @@ export default function ActionHistory({ gameId, gameVersion, playerNames }: Prop
     if (!user || !canUndo) return;
 
     try {
+      // Fetch current game state to get the latest version
+      const stateResponse = await authFetch(user, `/api/games/${gameId}/view`);
+      if (!stateResponse.ok) {
+        alert("Failed to fetch current game state");
+        return;
+      }
+      
+      const currentState = await stateResponse.json();
+      const currentVersion = currentState.version;
+
+      // Now send undo with the current version
       const response = await authFetch(user, `/api/games/${gameId}/undo`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        // Don't send expectedVersion - let the backend handle version checking
-        // based on the actual current state
-        body: JSON.stringify({}),
+        body: JSON.stringify({ expectedVersion: currentVersion }),
       });
 
       if (response.ok) {

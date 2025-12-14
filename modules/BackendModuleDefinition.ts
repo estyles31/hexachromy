@@ -1,6 +1,7 @@
 import type { GameDefinition } from "../shared/models/GameDefinition";
 import type { GetPlayerViewContext, GameStartContext, ActionContext, ActionResponse, LegalActionsContext, 
-              LegalActionsResponse, UndoResponse, UndoContext } from "../shared/models/ApiContexts";
+              LegalActionsResponse, UndoResponse, UndoContext,
+              ParameterValuesContext, ParameterValuesResponse} from "../shared/models/ApiContexts";
 
 export interface BackendModuleDefinition {
   id: string;
@@ -12,4 +13,5 @@ export interface BackendModuleDefinition {
   getLegalActions?(ctx: LegalActionsContext): Promise<LegalActionsResponse>;
   handleAction?(ctx: ActionContext): Promise<ActionResponse>;
   undoAction?(ctx: UndoContext): Promise<UndoResponse>;
+  getParameterValues(ctx: ParameterValuesContext): Promise<ParameterValuesResponse>;
 }

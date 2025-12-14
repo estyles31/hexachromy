@@ -11,6 +11,11 @@ interface Props<S, I> {
   module: FrontendModuleDefinition<S, I>;
   onInspect?: (context: InspectContext<I> | null) => void;
   onActionTaken: () => void;
+  activeParameterSelection?: {
+    parameterName: string;
+    highlightedHexes?: string[];
+    onHexSelected: (hexId: string) => void;
+  };
 }
 
 export default function BoardCanvas<S, I>({
@@ -18,6 +23,7 @@ export default function BoardCanvas<S, I>({
   module,
   onInspect,
   onActionTaken,
+  activeParameterSelection,
 }: Props<S, I>) {
   const geometry = module.getBoardGeometry(gameState);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -123,7 +129,8 @@ export default function BoardCanvas<S, I>({
           >
             {module.MainBoardComponent
               && <module.MainBoardComponent gameState={gameState} boardGeometry={geometry} onInspect={onInspect}
-                                legalActions={legalActions?.actions} onExecuteAction={executeAction} />
+                                legalActions={legalActions?.actions} onExecuteAction={executeAction}
+                                activeParameterSelection={activeParameterSelection} />
             }
           </svg>
         </div>

@@ -177,3 +177,55 @@ gameActionsRouter.get("/:gameId/actionLog", async (req: Request, res: Response) 
     });
   }
 });
+
+// Get legal values for a specific parameter given partial action parameters
+gameActionsRouter.get("/:gameId/actions/:actionType/parameters/:parameterName", async (req: Request, res: Response) => {
+  try {
+    const { gameId, actionType, parameterName } = req.params;
+    const userId = (req as AuthenticatedRequest).user.uid;
+    
+    // Get partial parameters from query string
+    const partialParameters: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(req.query)) {
+      if (key !== "expectedVersion") {
+        partialParameters[key] = value;
+      }
+    }
+
+    // Load game state to get game type
+    const gameState = await dbAdapter.getDocument(`games/${gameId}`);
+    if (!gameState) {
+      res.status(404).json({ error: "Game not found" });
+      return;
+    }
+
+    const module = backendModules[(gameState as any).gameType];
+    if (!module?.getParameterValues) {
+      res.status(400).json({ error: "Game module does not support parameter queries" });
+      return;
+    }
+
+    const response = await module.getParameterValues({
+      gameId,
+      playerId: userId,
+      actionType,
+      parameterName,
+      partialParameters,
+      db: dbAdapter,
+    });
+
+    if (response.error) {
+      res.status(400).json(response);
+    } else {
+      res.json(response);
+    }
+  } catch (err) {
+    console.error("Error getting parameter values:", err);
+    res.status(500).json({ 
+      error: "Failed to get parameter values",
+      details: err instanceof Error ? err.message : String(err)
+    });
+  }
+});
+
+

@@ -15,6 +15,11 @@ interface Props {
   onInspect?: (context: InspectContext<HoveredSystemInfo> | null) => void;
   legalActions?: GameAction[];
   onExecuteAction?: (action: GameAction) => void;
+  activeParameterSelection?: {
+    parameterName: string;
+    highlightedHexes?: string[];
+    onHexSelected: (hexId: string) => void;  
+  };  
 }
 
 export default function ThroneworldBoard({ 
@@ -22,7 +27,8 @@ export default function ThroneworldBoard({
   boardGeometry, 
   onInspect,
   legalActions = [],
-  onExecuteAction 
+  onExecuteAction,
+  activeParameterSelection,
 }: Props) {
   const playerColors = useMemo(
     () => Object.fromEntries(
@@ -57,6 +63,11 @@ export default function ThroneworldBoard({
 
   // Build set of highlighted hexes
   const highlightedHexes = useMemo(() => {
+    // If there's an active parameter selection, use those highlighted hexes
+    if (activeParameterSelection?.highlightedHexes) {
+      return new Set(activeParameterSelection.highlightedHexes);
+    }
+
     const hexes = new Set<string>();
     for (const action of legalActions) {
       if (action.renderHint?.category === 'hex-select' && action.renderHint.highlightHexes) {
@@ -69,6 +80,12 @@ export default function ThroneworldBoard({
   }, [legalActions]);
 
   const handleHexClick = (hexId: string) => {
+    // If there's an active parameter selection, use that callback
+    if (activeParameterSelection) {
+      activeParameterSelection.onHexSelected(hexId);
+      return;
+    }
+
     const action = hexSelectActions.get(hexId);
     if (action && onExecuteAction) {
       onExecuteAction(action);

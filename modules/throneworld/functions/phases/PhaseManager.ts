@@ -51,6 +51,24 @@ export class PhaseManager {
   }
 
   /**
+   * Get legal values for a parameter in a multi-parameter action
+   */
+  async getParameterValues(
+    playerId: string,
+    actionType: string,
+    parameterName: string,
+    partialParameters: Record<string, unknown>
+  ) {
+    return this.phase.getParameterValues(
+      this.ctx,
+      playerId,
+      actionType,
+      parameterName,
+      partialParameters
+    );
+  }
+
+  /**
    * Get message envelope for a player
    */
   async getMessageEnvelope(playerId: string) {

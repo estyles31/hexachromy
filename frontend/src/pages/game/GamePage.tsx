@@ -1,5 +1,5 @@
 // /src/pages/game/GamePage.tsx
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import type { GameState } from "../../../../shared/models/GameState";
 import type { FrontendModuleDefinition } from "../../../../modules/FrontendModuleDefinition";
 import BoardCanvas from "./BoardCanvas";
@@ -20,6 +20,13 @@ export default function GamePage({ gameState }: { gameState: GameState }) {
   const [inspected, setInspected] = useState<InspectContext<unknown> | null>(null);
   const [showInfoPanel, setShowInfoPanel] = useState(true);
   
+  // State for multi-parameter action selection
+  const [activeParameterSelection, setActiveParameterSelection] = useState<{
+    parameterName: string;
+    highlightedHexes?: string[];
+    onHexSelected: (hexId: string) => void;
+  } | undefined>(undefined);
+
   const module = getFrontendModule(gameState.gameType) as FrontendModuleDefinition<unknown, unknown>;
 
   if (!module) {
@@ -32,12 +39,12 @@ export default function GamePage({ gameState }: { gameState: GameState }) {
       .map(([id, player]) => [id, player.displayName || "Unknown"])
   );
 
-  const handleActionTaken = () => {
-    // With Firestore listener, no need to manually refetch
-    // The listener will automatically update when state changes
-    // But we keep this for any other side effects
+  const handleActionTaken = useCallback(() => {
+    // Clear any active parameter selection
+    setActiveParameterSelection(undefined);
+    // Trigger refresh via event
     window.dispatchEvent(new Event("gameStateChanged"));
-  };
+  }, []);
 
   return (
     <GameStateProvider gameState={gameState}>
@@ -49,6 +56,8 @@ export default function GamePage({ gameState }: { gameState: GameState }) {
                 gameState={gameState}
                 module={module}
                 onInspect={setInspected}
+                onActionTaken={handleActionTaken}
+                activeParameterSelection={activeParameterSelection}
               />
             </div>
 
@@ -57,6 +66,7 @@ export default function GamePage({ gameState }: { gameState: GameState }) {
                 gameId={gameState.gameId}
                 gameVersion={gameState.version} 
                 onActionTaken={handleActionTaken}
+                onParameterSelectionChange = { setActiveParameterSelection }
               />
               
               <GameInfoArea module={module} gameState={gameState} />

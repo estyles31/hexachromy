@@ -35,6 +35,11 @@ function MainBoardComponent(params: {
   onInspect?: (context: InspectContext<HoveredSystemInfo> | null) => void;
   legalActions?: GameAction[];
   onExecuteAction: (action: GameAction) => void;
+  activeParameterSelection?: {
+    parameterName: string;
+    highlightedHexes?: string[];
+    onHexSelected: (hexId: string) => void;  
+  };  
 }) {
   const gameState = params.gameState as ThroneworldGameState;
   const geometry = params.boardGeometry as ThroneworldBoardGeometry;
@@ -50,6 +55,7 @@ function MainBoardComponent(params: {
       onInspect={params.onInspect}
       legalActions={params.legalActions}
       onExecuteAction={params.onExecuteAction}
+      activeParameterSelection={params.activeParameterSelection}
     />
   );
 }
