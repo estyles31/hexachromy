@@ -178,18 +178,16 @@ gameActionsRouter.get("/:gameId/actionLog", async (req: Request, res: Response) 
   }
 });
 
-// Get legal values for a specific parameter given partial action parameters
-gameActionsRouter.get("/:gameId/actions/:actionType/parameters/:parameterName", async (req: Request, res: Response) => {
+// Get legal choices for an action parameter
+gameActionsRouter.post("/:gameId/param-choices", async (req: Request, res: Response) => {
   try {
-    const { gameId, actionType, parameterName } = req.params;
+    const { gameId } = req.params;
     const userId = (req as AuthenticatedRequest).user.uid;
-    
-    // Get partial parameters from query string
-    const partialParameters: Record<string, unknown> = {};
-    for (const [key, value] of Object.entries(req.query)) {
-      if (key !== "expectedVersion") {
-        partialParameters[key] = value;
-      }
+    const { actionType, paramName, filledParams } = req.body;
+
+    if (!actionType || !paramName) {
+      res.status(400).json({ error: "actionType and paramName are required" });
+      return;
     }
 
     // Load game state to get game type
@@ -200,32 +198,26 @@ gameActionsRouter.get("/:gameId/actions/:actionType/parameters/:parameterName", 
     }
 
     const module = backendModules[(gameState as any).gameType];
-    if (!module?.getParameterValues) {
-      res.status(400).json({ error: "Game module does not support parameter queries" });
+    if (!module?.getParamChoices) {
+      res.status(400).json({ error: "Game module does not support param choices" });
       return;
     }
 
-    const response = await module.getParameterValues({
+    const response = await module.getParamChoices({
       gameId,
       playerId: userId,
       actionType,
-      parameterName,
-      partialParameters,
+      paramName,
+      filledParams: filledParams || {},
       db: dbAdapter,
     });
 
-    if (response.error) {
-      res.status(400).json(response);
-    } else {
-      res.json(response);
-    }
+    res.json(response);
   } catch (err) {
-    console.error("Error getting parameter values:", err);
-    res.status(500).json({ 
-      error: "Failed to get parameter values",
-      details: err instanceof Error ? err.message : String(err)
+    console.error("Error getting param choices:", err);
+    res.status(500).json({
+      error: "Failed to get param choices",
+      details: err instanceof Error ? err.message : String(err),
     });
   }
 });
-
-

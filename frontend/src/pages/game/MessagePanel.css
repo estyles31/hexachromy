@@ -1,0 +1,81 @@
+/* /frontend/src/components/MessagePanel.css */
+
+.message-panel {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  
+  background: rgba(0, 0, 0, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  padding: 12px 20px;
+  color: white;
+  font-size: 14px;
+  
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  min-width: 200px;
+  max-width: 400px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.message-panel:empty {
+  display: none;
+}
+
+.message-panel__text {
+  text-align: center;
+}
+
+.message-panel__actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.message-panel__button {
+  padding: 8px 16px;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.message-panel__button:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.message-panel__button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.message-panel__button--primary {
+  background: #4CAF50;
+  border-color: #2E7D32;
+}
+
+.message-panel__button--primary:hover:not(:disabled) {
+  background: #66BB6A;
+  border-color: #43A047;
+}
+
+.message-panel__button--cancel {
+  background: transparent;
+  border-color: rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.message-panel__button--cancel:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+}

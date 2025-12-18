@@ -1,102 +1,89 @@
-// /src/pages/game/GamePage.tsx
-import { useCallback, useState } from "react";
+// /frontend/src/pages/game/GamePage.tsx
+import { useState } from "react";
 import type { GameState } from "../../../../shared/models/GameState";
-import type { FrontendModuleDefinition } from "../../../../modules/FrontendModuleDefinition";
 import BoardCanvas from "./BoardCanvas";
 import { getFrontendModule } from "../../modules/getFrontendModule";
 import type InspectContext from "../../../../shared/models/InspectContext";
 import PlayerArea from "./PlayerArea";
 import GameInfoArea from "./GameInfoArea";
 import "./GamePage.css";
-import ActionHistory from "../../components/ActionHistory";
-import ActionPanel from "../../components/ActionPanel";
-import { 
-  GameStateProvider, 
-  PlayersProvider, 
-  GameSpecificStateProvider 
+import ActionHistory from "./ActionHistory";
+import ActionPanel from "./ActionPanel";
+import MessagePanel from "./MessagePanel";
+import {
+  GameStateProvider,
+  PlayersProvider,
+  GameSpecificStateProvider,
 } from "../../../../shared-frontend/contexts/GameStateContext";
+import { useLegalActions } from "../../../../shared-frontend/hooks/useLegalActions";
+import { useActionExecutor } from "../../hooks/useActionExecutor";
 
 export default function GamePage({ gameState }: { gameState: GameState }) {
   const [inspected, setInspected] = useState<InspectContext<unknown> | null>(null);
   const [showInfoPanel, setShowInfoPanel] = useState(true);
-  
-  // State for multi-parameter action selection
-  const [activeParameterSelection, setActiveParameterSelection] = useState<{
-    parameterName: string;
-    highlightedHexes?: string[];
-    onHexSelected: (hexId: string) => void;
-  } | undefined>(undefined);
 
-  const module = getFrontendModule(gameState.gameType) as FrontendModuleDefinition<unknown, unknown>;
+  const { legalActions } = useLegalActions(gameState.gameId, gameState.version);
+  const { executeAction } = useActionExecutor(gameState.gameId, gameState.version, () => {});
 
-  if (!module) {
-    return <div>Unsupported game type: {gameState.gameType}</div>;
+  const frontendModule = getFrontendModule(gameState.gameType);
+  if (!frontendModule) {
+    return <div>Unknown game type: {gameState.gameType}</div>;
   }
 
-  // Build player names map for action history
-  const playerNames = Object.fromEntries(
-    Object.entries(gameState.players)
-      .map(([id, player]) => [id, player.displayName || "Unknown"])
-  );
-
-  const handleActionTaken = useCallback(() => {
-    // Clear any active parameter selection
-    setActiveParameterSelection(undefined);
-    // Trigger refresh via event
-    window.dispatchEvent(new Event("gameStateChanged"));
-  }, []);
+  const boardGeometry = frontendModule.getBoardGeometry?.(gameState);
+  const InfoPanelComponent = frontendModule.InfoPanelComponent;
 
   return (
     <GameStateProvider gameState={gameState}>
       <PlayersProvider players={gameState.players}>
         <GameSpecificStateProvider state={gameState.state}>
-          <div className="game-root">
+          <div className="game-page">
+            {/* Main board area */}
             <div className="board-container">
               <BoardCanvas
                 gameState={gameState}
-                module={module}
+                boardGeometry={boardGeometry}
                 onInspect={setInspected}
-                onActionTaken={handleActionTaken}
-                activeParameterSelection={activeParameterSelection}
-              />
-            </div>
-
-            <div className="right-panel">
-              <ActionPanel 
-                gameId={gameState.gameId}
-                gameVersion={gameState.version} 
-                onActionTaken={handleActionTaken}
-                onParameterSelectionChange = { setActiveParameterSelection }
+                legalActions={legalActions?.actions}
+                onExecuteAction={executeAction}
               />
               
-              <GameInfoArea module={module} gameState={gameState} />
-              <PlayerArea module={module} gameState={gameState} />
-              
-              {module.InfoPanelComponent && (
-                <label>
-                  <input
-                    type="checkbox"
-                    checked={showInfoPanel}
-                    onChange={e => setShowInfoPanel(e.target.checked)}
-                  />
-                  Show hover info
-                </label>
-              )}
+              {/* Message panel overlay */}
+              <MessagePanel module={frontendModule} />
             </div>
 
-            {showInfoPanel && module.InfoPanelComponent && (
-              <div className="info-panel-container">
-                <module.InfoPanelComponent inspected={inspected} />
-              </div>
-            )}
+            {/* Right sidebar */}
+            <div className="sidebar">
+              {/* Player area */}
+              <PlayerArea gameState={gameState} module={frontendModule} />
 
-            {/* Action History in lower left */}
-            <div className="action-history-container">
-              <ActionHistory 
+              {/* Game info */}
+              <GameInfoArea gameState={gameState} module={frontendModule} />
+
+              {/* Action panel */}
+              <ActionPanel
                 gameId={gameState.gameId}
                 gameVersion={gameState.version}
-                playerNames={playerNames}
+                onActionTaken={() => {}}
               />
+
+              {/* Info panel toggle */}
+              <button
+                className="info-panel-toggle"
+                onClick={() => setShowInfoPanel(!showInfoPanel)}
+              >
+                {showInfoPanel ? "Hide Info" : "Show Info"}
+              </button>
+
+              {/* Info panel (when something is inspected) */}
+              {showInfoPanel && inspected && InfoPanelComponent && (
+                <div className="info-panel">
+                  <InfoPanelComponent inspected={inspected} />
+                </div>
+              )}
+
+              {/* Action history */}
+              <ActionHistory gameId={gameState.gameId} />
             </div>
           </div>
         </GameSpecificStateProvider>

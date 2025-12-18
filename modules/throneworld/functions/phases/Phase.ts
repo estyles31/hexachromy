@@ -1,6 +1,7 @@
 // /modules/throneworld/functions/phases/Phase.ts
 import type { ThroneworldGameState } from "../../shared/models/GameState.Throneworld";
-import type { GameAction, LegalActionsResponse, ActionResponse, ParameterValuesResponse } from "../../../../shared/models/ApiContexts";
+import type { GameAction, LegalActionsResponse, ActionResponse } from "../../../../shared/models/ApiContexts";
+import type { ParamChoicesResponse } from "../../../../shared/models/ActionParams";
 import type { GameDatabaseAdapter } from "../../../../shared/models/GameDatabaseAdapter";
 
 export interface PhaseContext {
@@ -14,22 +15,19 @@ export interface PhaseContext {
 export abstract class Phase {
   abstract readonly name: string;
 
-   /**
+  /**
    * Called when phase begins - handles automated actions
-   * Returns events/animations that should be displayed
    */
   async onPhaseStart?(ctx: PhaseContext): Promise<void>;
 
   /**
    * Get all legal actions for a specific player in this phase
-   * Override this to add phase-specific actions
    */
   async getLegalActions(ctx: PhaseContext, playerId: string): Promise<LegalActionsResponse> {
-    // Base implementation: chat is always legal
     const chatAction: GameAction = {
       type: "chat",
       undoable: true,
-      message: "",  // Player will fill this in
+      message: "",
       renderHint: {
         category: "custom",
       }
@@ -54,33 +52,29 @@ export abstract class Phase {
   }
 
   /**
-   * Get legal values for a parameter in a multi-parameter action
-   * Override in subclasses that support multi-parameter actions
+   * Get legal choices for an action parameter.
+   * Override in subclasses that have parameterized actions.
    */
-  async getParameterValues(
+  async getParamChoices(
     ctx: PhaseContext,
     playerId: string,
     actionType: string,
-    parameterName: string,
-    partialParameters: Record<string, unknown>
-  ): Promise<ParameterValuesResponse> {
+    paramName: string,
+    filledParams: Record<string, string>
+  ): Promise<ParamChoicesResponse> {
     return {
-      values: [],
-      error: "Parameter queries not supported in this phase",
+      choices: [],
+      error: "Parameter choices not supported in this phase",
     };
   }
 
   /**
    * Validate and execute an action
-   * Handles chat automatically, delegates to executePhaseAction for game actions
    */
   async executeAction(ctx: PhaseContext, playerId: string, action: GameAction): Promise<ActionResponse> {
-    // Handle chat action
     if (action.type === "chat") {
       return this.handleChatAction(ctx, playerId, action);
     }
-
-    // Delegate to phase-specific action handler
     return this.executePhaseAction(ctx, playerId, action);
   }
 
@@ -95,35 +89,29 @@ export abstract class Phase {
   }
 
   /**
-   * Handle chat action (common to all phases)
+   * Handle chat action
    */
-  private async handleChatAction(ctx: PhaseContext, playerId: string, action: GameAction): Promise<ActionResponse> {
-    const message = action.message as string;
+  protected handleChatAction(ctx: PhaseContext, playerId: string, action: GameAction): ActionResponse {
+    const state = ctx.gameState;
     
-    if (!message || typeof message !== "string" || message.trim().length === 0) {
-      return {
-        success: false,
-        error: "Message cannot be empty",
-      };
-    }
+    // if (!state.chatLog) {
+    //   state.chatLog = [];
+    // }
+    
+    // state.chatLog.push({
+    //   playerId,
+    //   message: action.message as string,
+    //   timestamp: Date.now(),
+    // });
 
-    if (message.length > 500) {
-      return {
-        success: false,
-        error: "Message too long (max 500 characters)",
-      };
-    }
-
-    // Chat doesn't modify game state, just records in action log
     return {
       success: true,
-      message: `${ctx.gameState.players[playerId]?.displayName || "Player"}: ${message}`,
+      stateChanges: state,
     };
   }
 
   /**
-   * Apply an undo action without recording it in history
-   * Override in subclasses if needed
+   * Apply an undo action
    */
   async applyUndo(ctx: PhaseContext, playerId: string, undoAction: GameAction): Promise<ActionResponse> {
     return {
@@ -131,9 +119,4 @@ export abstract class Phase {
       error: "Undo not implemented for this phase",
     };
   }
-
-  /**
-   * Get a message envelope for the current player (instructions, status, etc.)
-   */
-  async getMessageEnvelope?(ctx: PhaseContext, playerId: string): Promise<string>;
 }

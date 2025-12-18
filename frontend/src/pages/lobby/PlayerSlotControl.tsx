@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
-import type { PlayerSlot } from "../../../shared/models/PlayerSlot";
-import { authFetch } from "../auth/authFetch";
-import { useAuth } from "../auth/useAuth";
-import type { PlayerPublicProfile } from "../../../shared/models/PlayerProfile";
+import type { PlayerSlot } from "../../../../shared/models/PlayerSlot";
+import { authFetch } from "../../auth/authFetch";
+import { useAuth } from "../../auth/useAuth";
+import type { PlayerPublicProfile } from "../../../../shared/models/PlayerProfile";
 
 interface Props {
   slot: PlayerSlot;

@@ -1,4 +1,4 @@
-import type { GameDefinitionOption } from "../../../shared/models/GameDefinition";
+import type { GameDefinitionOption } from "../../../../shared/models/GameDefinition";
 
 /* ------------------ Option Control ------------------ */
 export function OptionControl({

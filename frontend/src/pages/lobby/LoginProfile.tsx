@@ -1,6 +1,6 @@
 // import React from "react";
 import { useAuthState } from "react-firebase-hooks/auth";
-import { auth, googleProvider } from "../../../shared-frontend/firebase";
+import { auth, googleProvider } from "../../../../shared-frontend/firebase";
 import { signInWithPopup, signOut } from "firebase/auth";
 
 export default function LoginProfile() {

@@ -1,34 +1,30 @@
 // /modules/throneworld/functions/phases/OutreachPhase.ts
 import { Phase, type PhaseContext } from "./Phase";
-import type { LegalActionsResponse, ActionResponse, GameAction, ParameterValuesResponse } from "../../../../shared/models/ApiContexts";
+import type { LegalActionsResponse, ActionResponse, GameAction } from "../../../../shared/models/ApiContexts";
+import type { ActionDefinition, ParamChoicesResponse, LegalChoice } from "../../../../shared/models/ActionParams";
 import type { ThroneworldGameState } from "../../shared/models/GameState.Throneworld";
-import { BOARD_HEXES } from "../../shared/models/BoardLayout.ThroneWorld";
 import { UNITS } from "../../shared/models/UnitTypes.ThroneWorld";
-import type { Fleet } from "../../shared/models/Fleets.Throneworld";
+import { 
+  getAvailableBunkers, 
+  getScannableHexes, 
+  executeScan
+} from "../actions/ScanAction";
 
-interface ScanAction extends GameAction {
-  type: "scan";
-  bunkerId?: string;
-  targetHex?: string;
-}
-
-interface JumpAction extends GameAction {
-  type: "jump";
-  bunkerId?: string;
-  fleetId?: string;
-  targetHex?: string;
-}
+import { 
+  getJumpableFleets, 
+  getJumpDestinations, 
+  executeJump 
+} from "../actions/JumpAction";
 
 export class OutreachPhase extends Phase {
   readonly name = "Outreach";
 
   protected async getPhaseSpecificActions(ctx: PhaseContext, playerId: string): Promise<LegalActionsResponse> {
     const state = ctx.gameState as ThroneworldGameState;
-    const actions: GameAction[] = [];
+    const actions: ActionDefinition[] = [];
 
-    // Check how many actions the player has taken this phase
     const actionsThisPhase = this.countPlayerActionsThisPhase(state, playerId);
-    
+
     if (actionsThisPhase >= 2) {
       return {
         actions: [],
@@ -36,80 +32,96 @@ export class OutreachPhase extends Phase {
       };
     }
 
-    // Scan action
-    actions.push({
-      type: "scan",
-      undoable: false,
-      parameters: [
-        {
-          name: "bunkerId",
-          required: true,
-          renderHint: {
-            category: "hex-select",
-            message: "Select an unused Command Bunker to scan from",
+    const availableBunkers = getAvailableBunkers(state, playerId);
+
+    if (availableBunkers.length > 0) {
+      // Scan action
+      actions.push({
+        type: "scan",
+        undoable: false,
+        params: [
+          {
+            name: "bunkerHexId",
+            type: "boardSpace",
+            subtype: "hex",
+            message: "Select a Command Bunker",
           },
-        },
-        {
-          name: "targetHex",
-          required: true,
-          dependsOn: ["bunkerId"],
-          renderHint: {
-            category: "hex-select",
+          {
+            name: "targetHexId",
+            type: "boardSpace",
+            subtype: "hex",
+            dependsOn: "bunkerHexId",
             message: "Select a hex to scan",
           },
+        ],
+        initiatedBy: {
+          type: "gamePiece",
+          subtype: "commandBunker",
+          fillsParam: "bunkerHexId",
         },
-      ],
-      renderHint: {
-        category: "button",
-        label: "Scan",
-        description: "Use a Command Bunker to scan a nearby hex",
-      },
-    });
+        finalize: {
+          mode: "confirm",
+          label: "Scan",
+        },
+        renderHint: {
+          category: "button",
+          label: "Scan",
+          description: "Use a Command Bunker to scan a nearby hex",
+        },
+      });
 
-    // Jump action
-    actions.push({
-      type: "jump",
-      undoable: false,
-      parameters: [
-        {
-          name: "bunkerId",
-          required: true,
-          renderHint: {
-            category: "hex-select",
-            message: "Select an unused Command Bunker to coordinate jump",
+      // Jump action
+      actions.push({
+        type: "jump",
+        undoable: false,
+        params: [
+          {
+            name: "bunkerHexId",
+            type: "boardSpace",
+            subtype: "hex",
+            message: "Select a Command Bunker",
           },
-        },
-        {
-          name: "fleetId",
-          required: true,
-          dependsOn: ["bunkerId"],
-          renderHint: {
-            category: "custom",
+          {
+            name: "fleetId",
+            type: "gamePiece",
+            subtype: "fleet",
+            dependsOn: "bunkerHexId",
             message: "Select a fleet to jump",
-            customComponent: "fleet-select",
           },
-        },
-        {
-          name: "targetHex",
-          required: true,
-          dependsOn: ["bunkerId", "fleetId"],
-          renderHint: {
-            category: "hex-select",
+          {
+            name: "targetHexId",
+            type: "boardSpace",
+            subtype: "hex",
+            dependsOn: "fleetId",
             message: "Select destination hex",
           },
+        ],
+        initiatedBy: {
+          type: "gamePiece",
+          subtype: "commandBunker",
+          fillsParam: "bunkerHexId",
         },
-      ],
-      renderHint: {
-        category: "button",
-        label: "Jump",
-        description: "Use a Command Bunker to jump a fleet",
-      },
-    });
+        finalize: {
+          mode: "confirm",
+          // Label will be dynamic based on destination
+        },
+        renderHint: {
+          category: "button",
+          label: "Jump",
+          description: "Use a Command Bunker to jump a fleet",
+        },
+      });
+    }
 
     // Reorganize fleet - always available
     actions.push({
       type: "reorganize_fleet",
       undoable: true,
+      params: [],
+      finalize: {
+        mode: "confirm",
+        label: "Reorganize Fleets",
+      },
       renderHint: {
         category: "button",
         label: "Reorganize Fleets",
@@ -118,42 +130,182 @@ export class OutreachPhase extends Phase {
     });
 
     return {
-      actions,
-      message: `Actions remaining: ${2 - actionsThisPhase}/2`,
+      actions: actions as unknown as GameAction[],
+      message: `Actions remaining: ${2 - actionsThisPhase}/2. Select a Command Bunker to scan or jump.`,
     };
   }
 
-  async getParameterValues(
+  async getParamChoices(
     ctx: PhaseContext,
     playerId: string,
     actionType: string,
-    parameterName: string,
-    partialParameters: Record<string, unknown>
-  ): Promise<ParameterValuesResponse> {
+    paramName: string,
+    filledParams: Record<string, string>
+  ): Promise<ParamChoicesResponse> {
     const state = ctx.gameState as ThroneworldGameState;
 
     if (actionType === "scan") {
-      if (parameterName === "bunkerId") {
-        return this.getAvailableBunkers(state, playerId);
-      }
-      if (parameterName === "targetHex" && partialParameters.bunkerId) {
-        return this.getScannableHexes(state, playerId, partialParameters.bunkerId as string);
-      }
+      return this.getScanParamChoices(state, playerId, paramName, filledParams);
     }
 
     if (actionType === "jump") {
-      if (parameterName === "bunkerId") {
-        return this.getAvailableBunkers(state, playerId);
-      }
-      if (parameterName === "fleetId" && partialParameters.bunkerId) {
-        return this.getJumpableFleets(state, playerId, partialParameters.bunkerId as string);
-      }
-      if (parameterName === "targetHex" && partialParameters.fleetId) {
-        return this.getJumpDestinations(state, playerId, partialParameters.fleetId as string);
-      }
+      return this.getJumpParamChoices(state, playerId, paramName, filledParams);
     }
 
-    return { values: [], error: "Unknown parameter" };
+    return { choices: [], error: `Unknown action type: ${actionType}` };
+  }
+
+  private getScanParamChoices(
+    state: ThroneworldGameState,
+    playerId: string,
+    paramName: string,
+    filledParams: Record<string, string>
+  ): ParamChoicesResponse {
+    if (paramName === "bunkerHexId") {
+      const bunkerHexes = getAvailableBunkers(state, playerId);
+      return {
+        choices: bunkerHexes.map(hexId => ({
+          id: hexId,
+          type: "boardSpace",
+          subtype: "hex",
+          displayHint: { hexId },
+        })),
+        message: `Select a Command Bunker (${bunkerHexes.length} available)`,
+      };
+    }
+
+    if (paramName === "targetHexId") {
+      const bunkerHexId = filledParams.bunkerHexId;
+      if (!bunkerHexId) {
+        return { choices: [], error: "Must select bunker first" };
+      }
+
+      const scannableHexes = getScannableHexes(state, playerId, bunkerHexId);
+      const player = state.players[playerId];
+      const commRange = player?.tech.Comm || 0;
+
+      return {
+        choices: scannableHexes.map(hexId => ({
+          id: hexId,
+          type: "boardSpace",
+          subtype: "hex",
+          displayHint: { hexId },
+        })),
+        message: `Select hex to scan (Comm range: ${commRange}, ${scannableHexes.length} in range)`,
+        finalizeLabel: "Scan",
+      };
+    }
+
+    return { choices: [], error: `Unknown param: ${paramName}` };
+  }
+
+  private getJumpParamChoices(
+    state: ThroneworldGameState,
+    playerId: string,
+    paramName: string,
+    filledParams: Record<string, string>
+  ): ParamChoicesResponse {
+    if (paramName === "bunkerHexId") {
+      const bunkerHexes = getAvailableBunkers(state, playerId);
+      return {
+        choices: bunkerHexes.map(hexId => ({
+          id: hexId,
+          type: "boardSpace",
+          subtype: "hex",
+          displayHint: { hexId },
+        })),
+        message: `Select a Command Bunker (${bunkerHexes.length} available)`,
+      };
+    }
+
+    if (paramName === "fleetId") {
+      const bunkerHexId = filledParams.bunkerHexId;
+      if (!bunkerHexId) {
+        return { choices: [], error: "Must select bunker first" };
+      }
+
+      const jumpableFleets = getJumpableFleets(state, playerId, bunkerHexId);
+      const player = state.players[playerId];
+      const commRange = player?.tech.Comm || 0;
+
+      return {
+        choices: jumpableFleets.map(f => ({
+          id: f.fleetId,
+          type: "gamePiece",
+          subtype: "fleet",
+          displayHint: { 
+            pieceId: f.fleetId,
+            hexId: f.hexId,
+          },
+        })),
+        message: `Select a fleet to jump (Comm range: ${commRange}, ${jumpableFleets.length} in range)`,
+      };
+    }
+
+    if (paramName === "targetHexId") {
+      const fleetId = filledParams.fleetId;
+      if (!fleetId) {
+        return { choices: [], error: "Must select fleet first" };
+      }
+
+      const destinations = getJumpDestinations(state, playerId, fleetId);
+      const player = state.players[playerId];
+      const jumpRange = player?.tech.Jump || 0;
+
+      // Build metadata for each destination
+      const choices: LegalChoice[] = destinations.map(hexId => {
+        const system = state.state.systems[hexId];
+        const hasEnemyUnits = this.checkForEnemies(state, hexId, playerId);
+        const isScanned = system?.scannedBy?.includes(playerId) ?? false;
+        const isRevealed = system?.revealed ?? false;
+
+        return {
+          id: hexId,
+          type: "boardSpace",
+          subtype: "hex",
+          displayHint: { hexId },
+          metadata: {
+            hasEnemyUnits,
+            isScanned,
+            isRevealed,
+          },
+        };
+      });
+
+      // Determine dynamic finalize label based on likely outcomes
+      let finalizeLabel = "Jump";
+      const anyHasEnemies = choices.some(c => c.metadata?.hasEnemyUnits);
+      const anyUnscanned = choices.some(c => !c.metadata?.isScanned);
+
+      return {
+        choices,
+        message: `Select destination (Jump range: ${jumpRange}, ${destinations.length} in range)`,
+        finalizeLabel,
+        finalizeMetadata: {
+          possibleCombat: anyHasEnemies,
+          possibleScan: anyUnscanned,
+        },
+      };
+    }
+
+    return { choices: [], error: `Unknown param: ${paramName}` };
+  }
+
+  private checkForEnemies(state: ThroneworldGameState, hexId: string, playerId: string): boolean {
+    const system = state.state.systems[hexId];
+    if (!system) return false;
+
+    // Check fleets
+    for (const [owner, fleets] of Object.entries(system.fleetsInSpace)) {
+      if (owner !== playerId && fleets.length > 0) return true;
+    }
+
+    // Check ground units
+    for (const [owner, units] of Object.entries(system.unitsOnPlanet)) {
+      if (owner !== playerId && units.length > 0) return true;
+    }
+
+    return false;
   }
 
   protected async executePhaseAction(ctx: PhaseContext, playerId: string, action: GameAction): Promise<ActionResponse> {
@@ -161,9 +313,9 @@ export class OutreachPhase extends Phase {
 
     switch (action.type) {
       case "scan":
-        return this.handleScan(state, playerId, action as ScanAction);
+        return this.handleScan(state, playerId, action);
       case "jump":
-        return this.handleJump(state, playerId, action as JumpAction);
+        return this.handleJump(state, playerId, action);
       case "reorganize_fleet":
         return this.handleReorganizeFleet(state, playerId, action);
       default:
@@ -171,12 +323,9 @@ export class OutreachPhase extends Phase {
     }
   }
 
-  // ========== Action Counter ==========
-
   private countPlayerActionsThisPhase(state: ThroneworldGameState, playerId: string): number {
-    // Count bunkers that have hasMoved = true
     let usedBunkers = 0;
-    
+
     for (const system of Object.values(state.state.systems)) {
       const playerUnits = system.unitsOnPlanet[playerId];
       if (!playerUnits) continue;
@@ -188,324 +337,37 @@ export class OutreachPhase extends Phase {
         }
       }
     }
-    
+
     return usedBunkers;
   }
 
-  // ========== Parameter Queries ==========
+  private handleScan(state: ThroneworldGameState, playerId: string, action: GameAction): ActionResponse {
+    const bunkerHexId = action.bunkerHexId as string;
+    const targetHexId = action.targetHexId as string;
 
-  private getAvailableBunkers(state: ThroneworldGameState, playerId: string): ParameterValuesResponse {
-    const bunkerHexes: string[] = [];
-
-    for (const [hexId, system] of Object.entries(state.state.systems)) {
-      const playerUnits = system.unitsOnPlanet[playerId];
-      if (!playerUnits) continue;
-
-      // Check for unused Command Bunker
-      const hasUnusedBunker = playerUnits.some(unit => {
-        const unitDef = UNITS[unit.unitTypeId];
-        return unitDef?.Command && !unit.hasMoved;
-      });
-
-      if (hasUnusedBunker) {
-        bunkerHexes.push(hexId);
-      }
+    if (!bunkerHexId || !targetHexId) {
+      return { success: false, error: "Missing required parameters: bunkerHexId and targetHexId" };
     }
 
-    return {
-      values: bunkerHexes,
-      renderHint: {
-        category: "hex-select",
-        highlightHexes: bunkerHexes,
-        message: `Select a Command Bunker (${bunkerHexes.length} available)`,
-      },
-    };
+    return executeScan(state, playerId, { bunkerHexId, targetHexId });
   }
 
-  private getScannableHexes(
-    state: ThroneworldGameState,
-    playerId: string,
-    bunkerId: string
-  ): ParameterValuesResponse {
-    const player = state.players[playerId];
-    if (!player) {
-      return { values: [], error: "Player not found" };
+  private handleJump(state: ThroneworldGameState, playerId: string, action: GameAction): ActionResponse {
+    const bunkerHexId = action.bunkerHexId as string;
+    const fleetId = action.fleetId as string;
+    const targetHexId = action.targetHexId as string;
+
+    if (!bunkerHexId || !fleetId || !targetHexId) {
+      return { success: false, error: "Missing required parameters: bunkerHexId, fleetId, and targetHexId" };
     }
 
-    const commRange = player.tech.Comm || 0;
-    const scannableHexes: string[] = [];
-
-    for (const [hexId, system] of Object.entries(state.state.systems)) {
-      // Skip if already scanned
-      if (system.scannedBy?.includes(playerId)) continue;
-
-      // Check if within range
-      const distance = this.calculateHexDistance(bunkerId, hexId);
-      if (distance <= commRange) {
-        scannableHexes.push(hexId);
-      }
-    }
-
-    return {
-      values: scannableHexes,
-      renderHint: {
-        category: "hex-select",
-        highlightHexes: scannableHexes,
-        message: `Select hex to scan (Comm range: ${commRange}, ${scannableHexes.length} hexes available)`,
-      },
-    };
-  }
-
-  private getJumpableFleets(
-    state: ThroneworldGameState,
-    playerId: string,
-    bunkerId: string
-  ): ParameterValuesResponse {
-    const player = state.players[playerId];
-    if (!player) {
-      return { values: [], error: "Player not found" };
-    }
-
-    const commRange = player.tech.Comm || 0;
-    const jumpableFleets: Array<{ fleetId: string; hexId: string }> = [];
-
-    for (const [hexId, system] of Object.entries(state.state.systems)) {
-      // Check if within Comm range
-      const distance = this.calculateHexDistance(bunkerId, hexId);
-      if (distance > commRange) continue;
-
-      const playerFleets = system.fleetsInSpace[playerId];
-      if (!playerFleets) continue;
-
-      for (const fleet of playerFleets) {
-        // Check if fleet has Static units
-        const hasStatic = [...fleet.spaceUnits, ...fleet.groundUnits].some(unit =>
-          UNITS[unit.unitTypeId]?.Static
-        );
-        if (hasStatic) continue;
-
-        // Check if fleet has moved
-        const hasMoved = [...fleet.spaceUnits, ...fleet.groundUnits].some(unit => unit.hasMoved);
-        if (hasMoved) continue;
-
-        jumpableFleets.push({ fleetId: fleet.fleetId, hexId });
-      }
-    }
-
-    return {
-      values: jumpableFleets,
-      renderHint: {
-        category: "custom",
-        customComponent: "fleet-select",
-        message: `Select fleet to jump (${jumpableFleets.length} available)`,
-      },
-    };
-  }
-
-  private getJumpDestinations(
-    state: ThroneworldGameState,
-    playerId: string,
-    fleetId: string
-  ): ParameterValuesResponse {
-    const player = state.players[playerId];
-    if (!player) {
-      return { values: [], error: "Player not found" };
-    }
-
-    // Find the fleet
-    let fleet: Fleet | undefined;
-    let fleetHex: string | undefined;
-    
-    for (const [hexId, system] of Object.entries(state.state.systems)) {
-      const playerFleets = system.fleetsInSpace[playerId];
-      if (!playerFleets) continue;
-      
-      fleet = playerFleets.find(f => f.fleetId === fleetId);
-      if (fleet) {
-        fleetHex = hexId;
-        break;
-      }
-    }
-
-    if (!fleet || !fleetHex) {
-      return { values: [], error: "Fleet not found" };
-    }
-
-    const jumpRange = player.tech.Jump || 0;
-    const destinationHexes: string[] = [];
-
-    // Check if fleet has Explore capability (Survey Teams)
-    const canExplore = fleet.spaceUnits.some(unit => UNITS[unit.unitTypeId]?.Explore);
-
-    for (const [hexId, system] of Object.entries(state.state.systems)) {
-      const distance = this.calculateHexDistance(fleetHex, hexId);
-      if (distance > jumpRange) continue;
-
-      // If hex not scanned and fleet can't explore, skip it
-      if (!system.scannedBy?.includes(playerId) && !canExplore) continue;
-
-      destinationHexes.push(hexId);
-    }
-
-    return {
-      values: destinationHexes,
-      renderHint: {
-        category: "hex-select",
-        highlightHexes: destinationHexes,
-        message: `Select destination (Jump range: ${jumpRange}, ${destinationHexes.length} hexes available)`,
-      },
-    };
-  }
-
-  // ========== Hex Distance ==========
-
-  private calculateHexDistance(hex1: string, hex2: string): number {
-    if (hex1 === hex2) return 0;
-
-    const h1 = BOARD_HEXES.find(h => h.id === hex1);
-    const h2 = BOARD_HEXES.find(h => h.id === hex2);
-    
-    if (!h1 || !h2) return Infinity;
-
-    // Cube coordinates for flat-top hexagons
-    const q1 = h1.colIndex;
-    const r1 = h1.row - Math.floor(h1.colIndex / 2);
-    const s1 = -q1 - r1;
-
-    const q2 = h2.colIndex;
-    const r2 = h2.row - Math.floor(h2.colIndex / 2);
-    const s2 = -q2 - r2;
-
-    return (Math.abs(q1 - q2) + Math.abs(r1 - r2) + Math.abs(s1 - s2)) / 2;
-  }
-
-  // ========== Action Handlers ==========
-
-  private handleScan(state: ThroneworldGameState, playerId: string, action: ScanAction): ActionResponse {
-    if (!action.bunkerId || !action.targetHex) {
-      return { success: false, error: "Missing required parameters" };
-    }
-
-    const bunkerSystem = state.state.systems[action.bunkerId];
-    const targetSystem = state.state.systems[action.targetHex];
-    
-    if (!bunkerSystem || !targetSystem) {
-      return { success: false, error: "Invalid hex" };
-    }
-
-    // Mark bunker as used
-    const playerUnits = bunkerSystem.unitsOnPlanet[playerId];
-    if (playerUnits) {
-      for (const unit of playerUnits) {
-        const unitDef = UNITS[unit.unitTypeId];
-        if (unitDef?.Command && !unit.hasMoved) {
-          unit.hasMoved = true;
-          break; // Only mark one bunker
-        }
-      }
-    }
-
-    // Add player to scannedBy list
-    if (!targetSystem.scannedBy) {
-      targetSystem.scannedBy = [];
-    }
-    if (!targetSystem.scannedBy.includes(playerId)) {
-      targetSystem.scannedBy.push(playerId);
-    }
-
-    return {
-      success: true,
-      stateChanges: state,
-      message: `Scanned ${action.targetHex}`,
-    };
-  }
-
-  private handleJump(state: ThroneworldGameState, playerId: string, action: JumpAction): ActionResponse {
-    if (!action.bunkerId || !action.fleetId || !action.targetHex) {
-      return { success: false, error: "Missing required parameters" };
-    }
-
-    const bunkerSystem = state.state.systems[action.bunkerId];
-    const targetSystem = state.state.systems[action.targetHex];
-
-    if (!bunkerSystem || !targetSystem) {
-      return { success: false, error: "Invalid hex" };
-    }
-
-    // Find and remove fleet from source
-    let fleet: Fleet | undefined;
-    let sourceHex: string | undefined;
-
-    for (const [hexId, system] of Object.entries(state.state.systems)) {
-      const playerFleets = system.fleetsInSpace[playerId];
-      if (!playerFleets) continue;
-
-      const index = playerFleets.findIndex(f => f.fleetId === action.fleetId);
-      if (index >= 0) {
-        fleet = playerFleets.splice(index, 1)[0];
-        sourceHex = hexId;
-        break;
-      }
-    }
-
-    if (!fleet || !sourceHex) {
-      return { success: false, error: "Fleet not found" };
-    }
-
-    // Mark all units in fleet as moved
-    for (const unit of [...fleet.spaceUnits, ...fleet.groundUnits]) {
-      unit.hasMoved = true;
-    }
-
-    // Mark bunker as used
-    const playerUnits = bunkerSystem.unitsOnPlanet[playerId];
-    if (playerUnits) {
-      for (const unit of playerUnits) {
-        const unitDef = UNITS[unit.unitTypeId];
-        if (unitDef?.Command && !unit.hasMoved) {
-          unit.hasMoved = true;
-          break;
-        }
-      }
-    }
-
-    // Add fleet to target
-    if (!targetSystem.fleetsInSpace[playerId]) {
-      targetSystem.fleetsInSpace[playerId] = [];
-    }
-    targetSystem.fleetsInSpace[playerId].push(fleet);
-
-    // Scan target if not already scanned
-    if (!targetSystem.scannedBy) {
-      targetSystem.scannedBy = [];
-    }
-    if (!targetSystem.scannedBy.includes(playerId)) {
-      targetSystem.scannedBy.push(playerId);
-    }
-
-    // Auto-capture empty 0-dev systems
-    if (!targetSystem.revealed && targetSystem.details?.dev === 0) {
-      const hasOtherUnits = Object.entries(targetSystem.fleetsInSpace)
-        .some(([owner, fleets]) => owner !== playerId && fleets.length > 0);
-      
-      if (!hasOtherUnits && !targetSystem.details.owner) {
-        targetSystem.details.owner = playerId;
-        targetSystem.revealed = true;
-      }
-    }
-
-    return {
-      success: true,
-      stateChanges: state,
-      message: `Jumped fleet from ${sourceHex} to ${action.targetHex}`,
-    };
+    return executeJump(state, playerId, { bunkerHexId, fleetId, targetHexId });
   }
 
   private handleReorganizeFleet(state: ThroneworldGameState, playerId: string, action: GameAction): ActionResponse {
-    // TODO: Implement fleet reorganization UI
     return {
       success: false,
-      error: "Reorganize fleet not yet implemented - needs UI",
+      error: "Reorganize fleet not yet implemented",
     };
   }
 }

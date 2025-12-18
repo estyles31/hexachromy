@@ -9,9 +9,9 @@ import type { CreateGameOptions } from "../../../../shared/models/CreateGameOpti
 import type { User } from "firebase/auth";
 import "./CreateGameModal.css";
 import Draggable from "react-draggable";
-import PlayerSlotControl from "../../components/PlayerSlotControl";
+import PlayerSlotControl from "./PlayerSlotControl";
 import type { PlayerSlot } from "../../../../shared/models/PlayerSlot";
-import { OptionControl } from "../../components/OptionControl";
+import { OptionControl } from "./OptionControl";
 
 interface Props {
   modules: ModuleDescription[];

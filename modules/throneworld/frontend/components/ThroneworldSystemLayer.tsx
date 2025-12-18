@@ -7,60 +7,43 @@ import { SystemMarker } from "./SystemMarker";
 import PlanetArc from "./PlanetArc";
 import HexUnitsLayer from "./HexUnitsLayer";
 import { DEFAULT_SIZE as sysMarkerSize } from "./SystemMarker";
-import type { GameAction } from "../../../../shared/models/ApiContexts";
 
 interface Props {
   boardView: ThroneworldBoardView;
   onInspect?: (ctx: InspectContext<HoveredSystemInfo> | null) => void;
-  onHexClick?: (hexId: string) => void;
-  clickableHexes?: Map<string, GameAction>;
+  onFleetClick: (fleetId: string, hexId: string) => void;
+  onUnitClick: (unitId: string, hexId: string) => void;
+  selectableGamePieces: Set<string>;
+  selectedFleetId: string | null;
+  selectedUnitId: string | null;
 }
 
 interface HoverPreview {
   system: RenderableSystem;
 }
 
-/**
- * Renders all system markers + planet arcs for Throneworld.
- * Hover logic lives here because it affects board-layer visuals.
- */
 export default function ThroneworldSystemLayer({
   boardView,
   onInspect,
-  onHexClick,
-  clickableHexes = new Map(),
+  onFleetClick,
+  onUnitClick,
+  selectableGamePieces,
+  selectedFleetId,
+  selectedUnitId,
 }: Props) {
   const [hoverPreview, setHoverPreview] = useState<HoverPreview | null>(null);
-  const handleSystemClick = (hexId: string) => {
-    if (clickableHexes.has(hexId) && onHexClick) {
-      onHexClick(hexId);
-    }
-  };
 
   return (
     <>
       {boardView.systems.map((sys) => {
-        const {
-          hexId,
-          worldType,
-          position,
-          marker,
-          hover,
-        } = sys;
-
+        const { hexId, worldType, position, marker, hover } = sys;
         const { x, y, hexRadius } = position;
 
-        // Marker positioning relative to hex center
         const markerX = x - hexRadius + 0.33 * sysMarkerSize;
         const markerY = y - 0.5 * sysMarkerSize;
 
-        const isClickable = clickableHexes.has(hexId);
-
         return (
-            <g key={hexId}
-                onClick={isClickable ? () => handleSystemClick(hexId) : undefined}
-                style={{ cursor: isClickable ? 'pointer' : undefined }}
-            >
+          <g key={hexId}>
             {/* Planet arc (only when revealed) */}
             {marker.revealed && (
               <PlanetArc
@@ -73,14 +56,24 @@ export default function ThroneworldSystemLayer({
               />
             )}
 
-            {/* Units */}
-            <HexUnitsLayer hexCenter={{x, y}} hexRadius={hexRadius} 
-                           system={sys} playerColors={sys.playerColors}/>
+            {/* Units layer */}
+            <HexUnitsLayer
+              hexId={hexId}
+              hexCenter={{ x, y }}
+              hexRadius={hexRadius}
+              system={sys}
+              playerColors={sys.playerColors}
+              onFleetClick={onFleetClick}
+              onUnitClick={onUnitClick}
+              selectableGamePieces={selectableGamePieces}
+              selectedFleetId={selectedFleetId}
+              selectedUnitId={selectedUnitId}
+            />
 
             {/* System marker */}
             <g transform={`translate(${markerX}, ${markerY})`}>
               <SystemMarker
-                system={ marker.system }
+                system={marker.system}
                 worldType={worldType}
                 revealed={marker.revealed}
                 ownerColor={marker.ownerColor}
@@ -110,7 +103,7 @@ export default function ThroneworldSystemLayer({
         );
       })}
 
-      {/* Hover preview overlay — always on top */}
+      {/* Hover preview overlay */}
       {hoverPreview && (
         <g
           pointerEvents="none"

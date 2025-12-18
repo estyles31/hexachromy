@@ -1,9 +1,9 @@
 // /frontend/src/components/ActionHistory.tsx
 import { useState, useEffect } from "react";
-import { auth } from "../../../shared-frontend/firebase";
-import { authFetch } from "../auth/authFetch";
-import { useAuthState } from "react-firebase-hooks/auth";
+import { useAuth } from "../../auth/useAuth";
+import { authFetch } from "../../auth/authFetch";
 import "./ActionHistory.css";
+import { useGameState } from "../../../../shared-frontend/hooks/useGameState";
 
 interface ActionHistoryEntry {
   actionId: string;
@@ -21,17 +21,16 @@ interface ActionHistoryEntry {
 
 interface Props {
   gameId: string;
-  gameVersion: number;
-  playerNames: Record<string, string>;
 }
 
-export default function ActionHistory({ gameId, gameVersion, playerNames }: Props) {
-  const [user] = useAuthState(auth);
+export default function ActionHistory({ gameId }: Props) {
+  const user = useAuth();
   const [isExpanded, setIsExpanded] = useState(true);
   const [actions, setActions] = useState<ActionHistoryEntry[]>([]);
   const [chatMessage, setChatMessage] = useState("");
   const [sending, setSending] = useState(false);
   const [canUndo, setCanUndo] = useState(false);
+  const { state } = useGameState(gameId);
 
   // Load action history
   useEffect(() => {
@@ -50,7 +49,7 @@ export default function ActionHistory({ gameId, gameVersion, playerNames }: Prop
     };
 
     loadActions();
-  }, [gameId, user, gameVersion]);
+  }, [gameId, user, state?.version]);
 
   // Check if can undo
   useEffect(() => {
@@ -69,7 +68,7 @@ export default function ActionHistory({ gameId, gameVersion, playerNames }: Prop
     };
 
     checkCanUndo();
-  }, [gameId, user, gameVersion]);
+  }, [gameId, user, state?.version]);
 
   const handleSendChat = async () => {
     if (!user || !chatMessage.trim() || sending) return;
@@ -84,7 +83,7 @@ export default function ActionHistory({ gameId, gameVersion, playerNames }: Prop
             type: "chat",
             message: chatMessage.trim(),
             undoable: true,
-            expectedVersion: gameVersion,
+            expectedVersion: state?.version,
           },
         }),
       });
@@ -144,7 +143,7 @@ export default function ActionHistory({ gameId, gameVersion, playerNames }: Prop
   };
 
   const formatAction = (entry: ActionHistoryEntry): string => {
-    const playerName = playerNames[entry.playerId] || "Unknown";
+    const playerName = state?.players[entry.playerId]?.displayName || "Unknown";
     
     if (entry.action.type === "chat") {
       return `${playerName}: ${entry.action.message}`;
