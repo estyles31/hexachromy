@@ -1,6 +1,7 @@
 // /modules/throneworld/functions/phases/GameStartPhase.ts
 import { Phase, type PhaseContext } from "./Phase";
-import type { LegalActionsResponse, ActionResponse, GameAction } from "../../../../shared/models/ApiContexts";
+import type { LegalActionsResponse, ActionResponse } from "../../../../shared/models/ApiContexts";
+import type { GameAction } from "../../../../shared/models/ActionParams";
 import type { ThroneworldGameState } from "../../shared/models/GameState.Throneworld";
 import { Factions } from "../../shared/models/Factions.ThroneWorld";
 import { randomInt } from "crypto";
@@ -95,6 +96,7 @@ export class GameStartPhase extends Phase {
         actions.push({
           type: "choose_race",
           raceId,
+          params: [], //does it need choices?
           undoable: true,
           renderHint: {
             category: "button",
@@ -117,6 +119,7 @@ export class GameStartPhase extends Phase {
           type: "choose_homeworld",
           hexId,
           undoable: true,
+          params: [], //does it need choices?
           renderHint: {
             category: "hex-select",
             highlightHexes: availableHomeworlds,
@@ -188,6 +191,7 @@ export class GameStartPhase extends Phase {
         type: "unchoose_race",
         playerId,
         undoable: false,
+        params: [],
       },
     };
   }
@@ -237,6 +241,7 @@ export class GameStartPhase extends Phase {
       undoAction: {
         type: "unchoose_homeworld",
         playerId,
+        params: [],
         hexId: action.hexId,
         undoable: false,
       },

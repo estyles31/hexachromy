@@ -1,7 +1,7 @@
 // /modules/throneworld/functions/phases/OutreachPhase.ts
 import { Phase, type PhaseContext } from "./Phase";
-import type { LegalActionsResponse, ActionResponse, GameAction } from "../../../../shared/models/ApiContexts";
-import type { ActionDefinition, ParamChoicesResponse, LegalChoice } from "../../../../shared/models/ActionParams";
+import type { LegalActionsResponse, ActionResponse } from "../../../../shared/models/ApiContexts";
+import type { GameAction, ParamChoicesResponse, LegalChoice } from "../../../../shared/models/ActionParams";
 import type { ThroneworldGameState } from "../../shared/models/GameState.Throneworld";
 import { UNITS } from "../../shared/models/UnitTypes.ThroneWorld";
 import { 
@@ -21,7 +21,7 @@ export class OutreachPhase extends Phase {
 
   protected async getPhaseSpecificActions(ctx: PhaseContext, playerId: string): Promise<LegalActionsResponse> {
     const state = ctx.gameState as ThroneworldGameState;
-    const actions: ActionDefinition[] = [];
+    const actions: GameAction[] = [];
 
     const actionsThisPhase = this.countPlayerActionsThisPhase(state, playerId);
 

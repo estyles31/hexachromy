@@ -1,5 +1,5 @@
 // /modules/FrontendModuleDefinition.ts
-import type { GameAction } from "../shared/models/ApiContexts";
+import type { GameAction } from "../shared/models/ActionParams";
 import type { GameDefinition } from "../shared/models/GameDefinition";
 import type { GameState } from "../shared/models/GameState";
 import type InspectContext from "../shared/models/InspectContext";

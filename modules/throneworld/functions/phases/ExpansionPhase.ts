@@ -1,6 +1,7 @@
 // /modules/throneworld/functions/phases/ExpansionPhase.ts
 import { Phase, type PhaseContext } from "./Phase";
-import type { GameAction, LegalActionsResponse, ActionResponse } from "../../../../shared/models/ApiContexts";
+import type { LegalActionsResponse, ActionResponse } from "../../../../shared/models/ApiContexts";
+import type { GameAction } from "../../../../shared/models/ActionParams";
 
 export class ExpansionPhase extends Phase {
   readonly name = "Expansion";

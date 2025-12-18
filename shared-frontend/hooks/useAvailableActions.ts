@@ -2,10 +2,10 @@
 
 import { useMemo } from "react";
 import { useSelection } from "../contexts/SelectionContext";
-import type { ActionDefinition } from "../../shared/models/ActionParams";
+import type { GameAction } from "../../shared/models/ActionParams";
 
 export interface AvailableAction {
-  definition: ActionDefinition;
+  definition: GameAction;
   isActive: boolean;              // This is the currently selected action
   canFinalize: boolean;           // All params filled, ready to execute
   finalizeLabel: string | null;   // Label for confirm button

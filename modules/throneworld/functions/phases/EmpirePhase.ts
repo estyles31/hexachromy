@@ -1,5 +1,6 @@
 // /modules/throneworld/functions/phases/EmpirePhase.ts
-import type { GameAction, LegalActionsResponse, ActionResponse } from "../../../../shared/models/ApiContexts";
+import type { LegalActionsResponse, ActionResponse } from "../../../../shared/models/ApiContexts";
+import type { GameAction } from "../../../../shared/models/ActionParams";
 import { Phase, type PhaseContext } from "./Phase";
 
 export class EmpirePhase extends Phase {

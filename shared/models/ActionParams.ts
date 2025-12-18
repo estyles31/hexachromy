@@ -1,9 +1,37 @@
 // /shared/models/ActionParams.ts
 
+import type { RenderHint } from "./ApiContexts";
+
 /**
  * Base parameter types that the framework understands
  */
 export type ParamType = "boardSpace" | "gamePiece" | "choice" | "number" | "text";
+
+
+export interface GameAction {
+  /** Required basic identity & undo semantics */
+  type: string;
+  undoable: boolean;
+
+  /** Server-side execution metadata */
+  expectedVersion?: number;              // optimistic concurrency
+  undoAction?: GameAction;                   // how to reverse this action, if undoable
+
+  /** Parameters needed before execution */
+  params: ActionParam[];                // UI/logic parameter definitions
+
+  /** Optional UI rendering info */
+  renderHint?: RenderHint;               // button label / icon / highlight info
+
+  /** Optional finalize mode */
+  finalize?: ActionFinalize;             // confirm button rules
+
+  /** Optional UI initiation helpers */
+  initiatedBy?: ActionInitiator;         // what selection starts action flow
+
+  /** Free-form, game-specific metadata (safe extension point) */
+  [key: string]: unknown;
+}
 
 /**
  * Definition of a single action parameter
@@ -33,23 +61,6 @@ export interface ActionInitiator {
   subtype?: string;
   filter?: Record<string, unknown>;
   fillsParam?: string;                 // Which param gets auto-filled by the initiator
-}
-
-/**
- * Full definition of an action with its parameters
- */
-export interface ActionDefinition {
-  type: string;
-  undoable: boolean;
-  params: ActionParam[];
-  initiatedBy?: ActionInitiator;       // What selection can START this action
-  finalize: ActionFinalize;
-  renderHint?: {
-    category?: string;
-    icon?: string;
-    label?: string;
-    description?: string;
-  };
 }
 
 /**

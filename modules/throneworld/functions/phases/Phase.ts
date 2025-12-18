@@ -1,7 +1,7 @@
 // /modules/throneworld/functions/phases/Phase.ts
 import type { ThroneworldGameState } from "../../shared/models/GameState.Throneworld";
-import type { GameAction, LegalActionsResponse, ActionResponse } from "../../../../shared/models/ApiContexts";
-import type { ParamChoicesResponse } from "../../../../shared/models/ActionParams";
+import type { LegalActionsResponse, ActionResponse } from "../../../../shared/models/ApiContexts";
+import type { GameAction, ParamChoicesResponse } from "../../../../shared/models/ActionParams";
 import type { GameDatabaseAdapter } from "../../../../shared/models/GameDatabaseAdapter";
 
 export interface PhaseContext {
@@ -28,6 +28,7 @@ export abstract class Phase {
       type: "chat",
       undoable: true,
       message: "",
+      params: [],
       renderHint: {
         category: "custom",
       }

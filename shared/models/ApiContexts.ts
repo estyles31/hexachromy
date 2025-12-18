@@ -1,4 +1,5 @@
 // /shared/models/ApiContexts.ts
+import type { GameAction } from "./ActionParams";
 import type { GameDatabaseAdapter } from "./GameDatabaseAdapter";
 import type { PlayerSlot } from "./PlayerSlot";
 
@@ -47,25 +48,6 @@ export interface RenderHint {
   
   // For custom components
   customComponent?: string;
-}
-
-export interface ActionParameter {
-  name: string;
-  required: boolean;
-  dependsOn?: string[];  // Names of parameters that must be filled first
-  renderHint?: RenderHint;
-}
-
-export interface GameAction {
-  type: string;
-  undoable: boolean;
-  expectedVersion?: number;  // For optimistic concurrency control
-  renderHint?: RenderHint;   // Optional hint for frontend rendering
-  
-  // Multi-parameter action support
-  parameters?: ActionParameter[];  // If present, action needs parameters filled
-  
-  [key: string]: unknown;
 }
 
 export interface LegalActionsContext {

@@ -184,7 +184,7 @@ export default function HexUnitsLayer({
           transform={`translate(${slot.x + dx}, ${slot.y + dy})`}
           onClick={isSelectable ? (e) => {
             e.stopPropagation();
-            onUnitClick(unitId);
+            onUnitClick(unitId, hexId);
           } : undefined}
           style={{ cursor: isSelectable ? "pointer" : undefined }}
         >

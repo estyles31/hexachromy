@@ -2,17 +2,16 @@
 
 import React, { createContext, useContext, useState, useCallback, useMemo, useEffect } from "react";
 import type { SelectionState, SelectedItem } from "../../shared/models/SelectionState";
-import type { ActionDefinition, ActionParam, LegalChoice, ParamChoicesResponse } from "../../shared/models/ActionParams";
+import type { GameAction, ActionParam, LegalChoice, ParamChoicesResponse } from "../../shared/models/ActionParams";
 import { EMPTY_SELECTION } from "../../shared/models/SelectionState";
-import type { GameAction } from "../../shared/models/ApiContexts";
 
 interface SelectionContextValue {
   // State
   selection: SelectionState;
-  legalActions: ActionDefinition[];
+  legalActions: GameAction[];
   
   // Current action being built
-  activeAction: ActionDefinition | null;
+  activeAction: GameAction | null;
   nextParam: ActionParam | null;
   nextParamChoices: LegalChoice[];
   nextParamMessage: string | null;
@@ -39,7 +38,7 @@ const SelectionContext = createContext<SelectionContextValue | null>(null);
 
 interface SelectionProviderProps {
   children: React.ReactNode;
-  legalActions: ActionDefinition[];
+  legalActions: GameAction[];
   fetchParamChoices: (
     actionType: string,
     paramName: string,
@@ -106,7 +105,7 @@ export function SelectionProvider({
         Object.entries(selection.filledParams).filter(([k]) => k !== lastParam.name)
       )
     )}`;
-    return paramChoicesCache[cacheKey]?.finalizeLabel ?? activeAction.finalize.label ?? activeAction.type;
+    return paramChoicesCache[cacheKey]?.finalizeLabel ?? activeAction.finalize?.label ?? activeAction.type;
   }, [activeAction, canFinalize, selection.filledParams, paramChoicesCache]);
 
   const finalizeMetadata = useMemo(() => {
@@ -163,7 +162,7 @@ export function SelectionProvider({
       }
     }
     // If no active action, highlight things that can initiate actions
-    else if (!activeAction && selection.items.length === 0) {
+    else if (!activeAction && selection.items.length === 0 && legalActions?.length > 0) {
       for (const action of legalActions) {
         if (action.initiatedBy) {
           // We need to fetch initial choices - this is handled by first param
@@ -253,6 +252,7 @@ export function SelectionProvider({
     onExecuteAction({
       type: activeAction.type,
       undoable: activeAction.undoable,
+      params: activeAction.params,
       ...selection.filledParams,
     });
     

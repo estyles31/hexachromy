@@ -62,4 +62,12 @@
     left: 16px;
     width: 350px;
   }
+
+  .message-panel-overlay {
+    position: absolute;
+    top: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+  }
 }
