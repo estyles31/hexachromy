@@ -2,19 +2,17 @@
 import ThroneworldInfoPanel from "./components/ThroneworldInfoPanel";
 import ThroneworldPlayerArea from "./components/ThroneworldPlayerArea";
 import ThroneworldGameInfoArea from "./components/ThroneworldGameInfoArea";
-import ThroneworldMessagePanel from "./components/ThroneworldMessagePanel";
 import type { ThroneworldGameState, ThroneworldState } from "../shared/models/GameState.Throneworld";
 import { computeBoardGeometry, type ThroneworldBoardGeometry } from "../shared/models/BoardGeometry.ThroneWorld";
 
-import type { FrontendModuleDefinition } from "../../FrontendModuleDefinition";
+import type { FrontendModuleDefinition } from "../../../shared-frontend/FrontendModuleDefinition";
 import type InspectContext from "../../../shared/models/InspectContext";
 import type { GameState } from "../../../shared/models/GameState";
 import type HoveredSystemInfo from "./models/HoveredSystemInfo";
-import type { VictoryPoints } from "../../FrontendModuleDefinition";
+import type { VictoryPoints } from "../../../shared-frontend/FrontendModuleDefinition";
 import { ThroneworldGameDefinition } from "../shared/models/GameDefinition.Throneworld";
 import type { BoardGeometry } from "../../../shared/models/BoardGeometry";
 import ThroneworldBoard from "./components/ThroneworldBoard";
-import type { GameAction } from "../../../shared/models/ActionParams";
 
 export const ThroneworldFrontendModule: FrontendModuleDefinition<ThroneworldState, HoveredSystemInfo> = {
   getBoardGeometry: (gameState: ThroneworldGameState) => {
@@ -23,7 +21,6 @@ export const ThroneworldFrontendModule: FrontendModuleDefinition<ThroneworldStat
   },
   getGameDefinition: () => ThroneworldGameDefinition,
   MainBoardComponent,
-  MessagePanelComponent: ThroneworldMessagePanel,
   PlayerAreaComponent: ThroneworldPlayerArea,
   GameInfoAreaComponent: ThroneworldGameInfoArea,
   InfoPanelComponent: ThroneworldInfoPanel,
@@ -31,13 +28,9 @@ export const ThroneworldFrontendModule: FrontendModuleDefinition<ThroneworldStat
 };
 
 function MainBoardComponent(params: {
-  gameState: GameState<ThroneworldState>;
   boardGeometry?: BoardGeometry;
   onInspect?: (context: InspectContext<HoveredSystemInfo> | null) => void;
-  legalActions?: GameAction[];
-  onExecuteAction: (action: GameAction) => void;
 }) {
-  const gameState = params.gameState as ThroneworldGameState;
   const geometry = params.boardGeometry as ThroneworldBoardGeometry;
 
   if (!geometry || !geometry.hexes) {
@@ -46,7 +39,6 @@ function MainBoardComponent(params: {
 
   return (
       <ThroneworldBoard
-        gameState={gameState}
         boardGeometry={geometry}
         onInspect={params.onInspect}
       />

@@ -1,26 +1,18 @@
 // /frontend/src/pages/game/BoardCanvas.tsx
 import { useRef, useState } from "react";
-import type { GameState } from "../../../../shared/models/GameState";
-import type { BoardGeometry } from "../../../../shared/models/BoardGeometry";
 import type InspectContext from "../../../../shared/models/InspectContext";
-import type { GameAction } from "../../../../shared/models/ActionParams";
-import { getFrontendModule } from "../../modules/getFrontendModule";
 import "./BoardCanvas.css";
+import type { FrontendModuleDefinition } from "../../../../shared-frontend/FrontendModuleDefinition";
+import { useGameStateContext } from "../../../../shared-frontend/contexts/GameStateContext";
 
 interface Props {
-  gameState: GameState;
-  boardGeometry: BoardGeometry;
+  module: FrontendModuleDefinition;
   onInspect?: (context: InspectContext<unknown> | null) => void;
-  legalActions?: GameAction[];
-  onExecuteAction: (action: GameAction) => void;
 }
 
 export default function BoardCanvas({
-  gameState,
-  boardGeometry,
+  module,
   onInspect,
-  legalActions,
-  onExecuteAction,
 }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1.0);
@@ -28,7 +20,8 @@ export default function BoardCanvas({
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
 
-  const frontendModule = getFrontendModule(gameState.gameType);
+  const gameState = useGameStateContext();
+  const boardGeometry = module.getBoardGeometry(gameState);
 
   const handleZoomIn = () => {
     setScale(prev => Math.min(prev + 0.1, 3.0));
@@ -56,12 +49,10 @@ export default function BoardCanvas({
       target.ownerSVGElement &&
       target.ownerSVGElement.parentElement?.tagName === 'g';
 
-    // Check if we're inside a nested SVG (SystemMarker) or an interactive element
+    // Check if we're inside a nested SVG or an interactive element
     const isInteractiveElement =
       target.classList.contains('game-object') ||
-      target.classList.contains('system-circle') ||
       target.closest('.game-object') !== null ||
-      target.closest('.system-circle') !== null ||
       isNestedSVG;
 
     // Only initiate drag if we're clicking on background or main board elements
@@ -89,11 +80,11 @@ export default function BoardCanvas({
     onInspect?.(null);
   };
 
-  if (!frontendModule) {
+  if (!module) {
     return <div>Unknown game type</div>;
   }
 
-  const MainBoardComponent = frontendModule.MainBoardComponent;
+  const MainBoardComponent = module.MainBoardComponent;
 
   if (!MainBoardComponent) {
     return <div>No board component for this game</div>;
@@ -132,11 +123,8 @@ export default function BoardCanvas({
             }}
           >
             <MainBoardComponent
-              gameState={gameState}
               boardGeometry={boardGeometry}
               onInspect={onInspect}
-              legalActions={legalActions}
-              onExecuteAction={onExecuteAction}
             />
           </svg>
         </div>

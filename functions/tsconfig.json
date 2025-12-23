@@ -13,12 +13,12 @@
     "target": "es2022"
   },
   "include": [
-    "src/**/*",
+    "./src/**/*",
     "../shared/**/*",
     "../modules/*/functions/**/*",
     "../modules/*/shared/**/*",
-    "../modules/backend.ts",
-    "../modules/BackendModuleDefinition.ts"
+    "../shared-backend/*",
+    "../shared-backend/**/*"
   ],
   "exclude": [
     "node_modules",

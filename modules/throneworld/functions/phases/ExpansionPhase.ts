@@ -1,7 +1,7 @@
 // /modules/throneworld/functions/phases/ExpansionPhase.ts
-import { Phase, type PhaseContext } from "./Phase";
-import type { LegalActionsResponse, ActionResponse } from "../../../../shared/models/ApiContexts";
-import type { GameAction } from "../../../../shared/models/ActionParams";
+import { Phase, PhaseContext } from "../../../../shared-backend/Phase";
+import type { LegalActionsResponse } from "../../../../shared/models/ApiContexts";
+import { GameAction, ActionResponse } from "../../../../shared/models/GameAction";
 
 export class ExpansionPhase extends Phase {
   readonly name = "Expansion";
@@ -15,6 +15,7 @@ export class ExpansionPhase extends Phase {
 
   async executePhaseAction(ctx: PhaseContext, playerId: string, action: GameAction): Promise<ActionResponse> {
     return {
+      action,
       success: false,
       error: "Expansion actions not yet implemented",
     };

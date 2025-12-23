@@ -1,5 +1,5 @@
 // /frontend/src/pages/game/GamePage.tsx
-import { useCallback, useState } from "react";
+import { useState } from "react";
 import type { GameState } from "../../../../shared/models/GameState";
 import BoardCanvas from "./BoardCanvas";
 import { getFrontendModule } from "../../modules/getFrontendModule";
@@ -10,100 +10,42 @@ import "./GamePage.css";
 import ActionHistory from "./ActionHistory";
 import ActionPanel from "./ActionPanel";
 import MessagePanel from "./MessagePanel";
-import {
-  GameStateProvider,
-  PlayersProvider,
-  GameSpecificStateProvider,
-} from "../../../../shared-frontend/contexts/GameStateContext";
-import { useLegalActions } from "../../../../shared-frontend/hooks/useLegalActions";
-import { useActionExecutor } from "../../hooks/useActionExecutor";
-import { SelectionProvider } from "../../../../shared-frontend/contexts/SelectionContext";
-import type { ParamChoicesResponse } from "../../../../shared/models/ActionParams";
-import { authFetch } from "../../auth/authFetch";
-import { useAuth } from "../../auth/useAuth";
+import { GameStateProvider,  PlayersProvider } from "../../../../shared-frontend/contexts/GameStateContext";
+import { SelectionProvider } from "../../components/SelectionProvider";
 
-export default function GamePage({ gameState }: { gameState: GameState }) {
+export default function GamePage({ gameState }: { gameState: GameState<unknown> }) {
   const [inspected, setInspected] = useState<InspectContext<unknown> | null>(null);
   const [showInfoPanel, setShowInfoPanel] = useState(true);
-
-  const { legalActions } = useLegalActions(gameState.gameId, gameState.version);
-  const { executeAction } = useActionExecutor(gameState.gameId, gameState.version, () => { });
-
-  const user = useAuth();
 
   const frontendModule = getFrontendModule(gameState.gameType);
   if (!frontendModule) {
     return <div>Unknown game type: {gameState.gameType}</div>;
   }
-
-  const boardGeometry = frontendModule.getBoardGeometry?.(gameState);
   const InfoPanelComponent = frontendModule.InfoPanelComponent;
-
-  const actionDefinitions = (legalActions?.actions) ?? [];
-
-  const fetchParamChoices = useCallback(async (
-    actionType: string,
-    paramName: string,
-    filledParams: Record<string, string>
-  ): Promise<ParamChoicesResponse> => {
-    if (!user) {
-      return { choices: [], error: "Not authenticated" };
-    }
-
-    try {
-      const response = await authFetch(user, `/api/games/${gameState.gameId}/param-choices`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ actionType, paramName, filledParams }),
-      });
-
-      if (response.ok) {
-        return await response.json();
-      } else {
-        const error = await response.json();
-        return { choices: [], error: error.error || "Failed to fetch choices" };
-      }
-    } catch (err) {
-      console.error("Error fetching param choices:", err);
-      return { choices: [], error: "Network error" };
-    }
-  }, [user, gameState.gameId]);
 
   return (
     <GameStateProvider gameState={gameState}>
-      <PlayersProvider players={gameState.players}>
-        <GameSpecificStateProvider state={gameState.state}>
-          <SelectionProvider
-            legalActions={actionDefinitions}
-            fetchParamChoices={fetchParamChoices}
-            onExecuteAction={executeAction}
-          >
+      <PlayersProvider>
+          <SelectionProvider>
             <div className="game-root">
               {/* Main board area */}
               <div className="board-container">
                 <BoardCanvas
-                  gameState={gameState}
-                  boardGeometry={boardGeometry}
+                  module={frontendModule}
                   onInspect={setInspected}
-                  legalActions={legalActions?.actions}
-                  onExecuteAction={executeAction}
                 />
               </div>
 
               {/* Right sidebar */}
               <div className="right-panel">
                 {/* Player area */}
-                <PlayerArea gameState={gameState} module={frontendModule} />
+                <PlayerArea module={frontendModule} />
 
                 {/* Game info */}
-                <GameInfoArea gameState={gameState} module={frontendModule} />
+                <GameInfoArea module={frontendModule} />
 
                 {/* Action panel */}
-                <ActionPanel
-                  gameId={gameState.gameId}
-                  gameVersion={gameState.version}
-                  onActionTaken={() => { }}
-                />
+                <ActionPanel />
 
                 {/* Info panel toggle */}
                 <button
@@ -123,16 +65,15 @@ export default function GamePage({ gameState }: { gameState: GameState }) {
               
               {/* Action history */}
               <div className="action-history-container">
-                <ActionHistory gameId={gameState.gameId} />
+                <ActionHistory />
               </div>
 
               {/* Message panel overlay */}
               <div className="message-panel-overlay">
-                <MessagePanel module={frontendModule} />              
+                <MessagePanel />              
               </div>
             </div>
           </SelectionProvider>
-        </GameSpecificStateProvider>
       </PlayersProvider>
     </GameStateProvider>
   );

@@ -1,4 +1,4 @@
-import type { GameState, Player } from "../../../../shared/models/GameState.js";
+import type { BaseState, GameState, Player } from "../../../../shared/models/GameState.js";
 import type { ThroneworldPublicSystemState, ThroneworldSystemDetails } from "./Systems.ThroneWorld";
 
 export interface ThroneworldPlayerState extends Player {
@@ -23,9 +23,6 @@ export interface ThroneworldGameState extends GameState<ThroneworldState>
   playerView?: ThroneworldPlayerView;
 }
 
-export type ThroneworldState = {
-  currentPhase: string;
-  currentPlayer?: string;
-
+export interface ThroneworldState extends BaseState {
   systems: Record<string, ThroneworldPublicSystemState>;
 }

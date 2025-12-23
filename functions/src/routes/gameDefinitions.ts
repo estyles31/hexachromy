@@ -1,7 +1,7 @@
 // functions/src/routes/gameDefinitions.ts
 import { Router } from "express";
 import type { Request, Response } from "express";
-import { backendModules } from "../../../modules/backend.js";
+import { backendModules } from "../../../shared-backend/backend.js";
 import type { GameDefinition } from "../../../shared/models/GameDefinition.js";
 
 export const gameDefinitionsRouter = Router();

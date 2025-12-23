@@ -6,6 +6,7 @@
   "workspaces": [
     "frontend",
     "functions",
-    "shared-frontend"
+    "shared-frontend",
+    "shared-backend"
   ]
 }

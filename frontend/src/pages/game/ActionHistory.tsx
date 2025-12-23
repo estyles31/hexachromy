@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "../../auth/useAuth";
 import { authFetch } from "../../auth/authFetch";
 import "./ActionHistory.css";
-import { useGameState } from "../../../../shared-frontend/hooks/useGameState";
+import { useGameStateContext } from "../../../../shared-frontend/contexts/GameStateContext";
 
 interface ActionHistoryEntry {
   actionId: string;
@@ -19,18 +19,58 @@ interface ActionHistoryEntry {
   resultingPhase: string;
 }
 
-interface Props {
-  gameId: string;
+interface ChatEntry {
+  playerId: string;
+  message: string;
+  timestamp: number;
+  undone?: boolean; //should we allow unchat?
 }
 
-export default function ActionHistory({ gameId }: Props) {
+type FeedEntry =
+  | ({ kind: "action" } & ActionHistoryEntry)
+  | ({ kind: "chat" } & ChatEntry);
+
+export default function ActionHistory() {
   const user = useAuth();
   const [isExpanded, setIsExpanded] = useState(true);
   const [actions, setActions] = useState<ActionHistoryEntry[]>([]);
   const [chatMessage, setChatMessage] = useState("");
   const [sending, setSending] = useState(false);
   const [canUndo, setCanUndo] = useState(false);
-  const { state } = useGameState(gameId);
+  const gameState = useGameStateContext();
+  const gameId = gameState.gameId;
+
+  const [showActions, setShowActions] = useState(true);
+  const [showChat, setShowChat] = useState(true);
+
+  const [chat, setChat] = useState<ChatEntry[]>([]);
+
+  const feed: FeedEntry[] = [
+    ...(showActions ? actions.map((a) : FeedEntry => ({ kind: "action", ...a })) : []),
+    ...(showChat ? chat.map((c) : FeedEntry => ({ kind: "chat", ...c })) : []),
+  ];
+
+  feed.sort((a, b) => b.timestamp - a.timestamp);
+
+
+  useEffect(() => {
+    if (!user || !showChat) return;
+
+    const loadChat = async () => {
+      try {
+        const response = await authFetch(user, `/api/games/${gameId}/chat?limit=200`);
+
+        if (response.ok) {
+          const data = await response.json();
+          setChat(data.messages || []);
+        }
+      } catch (error) {
+        console.error("Error loading chat history:", error);
+      }
+    };
+
+    loadChat();
+  }, [gameId, user, showChat, gameState.version]);
 
   // Load action history
   useEffect(() => {
@@ -49,7 +89,7 @@ export default function ActionHistory({ gameId }: Props) {
     };
 
     loadActions();
-  }, [gameId, user, state?.version]);
+  }, [gameId, user, gameState.version]);
 
   // Check if can undo
   useEffect(() => {
@@ -68,7 +108,7 @@ export default function ActionHistory({ gameId }: Props) {
     };
 
     checkCanUndo();
-  }, [gameId, user, state?.version]);
+  }, [gameId, user, gameState.version]);
 
   const handleSendChat = async () => {
     if (!user || !chatMessage.trim() || sending) return;
@@ -83,7 +123,7 @@ export default function ActionHistory({ gameId }: Props) {
             type: "chat",
             message: chatMessage.trim(),
             undoable: true,
-            expectedVersion: state?.version,
+            expectedVersion: gameState.version,
           },
         }),
       });
@@ -116,7 +156,7 @@ export default function ActionHistory({ gameId }: Props) {
         alert("Failed to fetch current game state");
         return;
       }
-      
+
       const currentState = await stateResponse.json();
       const currentVersion = currentState.version;
 
@@ -143,19 +183,19 @@ export default function ActionHistory({ gameId }: Props) {
   };
 
   const formatAction = (entry: ActionHistoryEntry): string => {
-    const playerName = state?.players[entry.playerId]?.displayName || "Unknown";
-    
+    const playerName = gameState.players[entry.playerId]?.displayName || "Unknown";
+
     if (entry.action.type === "chat") {
       return `${playerName}: ${entry.action.message}`;
     }
-    
+
     return `${playerName} performed ${entry.action.type}`;
   };
 
   if (!isExpanded) {
     return (
       <div className="action-history collapsed">
-        <button 
+        <button
           className="expand-button"
           onClick={() => setIsExpanded(true)}
         >
@@ -169,12 +209,31 @@ export default function ActionHistory({ gameId }: Props) {
     <div className="action-history">
       <div className="action-history-header">
         <h3>Action History</h3>
-        <button 
+        <button
           className="collapse-button"
           onClick={() => setIsExpanded(false)}
         >
           ×
         </button>
+        <div className="display-toggle-bar">
+        <label>
+          <input
+            type="checkbox"
+            checked={showActions}
+            onChange={() => setShowActions(!showActions)}
+          />
+          Show Actions
+        </label>
+
+        <label>
+          <input
+            type="checkbox"
+            checked={showChat}
+            onChange={() => setShowChat(!showChat)}
+          />
+          Show Chat
+        </label>
+      </div>
       </div>
 
       <div className="chat-input">
@@ -198,17 +257,22 @@ export default function ActionHistory({ gameId }: Props) {
       </div>
 
       <div className="action-list">
-        {actions
+        {feed
           .filter(a => !a.undone)
-          .map((entry) => (
+          .map((entry) => entry.kind === "chat" ? (
+            <div key={`chat-${entry.timestamp}-${entry.playerId}}`} className="chat-entry">
+              <span className="chat-name">
+                {gameState.players[entry.playerId]?.displayName ?? "Unknown"}:
+              </span>
+              <span className="chat-message">{entry.message}</span>
+            </div>
+          ) : (
             <div key={entry.actionId} className="action-entry">
               <span className="action-sequence">#{entry.sequence}</span>
               <span className="action-text">{formatAction(entry)}</span>
             </div>
-          ))}
-        {actions.length === 0 && (
-          <div className="no-actions">No actions yet. Send a chat to test!</div>
-        )}
+          )
+          )}
       </div>
     </div>
   );

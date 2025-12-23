@@ -1,11 +1,22 @@
 // functions/src/routes/gameActions.ts
 import { Router } from "express";
 import type { Request, Response } from "express";
-import type { AuthenticatedRequest } from "../middleware/auth.js";
-import { backendModules } from "../../../modules/backend.js";
+import type { AuthenticatedRequest } from "../auth.js";
+import { getBackendModule } from "../../../shared-backend/backend.js";
 import { dbAdapter } from "../services/database.js";
+import { baseActionHandler } from "../actions/ActionHandler.js";
+import { BasePhaseManager } from "../../../shared-backend/BasePhaseManager.js";
+import { IPhaseManager } from "../../../shared-backend/BackendModuleDefinition.js";
+import { GameAction } from "../../../shared/models/GameAction.js";
+
 
 export const gameActionsRouter = Router();
+
+async function getPhaseManagerForGame(gameId: string): Promise<IPhaseManager> {
+  const module = await getBackendModule(gameId, dbAdapter);
+  const phaseManager = module?.getPhaseManager(gameId, dbAdapter) ?? new BasePhaseManager(gameId, dbAdapter);
+  return phaseManager;
+}
 
 // GET /:gameId/actions - Get legal actions for current player
 gameActionsRouter.get("/:gameId/actions", async (req: Request, res: Response) => {
@@ -13,24 +24,14 @@ gameActionsRouter.get("/:gameId/actions", async (req: Request, res: Response) =>
     const { gameId } = req.params;
     const userId = (req as AuthenticatedRequest).user.uid;
 
-    // Load game state to get game type
-    const gameState = await dbAdapter.getDocument(`games/${gameId}`);
-    if (!gameState) {
-      res.status(404).json({ error: "Game not found" });
-      return;
-    }
+    const phaseManager = await getPhaseManagerForGame(gameId);
 
-    const module = backendModules[(gameState as any).gameType];
-    if (!module?.getLegalActions) {
+    if (!phaseManager?.getLegalActions) {
       res.status(400).json({ error: "Game module does not support actions" });
       return;
     }
 
-    const response = await module.getLegalActions({
-      gameId,
-      playerId: userId,
-      db: dbAdapter,
-    });
+    const response = await phaseManager.getLegalActions(userId);
 
     res.json(response);
   } catch (err) {
@@ -47,32 +48,16 @@ gameActionsRouter.post("/:gameId/action", async (req: Request, res: Response) =>
   try {
     const { gameId } = req.params;
     const userId = (req as AuthenticatedRequest).user.uid;
-    const { action } = req.body;
+    
+    const phaseManager = await getPhaseManagerForGame(gameId);
+    const action = await createAction(phaseManager, req.body.action);
 
     if (!action || typeof action !== "object") {
       res.status(400).json({ error: "Invalid action" });
       return;
     }
 
-    // Load game state to get game type
-    const gameState = await dbAdapter.getDocument(`games/${gameId}`);
-    if (!gameState) {
-      res.status(404).json({ error: "Game not found" });
-      return;
-    }
-
-    const module = backendModules[(gameState as any).gameType];
-    if (!module?.handleAction) {
-      res.status(400).json({ error: "Game module does not support actions" });
-      return;
-    }
-
-    const response = await module.handleAction({
-      gameId,
-      playerId: userId,
-      action,
-      db: dbAdapter,
-    });
+    const response = await baseActionHandler({ gameId, playerId: userId, action, db: dbAdapter}, phaseManager);
 
     if (response.success) {
       res.json(response);
@@ -93,51 +78,10 @@ gameActionsRouter.post("/:gameId/action", async (req: Request, res: Response) =>
   }
 });
 
+// not handling undo just yet
 // POST /:gameId/undo - Undo last action
-gameActionsRouter.post("/:gameId/undo", async (req: Request, res: Response) => {
-  try {
-    const { gameId } = req.params;
-    const userId = (req as AuthenticatedRequest).user.uid;
-    const { expectedVersion } = req.body;
-
-    // Load game state to get game type
-    const gameState = await dbAdapter.getDocument(`games/${gameId}`);
-    if (!gameState) {
-      res.status(404).json({ error: "Game not found" });
-      return;
-    }
-
-    const module = backendModules[(gameState as any).gameType];
-    if (!module?.undoAction) {
-      res.status(400).json({ error: "Game module does not support undo" });
-      return;
-    }
-
-    const response = await module.undoAction({
-      gameId,
-      playerId: userId,
-      expectedVersion,
-      db: dbAdapter,
-    });
-
-    if (response.success) {
-      res.json(response);
-    } else {
-      // Handle stale state specially
-      if (response.error === "stale_state") {
-        res.status(409).json(response);  // 409 Conflict
-      } else {
-        res.status(400).json(response);
-      }
-    }
-  } catch (err) {
-    console.error("Error undoing action:", err);
-    res.status(500).json({ 
-      error: "Failed to undo action",
-      details: err instanceof Error ? err.message : String(err)
-    });
-  }
-});
+// gameActionsRouter.post("/:gameId/undo", async (req: Request, res: Response) => {
+// });
 
 // GET /:gameId/actionLog - Get action history
 gameActionsRouter.get("/:gameId/actionLog", async (req: Request, res: Response) => {
@@ -145,13 +89,6 @@ gameActionsRouter.get("/:gameId/actionLog", async (req: Request, res: Response) 
     const { gameId } = req.params;
     // const userId = (req as AuthenticatedRequest).user.uid;
     const limit = parseInt(req.query.limit as string) || 100;
-
-    // Load game state to verify access
-    const gameState = await dbAdapter.getDocument(`games/${gameId}`);
-    if (!gameState) {
-      res.status(404).json({ error: "Game not found" });
-      return;
-    }
 
     // Query action log from Firestore
     const { db } = await import("../services/database.js");
@@ -190,27 +127,19 @@ gameActionsRouter.post("/:gameId/param-choices", async (req: Request, res: Respo
       return;
     }
 
-    // Load game state to get game type
-    const gameState = await dbAdapter.getDocument(`games/${gameId}`);
-    if (!gameState) {
-      res.status(404).json({ error: "Game not found" });
-      return;
-    }
+    const phaseManager = await getPhaseManagerForGame(gameId);
 
-    const module = backendModules[(gameState as any).gameType];
-    if (!module?.getParamChoices) {
+    if (!phaseManager?.getParamChoices) {
       res.status(400).json({ error: "Game module does not support param choices" });
       return;
     }
 
-    const response = await module.getParamChoices({
-      gameId,
-      playerId: userId,
+    const response = await phaseManager.getParamChoices(
+      userId,
       actionType,
       paramName,
-      filledParams: filledParams || {},
-      db: dbAdapter,
-    });
+      filledParams || {},
+    );
 
     res.json(response);
   } catch (err) {
@@ -221,3 +150,37 @@ gameActionsRouter.post("/:gameId/param-choices", async (req: Request, res: Respo
     });
   }
 });
+
+// POST /:gameId/finalize-info
+gameActionsRouter.post("/:gameId/finalize-info", async (req: Request, res: Response) => {
+  try {
+    const { gameId } = req.params;
+    const userId = (req as AuthenticatedRequest).user.uid;
+
+    const phaseManager = await getPhaseManagerForGame(gameId);
+    const action = await createAction(phaseManager, req.body);
+
+    if (!action) {
+      res.status(400).json({ error: "Unknown action type" });
+      return;
+    }
+
+    const finalize = action.getFinalizeInfo(await phaseManager.getGameState(), userId);
+    res.json(finalize);
+
+  } catch (err) {
+    console.error("Error getting finalize info:", err);
+    res.status(500).json({
+      error: "Failed to get finalize info",
+      details: err instanceof Error ? err.message : String(err),
+    });
+  }
+});
+
+async function createAction(phaseManager: IPhaseManager, action: any): Promise<GameAction | null> {
+  const instance = await phaseManager.createAction(action.type);
+  if(instance) {
+    return Object.assign(instance, action) as GameAction;
+  }
+  return null;
+}

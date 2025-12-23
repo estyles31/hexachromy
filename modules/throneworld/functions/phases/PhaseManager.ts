@@ -1,13 +1,14 @@
 // /modules/throneworld/functions/phases/PhaseManager.ts
-import type { ThroneworldGameState } from "../../shared/models/GameState.Throneworld";
-import type { GameDatabaseAdapter } from "../../../../shared/models/GameDatabaseAdapter";
-import type { ParamChoicesResponse } from "../../../../shared/models/ActionParams";
-import type { Phase, PhaseContext } from "./Phase";
+import type { Phase } from "../../../../shared-backend/Phase";
 import { GameStartPhase } from "./GameStartPhase";
 import { OutreachPhase } from "./OutreachPhase";
 import { ExpansionPhase } from "./ExpansionPhase";
 import { EmpirePhase } from "./EmpirePhase";
 import { EndPhase } from "./EndPhase";
+import { BasePhaseManager } from "../../../../shared-backend/BasePhaseManager";
+import { GameDatabaseAdapter } from "../../../../shared/models/GameDatabaseAdapter";
+import { GameState } from "../../../../shared/models/GameState";
+import { ThroneworldGameState, ThroneworldPlayerView } from "../../shared/models/GameState.Throneworld";
 
 const PHASE_MAP: Record<string, new () => Phase> = {
   "GameStart": GameStartPhase,
@@ -17,45 +18,28 @@ const PHASE_MAP: Record<string, new () => Phase> = {
   "End": EndPhase,
 };
 
-export class PhaseManager {
-  private phase: Phase;
-  private ctx: PhaseContext;
-
-  constructor(gameState: ThroneworldGameState, db: GameDatabaseAdapter) {
-    this.ctx = { gameState, db };
-
-    const phaseName = gameState.state.currentPhase;
-    const PhaseClass = PHASE_MAP[phaseName];
-
-    if (!PhaseClass) {
-      throw new Error(`Unknown phase: ${phaseName}`);
+export class ThroneworldPhaseManager extends BasePhaseManager {
+  constructor(gameId: string, db: GameDatabaseAdapter) {
+    super(gameId, db, PHASE_MAP);
+  }
+  
+  async getGameState() {
+    if(!this.state) {
+      this.state = await this.reloadGameState();
     }
-
-    this.phase = new PhaseClass();
+    return this.state;
   }
 
-  async getLegalActions(playerId: string) {
-    return this.phase.getLegalActions(this.ctx, playerId);
-  }
+async reloadGameState(): Promise<GameState> {
+  const state = await this.db.getDocument(`games/${this.gameId}`) as ThroneworldGameState;
 
-  async executeAction(playerId: string, action: any) {
-    return this.phase.executeAction(this.ctx, playerId, action);
-  }
+  const neutralView = await this.db.getDocument(
+    `games/${this.gameId}/playerViews/neutral`
+  );
 
-  async getParamChoices(
-    playerId: string,
-    actionType: string,
-    paramName: string,
-    filledParams: Record<string, string>
-  ): Promise<ParamChoicesResponse> {
-    return this.phase.getParamChoices(this.ctx, playerId, actionType, paramName, filledParams);
-  }
+  state.playerView = neutralView as ThroneworldPlayerView;
+  return state;
+}
 
-  async applyUndo(playerId: string, undoAction: any) {
-    return this.phase.applyUndo(this.ctx, playerId, undoAction);
-  }
 
-  getCurrentPhase(): Phase {
-    return this.phase;
-  }
 }

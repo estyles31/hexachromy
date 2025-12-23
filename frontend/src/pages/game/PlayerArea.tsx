@@ -1,12 +1,11 @@
 // /frontend/src/pages/game/PlayerArea.tsx
 import { memo, useMemo } from "react";
 import "./PlayerArea.css";
-import type { GameState } from "../../../../shared/models/GameState";
-import type { FrontendModuleDefinition } from "../../../../modules/FrontendModuleDefinition";
+import type { FrontendModuleDefinition } from "../../../../shared-frontend/FrontendModuleDefinition";
 import { usePlayers } from "../../../../shared-frontend/contexts/GameStateContext";
+import { useGameStateContext } from "../../../../shared-frontend/contexts/GameStateContext";
 
 interface Props<State = unknown> {
-  gameState: GameState<State>;
   module: FrontendModuleDefinition<State>;
 }
 
@@ -39,12 +38,12 @@ const PlayerPanel = memo(function PlayerPanel<State>({
 });
 
 export default function PlayerArea<State>({
-  gameState,
   module,
 }: Props<State>) {
   // Use context to subscribe to players slice
   const players = usePlayers();
-  
+  const gameState = useGameStateContext();
+
   // Memoize victory points - only recalculate when gameState.state changes
   const victoryPoints = useMemo(
     () => module.getVictoryPoints({ gameState }),

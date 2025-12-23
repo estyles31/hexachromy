@@ -1,7 +1,7 @@
 // /modules/throneworld/functions/phases/EmpirePhase.ts
-import type { LegalActionsResponse, ActionResponse } from "../../../../shared/models/ApiContexts";
-import type { GameAction } from "../../../../shared/models/ActionParams";
-import { Phase, type PhaseContext } from "./Phase";
+import { Phase, PhaseContext } from "../../../../shared-backend/Phase";
+import type { LegalActionsResponse } from "../../../../shared/models/ApiContexts";
+import { GameAction, ActionResponse } from "../../../../shared/models/GameAction";
 
 export class EmpirePhase extends Phase {
   readonly name = "Empire";
@@ -15,6 +15,7 @@ export class EmpirePhase extends Phase {
 
   async executePhaseAction(ctx: PhaseContext, playerId: string, action: GameAction): Promise<ActionResponse> {
     return {
+      action,
       success: false,
       error: "Empire actions not yet implemented",
     };

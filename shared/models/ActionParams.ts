@@ -1,66 +1,33 @@
 // /shared/models/ActionParams.ts
-
-import type { RenderHint } from "./ApiContexts";
-
 /**
  * Base parameter types that the framework understands
  */
 export type ParamType = "boardSpace" | "gamePiece" | "choice" | "number" | "text";
 
 
-export interface GameAction {
-  /** Required basic identity & undo semantics */
-  type: string;
-  undoable: boolean;
-
-  /** Server-side execution metadata */
-  expectedVersion?: number;              // optimistic concurrency
-  undoAction?: GameAction;                   // how to reverse this action, if undoable
-
-  /** Parameters needed before execution */
-  params: ActionParam[];                // UI/logic parameter definitions
-
-  /** Optional UI rendering info */
-  renderHint?: RenderHint;               // button label / icon / highlight info
-
-  /** Optional finalize mode */
-  finalize?: ActionFinalize;             // confirm button rules
-
-  /** Optional UI initiation helpers */
-  initiatedBy?: ActionInitiator;         // what selection starts action flow
-
-  /** Free-form, game-specific metadata (safe extension point) */
-  [key: string]: unknown;
+/**
+ * Represents a single selected item on the board
+ */
+export interface GameObject {
+  type: ParamType;
+  subtype?: string;                    // "hex", "fleet", "unit", etc.
+  id: string;                          // Unique identifier
+  metadata?: Record<string, unknown>;  // Game-specific data
 }
+
 
 /**
  * Definition of a single action parameter
  */
-export interface ActionParam {
+export interface ActionParam<T = string> {
   name: string;
   type: ParamType;
+  optional?: boolean;                  // optional parameter?  defaults to false
   subtype?: string;                    // Game-specific: "hex", "fleet", "unit", etc.
   filter?: Record<string, unknown>;    // Game-specific filters passed to backend
   dependsOn?: string;                  // Name of param that must be filled first
   message?: string;                    // Hint shown to player when selecting this param
-}
-
-/**
- * How an action is finalized after all params are collected
- */
-export interface ActionFinalize {
-  mode: "auto" | "confirm";
-  label?: string;                      // Static label for confirm button
-}
-
-/**
- * Defines what selection can initiate an action
- */
-export interface ActionInitiator {
-  type: ParamType;
-  subtype?: string;
-  filter?: Record<string, unknown>;
-  fillsParam?: string;                 // Which param gets auto-filled by the initiator
+  value?: T | null;                    // value that can be passed back - can be set to a value as the default
 }
 
 /**

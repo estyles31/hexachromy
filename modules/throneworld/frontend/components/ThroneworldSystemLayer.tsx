@@ -11,11 +11,6 @@ import { DEFAULT_SIZE as sysMarkerSize } from "./SystemMarker";
 interface Props {
   boardView: ThroneworldBoardView;
   onInspect?: (ctx: InspectContext<HoveredSystemInfo> | null) => void;
-  onFleetClick: (fleetId: string, hexId: string) => void;
-  onUnitClick: (unitId: string, hexId: string) => void;
-  selectableGamePieces: Set<string>;
-  selectedFleetId: string | null;
-  selectedUnitId: string | null;
 }
 
 interface HoverPreview {
@@ -24,12 +19,7 @@ interface HoverPreview {
 
 export default function ThroneworldSystemLayer({
   boardView,
-  onInspect,
-  onFleetClick,
-  onUnitClick,
-  selectableGamePieces,
-  selectedFleetId,
-  selectedUnitId,
+  onInspect
 }: Props) {
   const [hoverPreview, setHoverPreview] = useState<HoverPreview | null>(null);
 
@@ -63,11 +53,6 @@ export default function ThroneworldSystemLayer({
               hexRadius={hexRadius}
               system={sys}
               playerColors={sys.playerColors}
-              onFleetClick={onFleetClick}
-              onUnitClick={onUnitClick}
-              selectableGamePieces={selectableGamePieces}
-              selectedFleetId={selectedFleetId}
-              selectedUnitId={selectedUnitId}
             />
 
             {/* System marker */}

@@ -1,5 +1,5 @@
 // /shared/models/ApiContexts.ts
-import type { GameAction } from "./ActionParams";
+import type { GameAction, StateDelta } from "./GameAction";
 import type { GameDatabaseAdapter } from "./GameDatabaseAdapter";
 import type { PlayerSlot } from "./PlayerSlot";
 
@@ -34,7 +34,7 @@ export interface GetPlayerViewContext {
 // Actions and Legal Actions
 // ============================================================================
 
-export type RenderHintCategory = "button" | "hex-select" | "input" | "custom";
+export type RenderHintCategory = "button" | "select" | "input" | "custom";
 
 export interface RenderHint {
   category: RenderHintCategory;
@@ -69,14 +69,6 @@ export interface ActionContext {
   db: GameDatabaseAdapter;
 }
 
-export interface ActionResponse {
-  success: boolean;
-  message?: string;
-  stateChanges?: unknown;
-  undoAction?: GameAction;  // How to reverse this action (if undoable)
-  error?: string;
-}
-
 // ============================================================================
 // Parameter Value Queries
 // ============================================================================
@@ -106,7 +98,8 @@ export interface ActionHistoryEntry {
   timestamp: number;
   playerId: string;
   action: GameAction;
-  undoAction?: GameAction;
+  stateChanges: StateDelta[];
+  // undoAction - at some point may need to be supported - if there are reasons that just reversing state changes aren't good enough
   undoable: boolean;  // Can this be undone at this point in time?
   undone?: boolean;  // Has this action been undone? (for audit trail)
   resultingPhase: string;

@@ -11,29 +11,31 @@ import type {
     ThroneworldPlayerState,
     ThroneworldState,
 } from "../shared/models/GameState.Throneworld";
-import type { Player, PlayerStatus } from "../../../shared/models/GameState";
+import type { GameState, Player, PlayerStatus } from "../../../shared/models/GameState";
 import type { SystemPool, ThroneworldSystemDetails } from "../shared/models/Systems.ThroneWorld";
 import systemsJson from "../shared/data/systems.throneworld.json";
 import { GameStartContext } from "../../../shared/models/ApiContexts";
 import { PlayerSlot } from "../../../shared/models/PlayerSlot";
-import { PhaseManager } from "./phases/PhaseManager";
+import { ThroneworldPhaseManager } from "./phases/PhaseManager";
 import { dbAdapter } from "../../../functions/src/services/database";
 
 // TODO: extract this to a shared file
 const PLAYER_COLORS = ["#ff7043", "#4dd0e1", "#ce93d8", "#aed581", "#ffd54f", "#90caf9"];
 
-export async function createGame(ctx: GameStartContext): Promise<ThroneworldGameState> {
+export async function createGame(ctx: GameStartContext): Promise<GameState> {
     const filledPlayers = playerSlotsToPlayers(ctx.playerSlots);
 
     const { state, playerViews } = await buildInitialGameDocuments({
         gameId: ctx.gameId,
-        playerSlots: ctx.playerSlots,  
+        playerSlots: ctx.playerSlots,
         players: filledPlayers,
         options: ctx.options,
         name: ctx.name,
         scenario: ctx.scenario.id,
         requiredPlayers: ctx.scenario.playerCount,
     });
+
+    console.log(`Created Throneworld game ${ctx.gameId} with ${filledPlayers.length} players.`);
 
     // Persist core state
     await ctx.db.setDocument(`games/${ctx.gameId}`, state);
@@ -43,7 +45,13 @@ export async function createGame(ctx: GameStartContext): Promise<ThroneworldGame
         await ctx.db.setDocument(`games/${ctx.gameId}/playerViews/${pid}`, view);
     }
 
-    return state;
+    // Initialize the starting phase (handles random assignment, etc.)
+    const phaseManager = new ThroneworldPhaseManager(state.gameId, dbAdapter);
+    await phaseManager.startPhase();
+
+    console.log(`Starting game for ${JSON.stringify(state.players)}`);
+    
+    return await phaseManager.getGameState();
 }
 
 const SYSTEM_POOLS = systemsJson as SystemPool;
@@ -75,27 +83,27 @@ function shuffle<T>(items: T[]): T[] {
 }
 
 function playerSlotsToPlayers(slots: PlayerSlot[]): Player[] {
-  return slots
-    .filter(slot => slot.type === "human" || slot.type === "bot")
-    .map(slot => {
-      if (slot.type === "human") {
-        return {
-          uid: slot.uid,
-          displayName: slot.displayName,
-          status: "joined" as const,
-        };
-      } else {
-        return {
-          uid: slot.botId,
-          displayName: slot.displayName,
-          status: "dummy" as const,
-        };
-      }
-    });
+    return slots
+        .filter(slot => slot.type === "human" || slot.type === "bot")
+        .map(slot => {
+            if (slot.type === "human") {
+                return {
+                    uid: slot.uid,
+                    displayName: slot.displayName,
+                    status: "joined" as const,
+                };
+            } else {
+                return {
+                    uid: slot.botId,
+                    displayName: slot.displayName,
+                    status: "dummy" as const,
+                };
+            }
+        });
 }
 
 function allSlotsFilled(slots: PlayerSlot[]): boolean {
-  return slots.every(slot => slot.type !== "open");
+    return slots.every(slot => slot.type !== "open");
 }
 
 // function getFilledSlotCount(slots: PlayerSlot[]): number {
@@ -145,8 +153,6 @@ interface BuildInitialParams {
 
 /**
  * Builds the initial Throneworld state + per-player views:
- * - assigns factions
- * - assigns homeworlds
  * - draws random systems
  * - respects startScannedForAll (and revealAll, if you add it later)
  */
@@ -220,18 +226,18 @@ export async function buildInitialGameDocuments(
 
         // Homeworlds
         if (worldType === "Homeworld") {
-                systems[hex.id] = {
-                    hexId: hex.id,
-                    location: { col: hex.col, row: hex.row },
-                    worldType,
-                    revealed: true,
-                    scannedBy: [],
-                    details: {
-                        ...HOMEWORLD_BASE,
-                        systemId: `Homeworld-${hex.id}`,
-                    } as ThroneworldSystemDetails,
-                    unitsOnPlanet: {},
-                    fleetsInSpace: {}
+            systems[hex.id] = {
+                hexId: hex.id,
+                location: { col: hex.col, row: hex.row },
+                worldType,
+                revealed: true,
+                scannedBy: [],
+                details: {
+                    ...HOMEWORLD_BASE,
+                    systemId: `Homeworld-${hex.id}`,
+                } as ThroneworldSystemDetails,
+                unitsOnPlanet: {},
+                fleetsInSpace: {}
             };
 
             continue;
@@ -304,13 +310,6 @@ export async function buildInitialGameDocuments(
         actionSequence: 0,
         playerUndoStacks: {},
     };
-
-    // Initialize the starting phase (handles random assignment, etc.)
-    const phaseManager = new PhaseManager(state, dbAdapter);
-    const currentPhase = phaseManager.getCurrentPhase();
-    if (currentPhase.onPhaseStart) {
-        await currentPhase.onPhaseStart({ gameState: state, db: dbAdapter });
-    }
 
     return { state, playerViews };
 }

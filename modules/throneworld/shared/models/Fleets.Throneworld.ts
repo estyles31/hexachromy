@@ -3,10 +3,23 @@ import type { ThroneworldUnit } from "./Unit.Throneworld";
 import { UNITS } from "./UnitTypes.ThroneWorld";
 
 export interface Fleet {
-  fleetId: string;
+  id: string;
   owner: string;
   spaceUnits:  ThroneworldUnit[];
   groundUnits: ThroneworldUnit[];
+}
+
+export function getCargo(fleet: Fleet) {
+    let c = 0;
+    for(const u of fleet.spaceUnits) {
+        c += UNITS[u.unitTypeId].Cargo ?? 0;
+    }
+
+    for(const u of fleet.groundUnits) {
+        c += UNITS[u.unitTypeId].Cargo ?? 0;
+    }
+
+    return c;
 }
 
 let fleetIdCounter = 0;
@@ -21,7 +34,7 @@ export function generateFleetId(): string {
 
 export function createFleet(firstUnit: ThroneworldUnit): Fleet {
     const fleet: Fleet = { 
-        fleetId: generateFleetId(),
+        id: generateFleetId(),
         owner: firstUnit.owner ?? "neutral",
         spaceUnits: [],
         groundUnits: [],

@@ -3,7 +3,7 @@ import { Router } from "express";
 import type { Request, Response } from "express";
 import { db } from "../services/database.js";
 import type { PlayerPublicProfile } from "../../../shared/models/PlayerProfile.js";
-import type { AuthenticatedRequest } from "../middleware/auth.js";
+import type { AuthenticatedRequest } from "../auth.js";
 
 export const profilesRouter = Router();
 

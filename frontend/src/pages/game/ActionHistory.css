@@ -161,3 +161,31 @@
   padding: 24px;
   font-size: 13px;
 }
+
+.chat-entry {
+  padding: 6px 8px;
+  margin-bottom: 3px;
+  background: rgba(42, 42, 42, 0.3);
+  border-radius: 4px;
+  font-size: 13px;
+  display: flex;
+  gap: 6px;
+  align-items: baseline;
+  word-break: break-word;
+}
+
+.chat-entry:hover {
+  background: rgba(42, 42, 42, 0.45);
+}
+
+.chat-name {
+  color: #9bb8ff;           /* bluish accent for differentiation */
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.chat-message {
+  color: #ddd;
+  white-space: pre-wrap;
+  flex: 1;
+}

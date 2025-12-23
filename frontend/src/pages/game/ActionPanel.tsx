@@ -1,53 +1,144 @@
 // /frontend/src/components/ActionPanel.tsx
-import { useLegalActions } from "../../../../shared-frontend/hooks/useLegalActions";
-import { useActionExecutor } from "../../hooks/useActionExecutor";
 import "./ActionPanel.css";
+import { useSelection } from "../../../../shared-frontend/contexts/SelectionContext";
+import { useEffect, useState } from "react";
+import type { ActionFinalize } from "../../../../shared/models/GameAction";
+import { authFetch } from "../../auth/authFetch";
+import { useAuth } from "../../auth/useAuth";
+import { useGameStateContext } from "../../../../shared-frontend/contexts/GameStateContext";
 
-interface Props {
-  gameId: string;
-  gameVersion: number;
-  onActionTaken: () => void;
-}
+/**
+ * Displays:
+ *  - All resolved (finalizable) actions
+ *  - Auto-executes single trivial resolved actions
+ *  - Allows canceling current selection
+ */
+export default function ActionPanel() {
+  const {
+    resolvedActions,
+    legalActions,
+    executeAction,
+    cancelAction,
+    selection,
+  } = useSelection();
 
-export default function ActionPanel({
-  gameId,
-  gameVersion,
-  onActionTaken,
-}: Props) {
-  const { legalActions, loading } = useLegalActions(gameId, gameVersion);
-  const { executeAction, executing } = useActionExecutor(gameId, gameVersion, onActionTaken);
+  const user = useAuth();
+  const gameState = useGameStateContext();
+  const gameId = gameState.gameId;
+  const [finalizeInfo, setFinalizeInfo] =
+    useState<Record<string, ActionFinalize>>({});
 
-  if (loading) {
-    return <div className="action-panel loading">Loading actions...</div>;
-  }
+  // ────────────────────────────────────────────────
+  // Load finalize info for resolved actions
+  // ────────────────────────────────────────────────
+  useEffect(() => {
+    let cancelled = false;
 
-  if (!legalActions || legalActions.actions.length === 0) {
+    async function loadFinalizeInfo() {
+      if (!user || resolvedActions.length === 0) {
+        setFinalizeInfo({});
+        return;
+      }
+
+      const info: Record<string, ActionFinalize> = {};
+
+      for (const action of resolvedActions) {
+        const res = await authFetch(
+          user,
+          `/api/games/${gameId}/finalize-info`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ action }),
+          }
+        );
+
+        if (!res.ok) continue;
+
+        info[action.type] = await res.json();
+      }
+
+      if (!cancelled) {
+        setFinalizeInfo(info);
+      }
+    }
+
+    loadFinalizeInfo();
+    return () => { cancelled = true; };
+  }, [user, gameId, resolvedActions]);
+
+  // ────────────────────────────────────────────────
+  // AUTO EXECUTION:
+  // exactly one resolved action + no finalize label
+  // ────────────────────────────────────────────────
+  useEffect(() => {
+    if (resolvedActions.length !== 1) return;
+
+    const action = resolvedActions[0];
+    const fin = finalizeInfo[action.type];
+
+    if (fin && !fin.label) {
+      executeAction(action);
+    }
+  }, [resolvedActions, finalizeInfo, executeAction]);
+
+  const hasResolved = resolvedActions.length > 0;
+  const hasSelection = selection.items.length > 0;
+
+  // ────────────────────────────────────────────────
+  // Empty state
+  // ────────────────────────────────────────────────
+  if (!hasResolved && !hasSelection) {
     return (
       <div className="action-panel empty">
-        {legalActions?.message || "No actions available"}
+        <div className="action-message">
+          {legalActions.length === 0
+            ? "No actions available"
+            : "Select game objects to begin an action"}
+        </div>
       </div>
     );
   }
 
+  // ────────────────────────────────────────────────
+  // MAIN RENDER
+  // ────────────────────────────────────────────────
   return (
     <div className="action-panel">
-      {legalActions.message && (
-        <div className="action-message">{legalActions.message}</div>
+
+      {/* Finalization buttons */}
+      {hasResolved && (
+        <>
+          <div className="action-panel__header">Confirm Action</div>
+          <div className="action-panel__buttons">
+            {resolvedActions.map(action => {
+              const fin = finalizeInfo[action.type];
+
+              return (
+                <button
+                  key={action.type}
+                  className="action-panel__button action-panel__button--primary"
+                  onClick={() => executeAction(action)}
+                >
+                  {fin?.label ?? action.type}
+                </button>
+              );
+            })}
+          </div>
+        </>
       )}
 
-      <div className="action-buttons">
-        {legalActions.actions.map((action, i) => (
+      {/* Cancel selection */}
+      {hasSelection && (
+        <div className="action-panel__cancel">
           <button
-            key={action.type + i}
-            onClick={() => executeAction(action)}
-            disabled={executing}
-            className="action-button"
-            title={action.renderHint?.description}
+            className="action-panel__button action-panel__button--cancel"
+            onClick={cancelAction}
           >
-            {action.renderHint?.label || action.type}
+            Cancel Selection
           </button>
-        ))}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

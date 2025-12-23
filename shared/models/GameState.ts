@@ -9,7 +9,12 @@ export interface Player {
     displayName?: string;
 }
 
-export interface GameState<State = unknown> {
+export interface BaseState {
+  currentPlayer?: string;
+  currentPhase: string;
+}
+
+export interface GameState<State = BaseState> {
   gameId: string;
   /** Stable string for the game name, i.e. "throneworld" */
   gameType: string;

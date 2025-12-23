@@ -8,21 +8,19 @@ import { type ThroneworldBoardGeometry, getHexagonPoints } from "../../shared/mo
 import type InspectContext from "../../../../shared/models/InspectContext";
 import type HoveredSystemInfo from "../models/HoveredSystemInfo";
 import { useSelection } from "../../../../shared-frontend/contexts/SelectionContext";
-import { useSelectableItems } from "../../../../shared-frontend/hooks/useSelectableItems";
+import { useGameStateContext } from "../../../../shared-frontend/contexts/GameStateContext";
 
 interface Props {
-  gameState: ThroneworldGameState;
   boardGeometry: ThroneworldBoardGeometry;
   onInspect?: (context: InspectContext<HoveredSystemInfo> | null) => void;
 }
 
 export default function ThroneworldBoard({
-  gameState,
   boardGeometry,
   onInspect,
 }: Props) {
-  const { selection, select, clearSelection } = useSelection();
-  const { boardSpaces: selectableBoardSpaces, gamePieces: selectableGamePieces } = useSelectableItems();
+  const gameState = useGameStateContext() as ThroneworldGameState;
+  const { selection, select,selectableBoardSpaces } = useSelection();
 
   const playerColors = useMemo(
     () => Object.fromEntries(
@@ -48,35 +46,8 @@ export default function ThroneworldBoard({
         subtype: "hex",
         id: hexId,
       });
-    } else {
-      // Click on non-selectable hex clears selection
-      clearSelection();
-    }
-  }, [selectableBoardSpaces, select, clearSelection]);
-
-  // Handle fleet click
-  const handleFleetClick = useCallback((fleetId: string, hexId: string) => {
-    if (selectableGamePieces.has(fleetId)) {
-      select({
-        type: "gamePiece",
-        subtype: "fleet",
-        id: fleetId,
-        metadata: { hexId },
-      });
-    }
-  }, [selectableGamePieces, select]);
-
-  // Handle unit click (including command bunkers)
-  const handleUnitClick = useCallback((unitId: string, hexId: string) => {
-    if (selectableGamePieces.has(unitId)) {
-      select({
-        type: "gamePiece",
-        subtype: "unit",
-        id: unitId,
-        metadata: { hexId },
-      });
-    }
-  }, [selectableGamePieces, select]);
+    } 
+  }, [selectableBoardSpaces, select]);
 
   // Handle click on empty space
   // const handleBackgroundClick = useCallback(() => {
@@ -94,18 +65,6 @@ export default function ThroneworldBoard({
       }
     }
     return hexes;
-  }, [selection.items]);
-
-  // Get selected fleet ID
-  const selectedFleetId = useMemo(() => {
-    const fleetItem = selection.items.find(i => i.type === "gamePiece" && i.subtype === "fleet");
-    return fleetItem?.id ?? null;
-  }, [selection.items]);
-
-  // Get selected unit ID
-  const selectedUnitId = useMemo(() => {
-    const unitItem = selection.items.find(i => i.type === "gamePiece" && i.subtype === "unit");
-    return unitItem?.id ?? null;
   }, [selection.items]);
 
   return (
@@ -167,11 +126,6 @@ export default function ThroneworldBoard({
       <ThroneworldSystemLayer
         boardView={boardView}
         onInspect={onInspect}
-        onFleetClick={handleFleetClick}
-        onUnitClick={handleUnitClick}
-        selectableGamePieces={selectableGamePieces}
-        selectedFleetId={selectedFleetId}
-        selectedUnitId={selectedUnitId}
       />
     </>
   );

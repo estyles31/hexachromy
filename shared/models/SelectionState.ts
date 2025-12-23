@@ -1,23 +1,13 @@
 // /shared/models/SelectionState.ts
 
-import type { ParamType } from "./ActionParams";
-
-/**
- * Represents a single selected item on the board
- */
-export interface SelectedItem {
-  type: ParamType;
-  subtype?: string;                    // "hex", "fleet", "unit", etc.
-  id: string;                          // Unique identifier
-  metadata?: Record<string, unknown>;  // Game-specific data
-}
+import type { GameObject } from "./ActionParams";
 
 /**
  * Current selection state
  */
 export interface SelectionState {
   /** Currently selected items in order of selection */
-  items: SelectedItem[];
+  items: GameObject[];
   
   /** Action type being built, if user has committed to a specific action */
   activeActionType?: string;

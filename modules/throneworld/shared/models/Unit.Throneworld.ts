@@ -4,7 +4,7 @@ import type { UnitId } from "./UnitTypes.ThroneWorld";
 let unitIdCounter = 0;
 
 export interface ThroneworldUnit {
-  unitId: string;
+  id: string;
   unitTypeId: UnitId;
   hasMoved: boolean;
   owner?: string;
@@ -12,7 +12,7 @@ export interface ThroneworldUnit {
 
 export function buildUnit(unitTypeId:UnitId, owner?:string) : ThroneworldUnit {
     return {
-        unitId: generateUnitId(),
+        id: generateUnitId(),
         unitTypeId,
         owner,
         hasMoved: false

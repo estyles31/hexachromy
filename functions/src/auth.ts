@@ -1,7 +1,7 @@
 // functions/src/middleware/auth.ts
 import type { Request, Response, NextFunction } from "express";
 import admin from "firebase-admin";
-import { ensurePlayerProfile } from "../services/profiles.js";
+import { ensurePlayerProfile } from "./services/profiles.js";
 
 export interface AuthenticatedRequest extends Request {
   user: admin.auth.DecodedIdToken;

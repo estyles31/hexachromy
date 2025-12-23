@@ -1,126 +1,253 @@
 // /modules/throneworld/functions/actions/ScanAction.ts
-import type { ThroneworldGameState } from "../../shared/models/GameState.Throneworld";
-import type { ActionResponse } from "../../../../shared/models/ApiContexts";
-import { UNITS } from "../../shared/models/UnitTypes.ThroneWorld";
-import { calculateHexDistance } from "../../shared/models/HexUtils";
 
-export interface ScanParams {
-  bunkerHexId: string;
-  targetHexId: string;
-}
+import { GameObject, ParamChoicesResponse } from "../../../../shared/models/ActionParams";
+import { registerAction } from "../../../../shared-backend/ActionRegistry";
+import { GameAction, ActionFinalize, ActionResponse, StateDelta } from "../../../../shared/models/GameAction";
+import { GameState } from "../../../../shared/models/GameState";
+import { getHexesWithinRange } from "../../shared/models/BoardLayout.ThroneWorld";
+import { ThroneworldGameState } from "../../shared/models/GameState.Throneworld";
+import { UNITS } from "../../shared/models/UnitTypes.ThroneWorld";
+import { findUnit, markUnitsMoved } from "./ActionHelpers";
 
 /**
- * Get hexes containing unused Command Bunkers for the player
+ * SCAN ACTION
+ * Command bunker → scan hex within Comm range → mark bunker used
  */
-export function getAvailableBunkers(
-  state: ThroneworldGameState,
-  playerId: string
-): string[] {
-  const bunkerHexes: string[] = [];
+export class ScanAction extends GameAction {
 
-  for (const [hexId, system] of Object.entries(state.state.systems)) {
-    const playerUnits = system.unitsOnPlanet[playerId];
-    if (!playerUnits) continue;
+  constructor() {
+    super({
+      type: "scan",
+      undoable: false,
+      params: [
+        {
+          name: "bunkerUnitId",
+          type: "gamePiece",
+          subtype: "unit",
+          message: "Select a Command Bunker"
+        },
+        {
+          name: "targetHexId",
+          type: "boardSpace",
+          subtype: "hex",
+          dependsOn: "bunkerUnitId",
+          message: "Select hex to scan"
+        }
+      ],
+      finalize: {
+        mode: "confirm",
+        label: "Scan"
+      }
+    });
+  }
 
-    const hasUnusedBunker = playerUnits.some(unit => {
-      const unitDef = UNITS[unit.unitTypeId];
-      return unitDef?.Command && !unit.hasMoved;
+
+  /**
+   * FINALIZE text
+   */
+  getFinalizeInfo(state: GameState, playerId: string): ActionFinalize {
+
+    const bunkerUnitId = this.params.find(p => p.name === "bunkerUnitId")?.value;
+    const targetHexId = this.params.find(p => p.name === "targetHexId")?.value;
+
+    if (!bunkerUnitId || !targetHexId)
+      return this.finalize!;
+
+    const tw = state as ThroneworldGameState;
+    const target = tw.state.systems[targetHexId];
+    const already = target?.scannedBy?.includes(playerId);
+
+    return {
+      mode: "confirm",
+      label: already ? "Rescan?" : "Scan",
+      warnings: already ? ["You already scanned this hex"] : []
+    };
+  }
+
+
+  /**
+   * EXECUTE (produce StateDelta[])
+   */
+  async execute(state: GameState, playerId: string): Promise<ActionResponse> {
+
+    if (!this.allParamsComplete()) {
+      return { action: this, success: false, error: "missing_parameters" };
+    }
+
+    const tw = state as ThroneworldGameState;
+
+    const bunkerUnitId = this.params.find(p => p.name === "bunkerUnitId")!.value as string;
+    const targetHexId = this.params.find(p => p.name === "targetHexId")!.value as string;
+
+    const bunkerInfo = findUnit(tw, playerId, bunkerUnitId, true);
+    if (!bunkerInfo)
+      return { action: this, success: false, error: "bunker_not_found" };
+
+    const { unit: bunkerUnit, hexId: bunkerHexId } = bunkerInfo;
+
+    const system = tw.state.systems[targetHexId];
+    if (!system)
+      return { action: this, success: false, error: "invalid_hex" };
+
+    if (bunkerUnit.hasMoved)
+      return { action: this, success: false, error: "bunker_used" };
+
+    const already = system.scannedBy?.includes(playerId);
+    if (already)
+      return { action: this, success: false, error: "hex_scanned" };
+
+
+    // ===============
+    // BUILD DELTAS
+    // ===============
+
+    const deltas: StateDelta[] = [];
+
+
+    // 1️⃣ mark bunker used
+    const bunkerUnits =
+      tw.state.systems[bunkerHexId].unitsOnPlanet[playerId];
+
+    const newUnits = markUnitsMoved(bunkerUnits, [bunkerUnitId]);
+
+    deltas.push({
+      path: `state.systems.${bunkerHexId}.unitsOnPlanet.${playerId}`,
+      oldValue: bunkerUnits,
+      newValue: newUnits,
+      visibility: "public"
     });
 
-    if (hasUnusedBunker) {
-      bunkerHexes.push(hexId);
-    }
+
+    // 2️⃣ record scannedBy list
+    const oldScan = system.scannedBy ?? [];
+
+    deltas.push({
+      path: `state.systems.${targetHexId}.scannedBy`,
+      oldValue: oldScan,
+      newValue: [...oldScan, playerId],
+      visibility: "public",
+    });
+
+
+    // 3️⃣ reveal data to playerView
+    deltas.push({
+      path: `playerViews.${playerId}.revealed.${targetHexId}`,
+      oldValue: undefined,
+      newValue: system,
+      visibility: "owner",
+      ownerId: playerId
+    });
+
+
+    return {
+      action: this, 
+      success: true,
+      stateChanges: deltas,
+      undoable: false,
+      message: `hex ${targetHexId} scanned`
+    };
   }
 
-  return bunkerHexes;
+
+  /**
+   * PARAM CHOICES
+   */
+  getParamChoices(
+    state: ThroneworldGameState,
+    playerId: string,
+    paramName: string
+  ): ParamChoicesResponse {
+
+    const filled = Object.fromEntries(
+      this.params
+        .filter(p => p.value !== undefined)
+        .map(p => [p.name, p.value as string])
+    );
+
+    switch (paramName) {
+
+      case "bunkerUnitId":
+        return getScanBunkerChoices(state, playerId);
+
+      case "targetHexId":
+        if (!filled.bunkerUnitId)
+          return { choices: [], error: "select_bunker" };
+
+        return getScanTargetChoices(state, playerId, filled.bunkerUnitId);
+
+      default:
+        return { choices: [], error: "unknown_param" };
+    }
+  }
 }
 
-/**
- * Get hexes that can be scanned from the given bunker location
- */
-export function getScannableHexes(
+function getScanBunkerChoices(
   state: ThroneworldGameState,
-  playerId: string,
-  bunkerHexId: string
-): string[] {
-  const player = state.players[playerId];
-  if (!player) return [];
+  playerId: string
+): ParamChoicesResponse {
 
-  const commRange = player.tech.Comm || 0;
-  const scannableHexes: string[] = [];
+  const out: GameObject[] = [];
 
   for (const [hexId, system] of Object.entries(state.state.systems)) {
-    // Skip if already scanned by this player
-    if (system.scannedBy?.includes(playerId)) continue;
 
-    // Check if within Comm range
-    const distance = calculateHexDistance(bunkerHexId, hexId);
-    if (distance <= commRange) {
-      scannableHexes.push(hexId);
+    const units = system.unitsOnPlanet[playerId];
+    if (!units) continue;
+
+    for (const u of units) {
+
+      const def = UNITS[u.unitTypeId];
+      if (!def?.Command) continue;
+      if (u.hasMoved) continue;
+
+      out.push({
+        id: u.id,
+        type: "gamePiece",
+        subtype: "unit",
+        metadata: { hexId }
+      });
     }
   }
 
-  return scannableHexes;
-}
-
-/**
- * Execute a scan action
- */
-export function executeScan(
-  state: ThroneworldGameState,
-  playerId: string,
-  params: ScanParams
-): ActionResponse {
-  const { bunkerHexId, targetHexId } = params;
-
-  const bunkerSystem = state.state.systems[bunkerHexId];
-  const targetSystem = state.state.systems[targetHexId];
-
-  if (!bunkerSystem || !targetSystem) {
-    return { success: false, error: "Invalid hex" };
-  }
-
-  // Validate bunker exists and is unused
-  const playerUnits = bunkerSystem.unitsOnPlanet[playerId];
-  if (!playerUnits) {
-    return { success: false, error: "No units at bunker location" };
-  }
-
-  const bunkerUnit = playerUnits.find(unit => {
-    const unitDef = UNITS[unit.unitTypeId];
-    return unitDef?.Command && !unit.hasMoved;
-  });
-
-  if (!bunkerUnit) {
-    return { success: false, error: "No unused Command Bunker at location" };
-  }
-
-  // Validate target is in range
-  const player = state.players[playerId];
-  const commRange = player?.tech.Comm || 0;
-  const distance = calculateHexDistance(bunkerHexId, targetHexId);
-  
-  if (distance > commRange) {
-    return { success: false, error: "Target hex out of Comm range" };
-  }
-
-  // Validate target not already scanned
-  if (targetSystem.scannedBy?.includes(playerId)) {
-    return { success: false, error: "Hex already scanned" };
-  }
-
-  // Mark bunker as used
-  bunkerUnit.hasMoved = true;
-
-  // Add player to scannedBy list
-  if (!targetSystem.scannedBy) {
-    targetSystem.scannedBy = [];
-  }
-  targetSystem.scannedBy.push(playerId);
-
   return {
-    success: true,
-    stateChanges: state,
-    message: `Scanned ${targetHexId}`,
+    choices: out.map(o => ({
+      id: o.id,
+      type: "gamePiece",
+      subtype: "unit",
+      displayHint: o.metadata
+    })),
+    message: `Select Command Bunker (${out.length})`
   };
 }
+
+
+export function getScanTargetChoices(
+  state: ThroneworldGameState,
+  playerId: string,
+  bunkerUnitId: string
+): ParamChoicesResponse {
+
+  const bunker = findUnit(state, playerId, bunkerUnitId, true);
+  if (!bunker)
+    return { choices: [], error: "bunker_not_found" };
+
+  const player = state.players[playerId];
+  const comm = player.tech.Comm ?? 1;
+
+  const scenario = typeof state.options.scenario === "string" && state.options.scenario.trim()
+    ? state.options.scenario
+    : "6p";
+
+  const reachable = getHexesWithinRange(bunker.hexId, comm, scenario);
+
+  return {
+    choices: reachable.map(hexId => ({
+      id: hexId,
+      type: "boardSpace",
+      subtype: "hex",
+      displayHint: { hexId }
+    })),
+    message: `Select target (${reachable.length})`
+  };
+}
+
+registerAction("scan", ScanAction);

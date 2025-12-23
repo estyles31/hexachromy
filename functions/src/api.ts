@@ -1,7 +1,7 @@
 // functions/src/api.ts
 import express from "express";
 import { onRequest } from "firebase-functions/v2/https";
-import { authMiddleware } from "./middleware/auth";
+import { authMiddleware } from "./auth";
 import { gameDefinitionsRouter } from "./routes/gameDefinitions";
 import { gamesRouter } from "./routes/games";
 import { profilesRouter } from "./routes/profiles";

@@ -1,25 +1,25 @@
 // /modules/throneworld/frontend/components/ThroneworldPlayerArea.tsx
-import type { ThroneworldPlayerState, ThroneworldState } from "../../shared/models/GameState.Throneworld";
+import type { ThroneworldGameState, ThroneworldPlayerState } from "../../shared/models/GameState.Throneworld";
 import { getProductionForPlayer } from "../../shared/models/Production.ThroneWorld";
 import { Factions, type FactionID } from "../../shared/models/Factions.ThroneWorld";
 import "./ThroneworldPlayerArea.css";
-import { usePlayers, useGameSpecificState } from "../../../../shared-frontend/contexts/GameStateContext";
-import { memo, useMemo } from "react";
+import { useGameStateContext, usePlayers } from "../../../../shared-frontend/contexts/GameStateContext";
+import { useMemo } from "react";
 
-export default memo(function ThroneworldPlayerArea({ playerId }: { playerId: string; }) 
+export default function ThroneworldPlayerArea({ playerId }: { playerId: string; }) 
 {
   // Get player from Players context (only re-renders when players change)
   const players = usePlayers();
   const player = players[playerId] as ThroneworldPlayerState;
   
   // Get systems for production calculation
-  const state = useGameSpecificState<ThroneworldState>();
+  const gameState = useGameStateContext() as ThroneworldGameState;
 
   if (!player) return null;
 
   const production = useMemo(
-    () => getProductionForPlayer(state, playerId),
-    [state.systems, playerId]
+    () => getProductionForPlayer(gameState.state, playerId),
+    [gameState.state.systems, playerId]
   );
 
   return (
@@ -72,4 +72,4 @@ export default memo(function ThroneworldPlayerArea({ playerId }: { playerId: str
       </div>
     </div>
   );
-});
+}

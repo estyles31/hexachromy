@@ -1,7 +1,7 @@
 // /modules/throneworld/functions/phases/EndPhase.ts
-import { Phase, type PhaseContext } from "./Phase";
-import type { LegalActionsResponse, ActionResponse } from "../../../../shared/models/ApiContexts";
-import type { GameAction } from "../../../../shared/models/ActionParams";
+import { Phase, PhaseContext } from "../../../../shared-backend/Phase";
+import type { LegalActionsResponse } from "../../../../shared/models/ApiContexts";
+import { GameAction, ActionResponse } from "../../../../shared/models/GameAction";
 
 export class EndPhase extends Phase {
   readonly name = "End";
@@ -15,6 +15,7 @@ export class EndPhase extends Phase {
 
   async executePhaseAction(ctx: PhaseContext, playerId: string, action: GameAction): Promise<ActionResponse> {
     return {
+      action,
       success: false,
       error: "End phase actions not yet implemented",
     };
