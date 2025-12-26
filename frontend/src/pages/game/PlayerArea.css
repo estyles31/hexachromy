@@ -49,3 +49,8 @@
   color: #a5a5a5;
   margin-top: 4px;
 }
+
+.player-panel--active {
+  outline: 3px solid #fff;
+  box-shadow: 0 0 0 2px #000;
+}

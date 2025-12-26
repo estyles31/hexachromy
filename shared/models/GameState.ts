@@ -1,5 +1,3 @@
-import type { ActionHistoryEntry } from "./ApiContexts";
-
 export type PlayerStatus = "joined" | "invited" | "dummy";
 export type GameStatus = "waiting" | "in-progress";
 
@@ -10,7 +8,7 @@ export interface Player {
 }
 
 export interface BaseState {
-  currentPlayer?: string;
+  currentPlayers?: string[];
   currentPhase: string;
 }
 
@@ -42,6 +40,8 @@ export interface GameState<State = BaseState> {
   /** Next sequence number for action log */
   actionSequence: number;
   
+  playerViews?: Record<string, any>; // Per-player hidden, if any
+
   /** Per-player undo stacks - only actions they can currently undo (up to their undo boundary) */
-  playerUndoStacks?: Record<string, ActionHistoryEntry[]>;
+  // playerUndoStacks?: Record<string, ActionHistoryEntry[]>;
 }

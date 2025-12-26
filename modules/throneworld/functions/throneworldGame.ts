@@ -2,7 +2,7 @@
 import type { BackendModuleDefinition, IPhaseManager } from "../../../shared-backend/BackendModuleDefinition";
 import { ThroneworldGameDefinition } from "../shared/models/GameDefinition.Throneworld";
 import { createGame as createThroneworldGame } from "./createThroneworldGame";
-import { getPlayerView as getTWPlayerView } from "./throneworldPlayerView";
+import { getPlayerViews as getTWPlayerView } from "./throneworldPlayerView";
 import { ThroneworldPhaseManager } from "./phases/PhaseManager";
 import { GameDatabaseAdapter } from "../../../shared/models/GameDatabaseAdapter";
 
@@ -17,7 +17,7 @@ export const throneworldBackend: BackendModuleDefinition = {
     return createThroneworldGame(ctx);
   },
 
-  async getPlayerView(ctx) {
+  async getPlayerViews(ctx) {
     return getTWPlayerView(ctx);
   },
 

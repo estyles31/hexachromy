@@ -4,9 +4,9 @@ import type { GameState } from "../../../../shared/models/GameState";
 import type { ThroneworldGameState } from "../../shared/models/GameState.Throneworld";
 import { registerAction } from "../../../../shared-backend/ActionRegistry";
 import { buildUnit } from "../../shared/models/Unit.Throneworld";
-import { addUnitToSystem } from "../../shared/models/Systems.ThroneWorld";
 import { ParamChoicesResponse } from "../../../../shared/models/ActionParams";
-import { Factions } from "../../shared/models/Factions.ThroneWorld";
+import { createFleet } from "../../shared/models/Fleets.Throneworld";
+import { pickRandom, shuffle } from "../../../../shared/utils/RandomUtils";
 
 export class ChooseHomeworldAction extends GameAction {
 
@@ -33,12 +33,7 @@ export class ChooseHomeworldAction extends GameAction {
       return { choices: [], error: "unknown_param" };
 
     const tw = state as ThroneworldGameState;
-    const available: string[] = [];
-
-    for (const [hexId, system] of Object.entries(tw.state.systems)) {
-      if (system.worldType === "Homeworld" && !system.details?.owner)
-        available.push(hexId);
-    }
+    const available = this.getAvailableHomeworlds(tw);
 
     return {
       choices: available.map(h => ({
@@ -62,54 +57,138 @@ export class ChooseHomeworldAction extends GameAction {
       return { action: this, success: false, error: "invalid_homeworld" };
 
     if (system.details?.owner)
-      return { action: this, success: false, error: "home_owned" };
+      return { action: this, success: false, error: "homeworld_taken" };
 
-    const race = tw.players[playerId].race;
-    if (!race) return { action: this, success: false, error: "pick_race_first" };
-
-    assignHomeworldToPlayer(tw, playerId, hexId);
+    this.assignHomeworld(tw, playerId, hexId);
 
     return {
       action: this,
       success: true,
-      message: `Homeworld selected: ${hexId}`
+      message: `Homeworld ${hexId} claimed`
     };
   }
+
+  private getAvailableHomeworlds(state: ThroneworldGameState): string[] {
+    const available: string[] = [];
+    for (const [hexId, system] of Object.entries(state.state.systems)) {
+      if (system.worldType === "Homeworld" && !system.details?.owner) {
+        available.push(hexId);
+      }
+    }
+    return available;
+  }
+
+  private assignHomeworld(state: ThroneworldGameState, playerId: string, hexId: string): void {
+    const player = state.players[playerId];
+    const system = state.state.systems[hexId];
+
+    if (!player || !system || !player.race) return;
+
+    // Set owner
+    if (!system.details) {
+      system.details = {
+        systemId: hexId,
+        dev: 10,
+        spaceTech: 0,
+        groundTech: 0,
+        spaceUnits: {},
+        groundUnits: {},
+      };
+    }
+    system.details.owner = playerId;
+    system.revealed = true;
+
+    // Build starting units
+    const bunkId = player.race === "Q" ? "qC" : "C";
+    if (!system.unitsOnPlanet[playerId]) {
+      system.unitsOnPlanet[playerId] = [];
+    }
+    system.unitsOnPlanet[playerId].push(
+      buildUnit(bunkId, playerId),
+      buildUnit(bunkId, playerId)
+    );
+
+    // Build starting fleets
+    if (!system.fleetsInSpace[playerId]) {
+      system.fleetsInSpace[playerId] = [];
+    }
+    system.fleetsInSpace[playerId].push(
+      createFleet(buildUnit("Sv", playerId)),
+      createFleet(buildUnit("Sv", playerId)),
+      createFleet(buildUnit("Sh", playerId))
+    );
+  }
+
+  // ========== Random Assignment ==========
+
+  static assignRandomly(state: ThroneworldGameState): void {
+    const playerIds = shuffle(Object.keys(state.players));
+    const hexIds = shuffle(this.getAllAvailableHomeworlds(state));
+
+    playerIds.forEach((playerId, index) => {
+      const hexId = hexIds[index];
+      if (hexId) {
+        this.assignHomeworldStatic(state, playerId, hexId);
+      }
+    });
+  }
+
+  static assignRandomForBot(state: ThroneworldGameState, playerId: string): void {
+    const available = this.getAllAvailableHomeworlds(state);
+    const hexId = pickRandom(available);
+    this.assignHomeworldStatic(state, playerId, hexId);
+  }
+
+  private static getAllAvailableHomeworlds(state: ThroneworldGameState): string[] {
+    const available: string[] = [];
+    for (const [hexId, system] of Object.entries(state.state.systems)) {
+      if (system.worldType === "Homeworld" && !system.details?.owner) {
+        available.push(hexId);
+      }
+    }
+    return available;
+  }
+
+  private static assignHomeworldStatic(state: ThroneworldGameState, playerId: string, hexId: string): void {
+    const player = state.players[playerId];
+    const system = state.state.systems[hexId];
+
+    if (!player || !system || !player.race) return;
+
+    // Set owner
+    if (!system.details) {
+      system.details = {
+        systemId: hexId,
+        dev: 10,
+        spaceTech: 0,
+        groundTech: 0,
+        spaceUnits: {},
+        groundUnits: {},
+      };
+    }
+    system.details.owner = playerId;
+    system.revealed = true;
+
+    // Build starting units
+    const bunkId = player.race === "Q" ? "qC" : "C";
+    if (!system.unitsOnPlanet[playerId]) {
+      system.unitsOnPlanet[playerId] = [];
+    }
+    system.unitsOnPlanet[playerId].push(
+      buildUnit(bunkId, playerId),
+      buildUnit(bunkId, playerId)
+    );
+
+    // Build starting fleets
+    if (!system.fleetsInSpace[playerId]) {
+      system.fleetsInSpace[playerId] = [];
+    }
+    system.fleetsInSpace[playerId].push(
+      createFleet(buildUnit("Sv", playerId)),
+      createFleet(buildUnit("Sv", playerId)),
+      createFleet(buildUnit("Sh", playerId))
+    );
+  }
 }
-
-
-export function assignHomeworldToPlayer(state: ThroneworldGameState, playerId: string, hexId: string): void {
-  const player = state.players[playerId];
-  const system = state.state.systems[hexId];
-
-  if (!player || !system || !player.race) return;
-
-  const faction = Factions[player.race];
-  const hwProduction = 10 + (faction.ProductionBonus?.Homeworld || 0);
-
-  system.details = {
-    systemId: `homeworld-${playerId}`,
-    owner: playerId,
-    dev: hwProduction,
-    spaceTech: 0,
-    groundTech: 0,
-    spaceUnits: {},
-    groundUnits: {},
-  };
-
-  const bunkerId = player.race === "Q" ? "qC" : "C";
-
-  // Build 2 Command Bunkers, 2 Survey Teams, and a Shield
-  addUnitToSystem(system, buildUnit(bunkerId, playerId));
-  addUnitToSystem(system, buildUnit(bunkerId, playerId));
-  addUnitToSystem(system, buildUnit("Sv", playerId));
-  addUnitToSystem(system, buildUnit("Sv", playerId));
-  addUnitToSystem(system, buildUnit("Sh", playerId));
-
-  system.revealed = true;
-  system.scannedBy = [playerId];
-  player.resources = hwProduction;
-}
-
 
 registerAction("choose_homeworld", ChooseHomeworldAction);

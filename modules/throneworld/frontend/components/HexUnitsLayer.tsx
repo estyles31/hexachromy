@@ -111,7 +111,6 @@ export default function HexUnitsLayer({
   hexRadius,
   playerColors,
   debugSlots = false,
-  debugSelection = true,
 }: Props) {
 
   const {select, selectableGamePieces, selection} = useSelection();
@@ -127,7 +126,7 @@ export default function HexUnitsLayer({
       });
     }
 
-    if(debugSelection) {
+    if(process.env.DEBUG === "true") {
       console.log("Clicked fleet:", fleetId, "at hex:", hexId);
     }
   }, [selectableGamePieces, select]);
@@ -143,7 +142,7 @@ export default function HexUnitsLayer({
       });
     }
 
-    if(debugSelection) {
+    if(process.env.DEBUG === "true") {
       console.log("Clicked unit:", unitId, "at hex:", hexId);
     }
   }, [selectableGamePieces, select]);
@@ -204,13 +203,14 @@ export default function HexUnitsLayer({
       const unitId = representativeUnit.id;
 
       // Check if any unit in this group is selectable
-      const isSelectable = selectableGamePieces.has(unitId) || debugSelection;
+      const isSelectable = selectableGamePieces.has(unitId);
+      const isClickable = isSelectable || process.env.DEBUG === "true";
 
       elements.push(
         <g
           key={`ground-${group.unitTypeId}-${group.hasMoved}-${index}`}
           transform={`translate(${slot.x + dx}, ${slot.y + dy})`}
-          onClick={isSelectable ? (e) => {
+          onClick={isClickable ? (e) => {
             e.stopPropagation();
             handleUnitClick(unitId, hexId);
           } : undefined}
@@ -245,13 +245,14 @@ export default function HexUnitsLayer({
       const unitDef = UNITS[firstSpaceUnit.unitTypeId as UnitId];
       if (!unitDef) return;
 
-      const isSelectable = selectableGamePieces.has(fleet.id) || debugSelection;
+      const isSelectable = selectableGamePieces.has(fleet.id);
+      const isClickable = isSelectable || process.env.DEBUG === "true";
 
       elements.push(
         <g
           key={`fleet-${fleet.id}`}
           transform={`translate(${slot.x + dx}, ${slot.y + dy})`}
-          onClick={isSelectable ? (e) => {
+          onClick={isClickable ? (e) => {
             e.stopPropagation();
             handleFleetClick(fleet.id, hexId);
           } : undefined}

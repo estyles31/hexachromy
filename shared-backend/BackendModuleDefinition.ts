@@ -5,9 +5,8 @@ import type {
   GameStartContext, 
   LegalActionsResponse,
 } from "../shared/models/ApiContexts";
-import type { ParamChoicesResponse } from "../shared/models/ActionParams";
 import type { GameDatabaseAdapter } from "../shared/models/GameDatabaseAdapter";
-import type { GameAction, ActionResponse, StateDelta } from "../shared/models/GameAction";
+import type { GameAction, ActionResponse } from "../shared/models/GameAction";
 import type { GameState } from "../shared/models/GameState";
 import type { Phase } from "./Phase";
 
@@ -27,20 +26,13 @@ export interface IPhaseManager {
   postExecuteAction(
     playerId: string,
     result: ActionResponse
-  ): Promise<StateDelta[]>;
+  ): Promise<ActionResponse>;
 
   getLegalActions?(
     playerId: string
   ): Promise<LegalActionsResponse>;
 
   createAction(type: string): Promise<GameAction | null>;
-
-  getParamChoices?(
-    playerId: string,
-    actionType: string,
-    paramName: string,
-    filledParams: Record<string, string>
-  ): Promise<ParamChoicesResponse>;
 }
 
 export interface ParamChoicesContext {
@@ -57,8 +49,8 @@ export interface BackendModuleDefinition {
   
   getGameDefinition(): GameDefinition;
   
-  createGame(ctx: GameStartContext): Promise<unknown>;
-  getPlayerView?(ctx: GetPlayerViewContext): Promise<{ playerView: unknown } | null>;
+  createGame(ctx: GameStartContext): Promise<GameState>;
+  getPlayerViews?(ctx: GetPlayerViewContext): Promise<{ playerViews: Record<string, unknown> } | null>;
   
   getPhaseManager(gameId: string, db: GameDatabaseAdapter): IPhaseManager;
 }

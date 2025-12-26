@@ -163,35 +163,6 @@ function assertAllHexReferencesValid() {
 }
 
 /* ───────────────────────── */
-/* Hex Coordinate Geometry   */
-/* (flat-top, odd-q system)  */
-/* ───────────────────────── */
-
-export interface CubeCoord {
-  q: number;
-  r: number;
-  s: number;
-}
-
-const cubeToId = new Map<string,string>()
-
-/**
- * Convert stored hex (odd-q) to cube coordinates.
- * row field is doubled → must normalize.
- */
-export function toCube(hexId: string): CubeCoord {
-  const hex = BOARD_HEXES_BY_ID[hexId];
-  if (!hex) throw new Error(`Unknown hex: ${hexId}`);
-
-  const q = hex.colIndex;
-  const r = (hex.row - (q % 2)) / 2;
-  const s = -q - r;
-
-  cubeToId.set(`${q},${r},${s}`, hexId)
-  return { q, r, s };
-}
-
-/* ───────────────────────── */
 /* Neighbor lookup table     */
 /* (blocked by NotInPlay)    */
 /* ───────────────────────── */
@@ -199,54 +170,39 @@ export function toCube(hexId: string): CubeCoord {
 export const HEX_NEIGHBORS: Record<string, string[]> = {};
 
 function buildNeighbors() {
-  // Pre-cache cube coords
-  const cube = new Map<string, CubeCoord>();
-  for (const hex of BOARD_HEXES)
-    cube.set(hex.id, toCube(hex.id));
+  const byCoord = new Map<string, string>();
 
-  // cube axial directions for flat-top grids
-  const dirs: CubeCoord[] = [
-    { q:+1, r: 0, s:-1 },
-    { q:+1, r:-1, s: 0 },
-    { q: 0, r:-1, s:+1 },
-    { q:-1, r: 0, s:+1 },
-    { q:-1, r:+1, s: 0 },
-    { q: 0, r:+1, s:-1 }
-  ];
+  for (const h of BOARD_HEXES) {
+    byCoord.set(`${h.colIndex},${h.row}`, h.id);
+  }
 
-  for (const hex of BOARD_HEXES) {
-    const scenarioNeighbors: string[] = [];
-    const base = cube.get(hex.id)!;
+  for (const h of BOARD_HEXES) {
+    const neighbors: string[] = [];
 
-    for (const d of dirs) {
-      const q = base.q + d.q;
-      const r = base.r + d.r;
-      const s = base.s + d.s;
-
-      // locate matching hex
-      let id = cubeToId.get(`${q},${r},${s}`);
-
-      if (!id) {
-        const match = [...cube.entries()].find(
-          ([, c]) => c.q === q && c.r === r && c.s === s
-        );
-
-        if (!match) continue;
-        [id] = match;
-      }
-
-      scenarioNeighbors.push(id);
+    for (const { dc, dr } of neighborOffsets()) {
+      const key = `${h.colIndex + dc},${h.row + dr}`;
+      const id = byCoord.get(key);
+      if (id) neighbors.push(id);
     }
 
-    HEX_NEIGHBORS[hex.id] = scenarioNeighbors;
+    HEX_NEIGHBORS[h.id] = neighbors;
   }
 }
 
 
-/* ───────────────────────── */
-/* BFS Topology Distance     */
-/* (respects NotInPlay)      */
-/* ───────────────────────── */
+function neighborOffsets(): Array<{ dc: number; dr: number }> {
+  return [
+    { dc:  0, dr: -2 },
+    { dc:  0, dr: +2 },
+
+    { dc: -1, dr: -1 },
+    { dc: -1, dr: +1 },
+
+    { dc: +1, dr: -1 },
+    { dc: +1, dr: +1 },
+  ];
+}
+
 
 /**
  * BFS topology distance.
@@ -294,24 +250,22 @@ export function hexGraphDistance(a: string, b: string, scenarioId: string): numb
 export function getHexesWithinRange(center: string, radius: number, scenarioId: string): string[] {
   if (radius <= 0) return [];
 
-  const result: string[] = [];
   const visited = new Set<string>([center]);
   let frontier = [center];
   let dist = 0;
+  const result: string[] = [center];
 
   while (dist < radius) {
     const next: string[] = [];
 
     for (const hex of frontier) {
       for (const n of HEX_NEIGHBORS[hex]) {
-
         if (!isInPlay(n, scenarioId)) continue;
+        if (visited.has(n)) continue;
 
-        if (!visited.has(n)) {
-          visited.add(n);
-          next.push(n);
-          result.push(n);
-        }
+        visited.add(n);
+        next.push(n);
+        result.push(n);
       }
     }
 
@@ -322,7 +276,16 @@ export function getHexesWithinRange(center: string, radius: number, scenarioId: 
   return result;
 }
 
+function assertNeighborSymmetry() {
+  for (const [a, ns] of Object.entries(HEX_NEIGHBORS)) {
+    for (const b of ns) {
+      if (!HEX_NEIGHBORS[b]?.includes(a)) {
+        throw new Error(`Asymmetric neighbor: ${a} ↔ ${b}`);
+      }
+    }
+  }
+}
 
 assertAllHexReferencesValid();
 buildNeighbors();
-
+assertNeighborSymmetry();

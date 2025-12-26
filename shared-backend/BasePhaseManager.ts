@@ -3,7 +3,6 @@ import { GameAction, type ActionResponse } from "../shared/models/GameAction";
 import type { GameDatabaseAdapter } from "../shared/models/GameDatabaseAdapter";
 import type { GameState } from "../shared/models/GameState";
 import { Phase } from "./Phase";
-import { applyDeltasToDatabase } from "../functions/src/actions/ActionHandler";
 
 export class BasePhaseManager implements IPhaseManager {
   constructor(gameId: string, db: GameDatabaseAdapter, phases?: Record<string, new () => Phase>) {
@@ -29,20 +28,6 @@ export class BasePhaseManager implements IPhaseManager {
     return this.state!;
   }
 
-  async startPhase(): Promise<void> {
-    const phase = await this.getCurrentPhase();
-
-    if (!phase.onPhaseStart) return;
-
-    const state = await this.getGameState();
-    const deltas = await phase.onPhaseStart({ gameState: state, db: this.db });
-
-    if (deltas.length > 0) {
-      await applyDeltasToDatabase(this.gameId, state.version, deltas);
-      await this.reloadGameState();
-    }
-  }
-
   async getCurrentPhase(): Promise<Phase> {
     const state = await this.getGameState();
     const ctor = this.phases[state!.state.currentPhase];
@@ -56,19 +41,11 @@ export class BasePhaseManager implements IPhaseManager {
 
   async getLegalActions(playerId: string) {
     const phase = await this.getCurrentPhase();
-    return phase.getLegalActions({ gameState: this.state!, db: this.db }, playerId);
-  }
-
-  async getParamChoices(playerId: string, actionType: string, paramName: string, filledParams: Record<string, string>) {
-    const state = await this.getGameState();
-    const phase = await this.getCurrentPhase();
-    return phase.getParamChoices(
-      { gameState: state, db: this.db },
-      playerId,
-      actionType,
-      paramName,
-      filledParams
-    );
+    const actions = phase.getLegalActions({ gameState: this.state!, db: this.db }, playerId);
+    if(process.env.DEBUG === "true") {
+      console.log(`Legal actions for player ${playerId} in phase ${phase.name}: ${JSON.stringify(actions)}`);
+    }
+    return actions;
   }
 
   async createAction(type: string): Promise<GameAction | null> {
@@ -78,15 +55,37 @@ export class BasePhaseManager implements IPhaseManager {
 
   async postExecuteAction(playerId: string, result: ActionResponse) {
     const phase = await this.getCurrentPhase();
+    if (result.action.type === "chat") {
+      return result;
+    }
 
-    if (!phase.onActionCompleted)
-      return [];
+    if(process.env.DEBUG === "true") {
+      console.log(`Post-processing action of type ${result.action.type} in phase ${phase.name}`);
+      console.log("Action result:", JSON.stringify(result));
+      console.log("Phase:", JSON.stringify(phase));
+      console.log("onActionCompleted: ", JSON.stringify(phase.onActionCompleted));
+      console.log("Phase constructor:", phase.constructor.name);
+      console.log("Has onActionCompleted:", typeof phase.onActionCompleted);
+      console.log("onActionCompleted:", phase.onActionCompleted);
+    }
 
-    return await phase.onActionCompleted(
-      { gameState: this.state!, db: this.db },
-      playerId,
-      result
-    );
+    if (phase.onActionCompleted) {
+        result = await phase.onActionCompleted(
+        { gameState: this.state!, db: this.db },
+        playerId,
+        result
+      );
+    }
+
+    while(result.phaseTransition) {
+      this.state!.state.currentPhase = result.phaseTransition.nextPhase;
+      const newPhase = await this.getCurrentPhase();
+      if(!newPhase.onPhaseStart) break;
+        
+      result = await newPhase.onPhaseStart({ gameState: this.state!, db: this.db });
+    }
+
+    return result;
   }
 }
 

@@ -52,9 +52,12 @@ export function buildThroneworldBoardView(
     const { game, boardGeometry, playerColors } = params;
 
     // DEBUG: Log the entire playerView structure
-    // console.log("🔍 Building board view - playerView:", game.playerView);
+    // console.log("🔍 Building board view - playerViews:", game.playerViews);
 
     const systems: RenderableSystem[] = [];
+
+    const playerView = game.playerViews ? Object.entries(game.playerViews).find(
+                        ([key]) => key !== "neutral")?.[1] : undefined;
 
     for (const [hexId, publicSystem] of Object.entries(game.state.systems)) {
         const hex = boardGeometry.hexes[hexId];
@@ -70,7 +73,7 @@ export function buildThroneworldBoardView(
                     hexRadius: boardGeometry.hexRadius,
                 },
                 publicSystem,
-                playerView: game.playerView?.systems[hexId],
+                playerView: playerView?.systems[hexId],
                 playerColors,
             })
         );

@@ -1,12 +1,18 @@
+// /modules/throneworld/functions/actions/ActionHelpers.ts
 import { GameObject } from "../../../../shared/models/ActionParams";
 import { getHexesWithinRange, hexGraphDistance } from "../../shared/models/BoardLayout.ThroneWorld";
 import { Fleet } from "../../shared/models/Fleets.Throneworld";
 import { ThroneworldGameState } from "../../shared/models/GameState.Throneworld";
 import { ThroneworldUnit } from "../../shared/models/Unit.Throneworld";
 import { UNITS } from "../../shared/models/UnitTypes.ThroneWorld";
+import type { PhaseContext } from "../../../../shared-backend/Phase";
+
+// ============================================================================
+// Unit and Fleet Lookups
+// ============================================================================
 
 /**
- * Find bunker unit by ID
+ * Find unit by ID
  */
 export function findUnit(
   state: ThroneworldGameState,
@@ -14,7 +20,6 @@ export function findUnit(
   unitId: string,
   reqCommand?: boolean,
 ): { unit: ThroneworldUnit; hexId: string } | null {
-
   for (const [hexId, system] of Object.entries(state.state.systems)) {
     const playerUnits = system.unitsOnPlanet[playerId];
     if (!playerUnits) continue;
@@ -22,9 +27,9 @@ export function findUnit(
     const unit = playerUnits.find(u => u.id === unitId);
     if (!unit) continue;
 
-    if(reqCommand) {
+    if (reqCommand) {
       const unitDef = UNITS[unit.unitTypeId];
-      if(!unitDef.Command) continue;
+      if (!unitDef.Command) continue;
     }
 
     return { unit, hexId };
@@ -33,18 +38,19 @@ export function findUnit(
   return null;
 }
 
-/* Find Fleet by ID */
+/**
+ * Find fleet by ID
+ */
 export function findFleet(
   state: ThroneworldGameState,
   playerId: string,
   fleetId: string
 ): { fleet: Fleet; hexId: string } | null {
-
   for (const [hexId, system] of Object.entries(state.state.systems)) {
-    const playerUnits = system.fleetsInSpace[playerId];
-    if (!playerUnits) continue;
+    const playerFleets = system.fleetsInSpace[playerId];
+    if (!playerFleets) continue;
 
-    const fleet = playerUnits.find(u => u.id === fleetId);
+    const fleet = playerFleets.find(f => f.id === fleetId);
     if (!fleet) continue;
 
     return { fleet, hexId };
@@ -53,81 +59,66 @@ export function findFleet(
   return null;
 }
 
-export function getHexesInCommRange(originHexId: string, playerId: string, state: ThroneworldGameState ) {
+// ============================================================================
+// Range Calculations
+// ============================================================================
+
+export function getHexesInCommRange(
+  originHexId: string,
+  playerId: string,
+  state: ThroneworldGameState
+): string[] {
   const player = state.players[playerId];
   const commRange = player?.tech.Comm || 1;
   const scenario = typeof state.options.scenario === "string" && state.options.scenario.trim().length > 0
-          ? state.options.scenario
-          : "6p";
+    ? state.options.scenario
+    : "6p";
   return getHexesWithinRange(originHexId, commRange, scenario);
 }
 
-export function getHexesInJumpRange(originHexId: string, playerId: string, state: ThroneworldGameState ) {
+export function getHexesInJumpRange(
+  originHexId: string,
+  playerId: string,
+  state: ThroneworldGameState
+): string[] {
   const player = state.players[playerId];
   const jumpRange = player?.tech.Jump || 1;
   const scenario = typeof state.options.scenario === "string" && state.options.scenario.trim().length > 0
-          ? state.options.scenario
-          : "6p";
+    ? state.options.scenario
+    : "6p";
   return getHexesWithinRange(originHexId, jumpRange, scenario);
 }
 
-export function IsInCommRange(bunkerHexId: string, targetHexId: string, playerId: string, state: ThroneworldGameState) {
+export function IsInCommRange(
+  bunkerHexId: string,
+  targetHexId: string,
+  playerId: string,
+  state: ThroneworldGameState
+): boolean {
   const player = state.players[playerId];
   const commRange = player?.tech.Comm || 1;
   const scenario = typeof state.options.scenario === "string" && state.options.scenario.trim().length > 0
-          ? state.options.scenario
-          : "6p";
+    ? state.options.scenario
+    : "6p";
 
   return hexGraphDistance(bunkerHexId, targetHexId, scenario) <= commRange;
 }
 
-export function markBunkerUsed(
-  units: ThroneworldUnit[],
-  bunkerUnitId: string
-) {
-  const possUnits = units.filter(u => u.id == bunkerUnitId && UNITS[u.unitTypeId]?.Command);
-
-  if (possUnits.length < 1) {
-    throw new Error(`Bunker unit '${bunkerUnitId}' not found in provided unit list`);
-  }
-
-  return markUnitsMoved(units, [possUnits[0].id]);
-}
-
-export function markUnitsMoved(units: ThroneworldUnit[], movedUnitIDs?: string[]) {
-  const ret: ThroneworldUnit[] = [];
-
-  for(const unit of units) {
-    const copy = { ...unit };
-    if(!movedUnitIDs || movedUnitIDs.includes(copy.id))  {
-      copy.hasMoved = true;
-    }
-    ret.push(copy);
-  }
-
-  return ret;
-}
-
-export function markFleetMoved(fleet: Fleet): Fleet {
-  const fleetSpaceUnits = markUnitsMoved(fleet.spaceUnits);
-  const fleetGroundUnits = markUnitsMoved(fleet.groundUnits);
-  return { ...fleet, groundUnits: fleetGroundUnits, spaceUnits: fleetSpaceUnits };
-}
+// ============================================================================
+// Available Actions Queries
+// ============================================================================
 
 export function getAvailableBunkers(
   state: ThroneworldGameState,
   playerId: string
 ): GameObject[] {
-
   const result: GameObject[] = [];
 
   for (const [hexId, system] of Object.entries(state.state.systems)) {
-
     const units = system.unitsOnPlanet[playerId];
     if (!units) continue;
 
     for (const u of units) {
-
       const def = UNITS[u.unitTypeId];
       if (!def?.Command) continue;
       if (u.hasMoved) continue;
@@ -142,4 +133,60 @@ export function getAvailableBunkers(
   }
 
   return result;
+}
+
+// ============================================================================
+// Scanning and Revealing
+// ============================================================================
+
+/**
+ * Reveal a scanned hex to a player's playerView
+ * Should be called after combat is resolved (for jumps) or immediately (for scans)
+ */
+export async function revealSystemToPlayer(
+  ctx: PhaseContext,
+  playerId: string,
+  hexId: string
+): Promise<void> {
+  const state = ctx.gameState as ThroneworldGameState;
+  const system = state.state.systems[hexId];
+  
+  // state playerViews should contain the neutral player view on the server side
+  const details = state.playerViews?.["neutral"]?.systems[hexId];
+
+  if(!details)
+    throw new Error(`System details for hex ${hexId} not found in state.`);
+    
+  // Only reveal if player has scanned it
+  if (!system.scannedBy?.includes(playerId)) return;
+  
+  await ctx.db.updateDocument(
+    `games/${state.gameId}/playerViews/${playerId}`,
+    {
+      [`systems.${hexId}`]: details
+    }
+  );
+}
+
+/**
+ * Check if a fleet can scan (has survey team that survived)
+ */
+export function canFleetScan(
+  state: ThroneworldGameState,
+  playerId: string,
+  hexId: string
+): boolean {
+  const system = state.state.systems[hexId];
+  if (!system) return false;
+  
+  const playerFleets = system.fleetsInSpace[playerId];
+  if (!playerFleets || playerFleets.length === 0) return false;
+  
+  // Check if any fleet has a survey team (Explore unit)
+  for (const fleet of playerFleets) {
+    const hasSurvey = fleet.spaceUnits.some(u => UNITS[u.unitTypeId]?.Explore);
+    if (hasSurvey) return true;
+  }
+  
+  return false;
 }

@@ -38,14 +38,14 @@ export default function GamePage({ gameState }: { gameState: GameState<unknown> 
 
               {/* Right sidebar */}
               <div className="right-panel">
-                {/* Player area */}
-                <PlayerArea module={frontendModule} />
+                {/* Action panel */}
+                <ActionPanel />
 
                 {/* Game info */}
                 <GameInfoArea module={frontendModule} />
 
-                {/* Action panel */}
-                <ActionPanel />
+                {/* Player area */}
+                <PlayerArea module={frontendModule} />
 
                 {/* Info panel toggle */}
                 <button

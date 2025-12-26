@@ -12,7 +12,7 @@ db.settings({ ignoreUndefinedProperties: true });
 
 // Transaction wrapper for Firestore
 class FirestoreTransaction implements Transaction {
-  constructor(private firestoreTransaction: FirebaseFirestore.Transaction) {}
+  constructor(private firestoreTransaction: FirebaseFirestore.Transaction) { }
 
   async get<T = any>(path: string): Promise<T | null> {
     const docRef = db.doc(path);
@@ -29,20 +29,40 @@ class FirestoreTransaction implements Transaction {
 // Database adapter for game modules
 export const dbAdapter: GameDatabaseAdapter = {
   async getDocument<T = unknown>(path: string): Promise<T | null> {
-    const snap = await db.doc(path).get();
-    return snap.exists ? (snap.data() as T) : null;
+    try {
+      const snap = await db.doc(path).get();
+      return snap.exists ? (snap.data() as T) : null;
+    } catch (error) {
+      console.error(`Error fetching document ${path} - `, error);
+      throw error;
+    }
   },
-  
-  async setDocument<T = unknown>(path: string, data: T): Promise<void> {
-    await db.doc(path).set(data as Record<string, unknown>);
+
+  async setDocument<T = unknown>(path: string, data: T, merge?: boolean): Promise<void> {
+    try {
+      await db.doc(path).set(data as Record<string, unknown>, { merge });
+    } catch (error) {
+      console.error(`Error setting document ${path}`, safePreview(data), error);
+      throw error;
+    }
   },
-  
+
   async updateDocument(path: string, data: Record<string, unknown>): Promise<void> {
-    await db.doc(path).set(data, { merge: true });
+    try {
+      await db.doc(path).update(data);
+    } catch (error) {
+      console.error(`Error updating document ${path}`, safePreview(data), error);
+      throw error;
+    }
   },
-  
+
   async deleteDocument(path: string): Promise<void> {
-    await db.doc(path).delete();
+    try {
+      await db.doc(path).delete();
+    } catch (error) {
+      console.error(`Error deleting document ${path}`, error);
+      throw error;
+    }
   },
 
   async runTransaction<T>(updateFunction: (transaction: Transaction) => Promise<T>): Promise<T> {
@@ -52,3 +72,11 @@ export const dbAdapter: GameDatabaseAdapter = {
     });
   },
 };
+
+function safePreview(value: unknown) {
+  try {
+    return JSON.stringify(value);
+  } catch {
+    return "[Unserializable object]";
+  }
+}

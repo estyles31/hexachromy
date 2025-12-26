@@ -1,21 +1,19 @@
 import type { ActionParam } from "./ActionParams";
 import type { GameState } from "./GameState";
 
-export interface StateDelta {
-  path: string;          
-  oldValue: any;         
-  newValue: any;         
-  visibility: "public" | "owner" | "hidden";
-  ownerId?: string;      
-}
-
 export interface ActionResponse {
-  action: GameAction;
+  action: GameAction | IAction;
   success: boolean;
   message?: string;
-  stateChanges?: StateDelta[];
   undoable?: boolean;
   error?: string;
+  phaseTransition?: PhaseTransition;
+}
+
+export interface PhaseTransition {
+  nextPhase: string;
+  transitionType: "nextPhase" | "subPhase" | "temporary";
+  runPhaseStart?: boolean;  //default = true
 }
 
 /**
@@ -27,14 +25,28 @@ export interface ActionFinalize {
   warnings?: string[];
 }
 
-export abstract class GameAction {
+export interface IAction<T = Record<string, unknown>> {
+  readonly type: string;
+  undoable: boolean;
+  expectedVersion?: number;
+  metadata: Partial<T>;
+}
+
+export class SystemAction<T = Record<string, unknown>> implements IAction<T> {
+  type = "system";
+  undoable = false;
+  expectedVersion?: number | undefined;
+  metadata: Partial<T> = {};
+}
+
+export abstract class GameAction<T = Record<string, unknown>> implements IAction<T> {
   /** Required basic identity & undo semantics */
   readonly type: string;
   undoable: boolean;
 
   /** Server-side execution metadata */
   expectedVersion?: number;              // optimistic concurrency
-  undoAction?: GameAction;               // how to reverse this action, if undoable
+  undoAction?: GameAction;               // how to reverse this action, only if special handling needed
 
   /** Parameters needed before execution */
   params: ActionParam<any>[] = [];                // UI/logic parameter definitions
@@ -45,8 +57,8 @@ export abstract class GameAction {
   /** Optional finalize mode */
   finalize?: ActionFinalize;             // confirm button rules
 
-  /** Free-form, game-specific metadata (safe extension point) */
-  [key: string]: unknown;
+  /** game and action specific metadata */
+  metadata: Partial<T> = {};
 
   constructor(init: {
     type: string;

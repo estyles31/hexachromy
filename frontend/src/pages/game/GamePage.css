@@ -3,10 +3,11 @@
 .game-root {
   display: grid;
   grid-template-columns: 1fr 320px;
-  min-height: 100vh;
+  height: 100vh;
   background: #111;
   color: #eee;
-  position: relative; /* anchor for overlays */
+  position: relative;
+  overflow: hidden;
 }
 
 /* Board area */
@@ -36,7 +37,8 @@
 /* Floating inspect / hover info panel */
 .info-panel-container {
   position: fixed;
-  right: 330px;         /* 320px panel + 10px margin */
+  right: 330px;
+  /* 320px panel + 10px margin */
   bottom: 24px;
   max-width: min(420px, 45vw);
   z-index: 1000;
@@ -52,22 +54,26 @@
   z-index: 1000;
 }
 
-/* Optional: keep overlays visible on smaller screens */
+.message-panel-overlay {
+  position: fixed;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+}
+
+.info-panel-toggle {
+  margin: 5px;
+  font-size:small;
+}
+
 @media (max-width: 1100px) {
   .info-panel-container {
     right: 16px;
   }
-  
+
   .action-history-container {
     left: 16px;
     width: 350px;
-  }
-
-  .message-panel-overlay {
-    position: absolute;
-    top: 16px;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 1000;
   }
 }

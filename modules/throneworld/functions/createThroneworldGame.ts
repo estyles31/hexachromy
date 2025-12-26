@@ -18,6 +18,7 @@ import { GameStartContext } from "../../../shared/models/ApiContexts";
 import { PlayerSlot } from "../../../shared/models/PlayerSlot";
 import { ThroneworldPhaseManager } from "./phases/PhaseManager";
 import { dbAdapter } from "../../../functions/src/services/database";
+import { ActionResponse, SystemAction } from "../../../shared/models/GameAction";
 
 // TODO: extract this to a shared file
 const PLAYER_COLORS = ["#ff7043", "#4dd0e1", "#ce93d8", "#aed581", "#ffd54f", "#90caf9"];
@@ -35,7 +36,7 @@ export async function createGame(ctx: GameStartContext): Promise<GameState> {
         requiredPlayers: ctx.scenario.playerCount,
     });
 
-    console.log(`Created Throneworld game ${ctx.gameId} with ${filledPlayers.length} players.`);
+    console.log(`Created Throneworld game ${ctx.gameId} with ${ctx.playerSlots.length} players.`);
 
     // Persist core state
     await ctx.db.setDocument(`games/${ctx.gameId}`, state);
@@ -47,11 +48,23 @@ export async function createGame(ctx: GameStartContext): Promise<GameState> {
 
     // Initialize the starting phase (handles random assignment, etc.)
     const phaseManager = new ThroneworldPhaseManager(state.gameId, dbAdapter);
-    await phaseManager.startPhase();
+    await phaseManager.getGameState();
 
-    console.log(`Starting game for ${JSON.stringify(state.players)}`);
-    
-    return await phaseManager.getGameState();
+    // Trigger the phase start through the normal action flow
+    const systemAction = new SystemAction();
+    const result: ActionResponse = {
+        action: systemAction,
+        success: true,
+        message: "Game initialized",
+        undoable: false,
+        phaseTransition: {
+            nextPhase: "GameStart",
+            transitionType: "nextPhase"
+        }
+    };
+
+    await phaseManager.postExecuteAction("system", result);
+    return phaseManager.getGameState();
 }
 
 const SYSTEM_POOLS = systemsJson as SystemPool;
@@ -303,12 +316,12 @@ export async function buildInitialGameDocuments(
 
         state: {
             systems,
-            currentPhase: "GameStart",
+            currentPhase: "Init",
         },
 
         version: 0,
         actionSequence: 0,
-        playerUndoStacks: {},
+        //playerUndoStacks: {},
     };
 
     return { state, playerViews };

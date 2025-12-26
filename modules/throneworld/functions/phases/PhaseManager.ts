@@ -22,24 +22,23 @@ export class ThroneworldPhaseManager extends BasePhaseManager {
   constructor(gameId: string, db: GameDatabaseAdapter) {
     super(gameId, db, PHASE_MAP);
   }
-  
+
   async getGameState() {
-    if(!this.state) {
+    if (!this.state) {
       this.state = await this.reloadGameState();
     }
     return this.state;
   }
 
-async reloadGameState(): Promise<GameState> {
-  const state = await this.db.getDocument(`games/${this.gameId}`) as ThroneworldGameState;
+  async reloadGameState(): Promise<GameState> {
+    const state = await this.db.getDocument(`games/${this.gameId}`) as ThroneworldGameState;
 
-  const neutralView = await this.db.getDocument(
-    `games/${this.gameId}/playerViews/neutral`
-  );
+    const neutralView = await this.db.getDocument(
+      `games/${this.gameId}/playerViews/neutral`
+    );
 
-  state.playerView = neutralView as ThroneworldPlayerView;
-  return state;
-}
-
-
+    if (!state.playerViews) state.playerViews = {};
+    state.playerViews["neutral"] = neutralView as ThroneworldPlayerView;
+    return state;
+  }
 }

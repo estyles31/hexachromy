@@ -9,6 +9,9 @@ export function useLegalActions(gameId: string, gameVersion: number) {
   const [user] = useAuthState(auth);
   const [legalActions, setLegalActions] = useState<LegalActionsResponse | null>(null);
   const [loading, setLoading] = useState(true);
+  const [refreshToken, setRefreshToken] = useState(0);
+
+  const refresh = () => setRefreshToken((t) => t + 1);
 
   useEffect(() => {
     if (!user) return;
@@ -28,10 +31,11 @@ export function useLegalActions(gameId: string, gameVersion: number) {
     };
 
     loadActions();
-  }, [gameId, user, gameVersion]);
+  }, [gameId, user, gameVersion, refreshToken]);
 
   return {
     legalActions,
     loading,
+    refresh
   };
 }

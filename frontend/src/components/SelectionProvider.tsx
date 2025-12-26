@@ -12,14 +12,6 @@ import { authFetch } from "../auth/authFetch";
 import { useAuth } from "../auth/useAuth";
 import { useActionExecutor } from "../hooks/useActionExecutor";
 
-function actionFilledParams(action: GameAction): Record<string, string> {
-  const out: Record<string, string> = {};
-  for (const p of action.params ?? []) {
-    if (p.value !== undefined && p.value !== null) out[p.name] = String(p.value);
-  }
-  return out;
-}
-
 function nextUnfilledParam(action: GameAction) {
   return (action.params ?? []).find(p => p.value === undefined || p.value === null);
 }
@@ -32,107 +24,86 @@ function isActionResolved(action: GameAction): boolean {
   return true;
 }
 
-function cacheKey(actionType: string, paramName: string, filled: Record<string, string>) {
-  // stable-ish key (order matters in JSON.stringify, so sort keys)
-  const sorted = Object.fromEntries(Object.entries(filled).sort(([a],[b]) => a.localeCompare(b)));
-  return `${actionType}:${paramName}:${JSON.stringify(sorted)}`;
-}
-
 export function SelectionProvider({ children }: { children: React.ReactNode }) {
   const user = useAuth();
   const { gameId, version } = useGameStateContext();
 
-  const { legalActions } = useLegalActions(gameId, version);
+  const { legalActions, refresh } = useLegalActions(gameId, version);
 
   // Candidate actions are the *actual* action instances we're filling.
   const [candidateActions, setCandidateActions] = useState<GameAction[]>([]);
   const [selection, setSelection] = useState<SelectionState>(EMPTY_SELECTION);
 
-  const [paramCache, setParamCache] = useState<Record<string, ParamChoicesResponse>>({});
-
-  const selectableBoardSpaces = useMemo(() => new Set<string>(), []);
-  const selectableGamePieces = useMemo(() => new Set<string>(), []);
+  const [selectableBoardSpaces, setSelectableBoardSpaces] = useState<Set<string>>(new Set());
+  const [selectableGamePieces, setSelectableGamePieces] = useState<Set<string>>(new Set());
 
   const { executeAction: sendAction } = useActionExecutor();
 
   // Reset candidates when legal actions change
   useEffect(() => {
     setSelection(EMPTY_SELECTION);
-    setParamCache({});
     setCandidateActions(legalActions?.actions ?? []);
   }, [legalActions]);
 
   const cancelAction = useCallback(() => {
     setSelection(EMPTY_SELECTION);
-    setParamCache({});
-    setCandidateActions(legalActions?.actions ?? []);
+    refresh();
   }, [legalActions]);
 
+  // Updated fetchParamChoices - sends candidate actions instead of single action
   const fetchParamChoices = useCallback(async (
-    actionType: string,
-    paramName: string,
-    filledParams: Record<string, string>
-  ): Promise<ParamChoicesResponse> => {
-    if (!user) return { choices: [], error: "Not authenticated" };
+    candidateActions: GameAction[]
+  ): Promise<{ actions: Array<{ actionType: string; nextParam: string } & ParamChoicesResponse> }> => {
+    if (!user) return { actions: [] };
 
     try {
       const res = await authFetch(user, `/api/games/${gameId}/param-choices`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ actionType, paramName, filledParams }),
+        body: JSON.stringify({
+          candidateActions: candidateActions.map(a => ({
+            type: a.type,
+            params: a.params
+          }))
+        }),
       });
 
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
-        return { choices: [], error: err.error || "Failed to fetch choices" };
+        console.error("fetchParamChoices failed:", err);
+        return { actions: [] };
       }
 
       return await res.json();
     } catch (e) {
       console.error("fetchParamChoices failed:", e);
-      return { choices: [], error: "Network error" };
+      return { actions: [] };
     }
   }, [user, gameId]);
 
-  // Build union highlights across all candidates
   const buildHighlightState = useCallback(async () => {
-    selectableBoardSpaces.clear();
-    selectableGamePieces.clear();
+    const newBoardSpaces = new Set<string>();
+    const newGamePieces = new Set<string>();
 
-    const localAddsBoard: string[] = [];
-    const localAddsPieces: string[] = [];
+    if (candidateActions.length > 0) {
+      // Make one call with all candidate actions
+      const response = await fetchParamChoices(candidateActions);
 
-    for (const action of candidateActions) {
-      const next = nextUnfilledParam(action);
-      if (!next) continue;
-
-      const filled = actionFilledParams(action);
-      const key = cacheKey(action.type, next.name, filled);
-
-      let resp = paramCache[key];
-      if (!resp) {
-        resp = await fetchParamChoices(action.type, next.name, filled);
-        setParamCache(prev => ({ ...prev, [key]: resp! }));
-      }
-
-      for (const choice of resp.choices ?? []) {
-        if (choice.type === "boardSpace" && choice.displayHint?.hexId) {
-          localAddsBoard.push(choice.displayHint.hexId);
-        } else if (choice.type === "gamePiece" && choice.displayHint?.pieceId) {
-          localAddsPieces.push(choice.displayHint.pieceId);
+      // Process all returned choices
+      for (const actionResult of response.actions) {
+        for (const choice of actionResult.choices ?? []) {
+          if (choice.type === "boardSpace" && choice.displayHint?.hexId) {
+            newBoardSpaces.add(choice.displayHint.hexId);
+          } else if (choice.type === "gamePiece" && choice.displayHint?.pieceId) {
+            newGamePieces.add(choice.displayHint.pieceId);
+          }
         }
       }
     }
 
-    for (const h of localAddsBoard) selectableBoardSpaces.add(h);
-    for (const p of localAddsPieces) selectableGamePieces.add(p);
-  }, [
-    candidateActions,
-    fetchParamChoices,
-    paramCache,
-    selectableBoardSpaces,
-    selectableGamePieces,
-  ]);
+    setSelectableBoardSpaces(newBoardSpaces);
+    setSelectableGamePieces(newGamePieces);
+  }, [candidateActions, fetchParamChoices]);
 
   useEffect(() => {
     buildHighlightState();
@@ -167,11 +138,8 @@ export function SelectionProvider({ children }: { children: React.ReactNode }) {
 
   // Execute is explicit only: receives a fully-parameterized action envelope
   const executeAction = useCallback((action: GameAction) => {
-    // No hydration.  Params already live on the action.
     sendAction(action);
-
     setSelection(EMPTY_SELECTION);
-    setParamCache({});
     setCandidateActions(legalActions?.actions ?? []);
   }, [sendAction, legalActions]);
 

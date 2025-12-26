@@ -15,14 +15,16 @@ const PlayerPanel = memo(function PlayerPanel<State>({
   player,
   module,
   victoryPoint,
+  isActive,
 }: {
   playerId: string;
   player: any;
   module: FrontendModuleDefinition<State>;
   victoryPoint: number;
+  isActive: boolean;
 }) {
   return (
-    <div className="player-panel">
+    <div className={`player-panel ${isActive ? "player-panel--active" : ""}`}>
       <div className="player-area__title">
         <span className="player-name">{player.displayName}</span>
         <span className="player-score">
@@ -59,15 +61,19 @@ export default function PlayerArea<State>({
     <div className="player-area">
       <h3>Players</h3>
 
-      {playerOrder.map((player) => (
-        <PlayerPanel
-          key={player.uid}
-          playerId={player.uid}
-          player={player}
-          module={module as FrontendModuleDefinition<unknown>}
-          victoryPoint={victoryPoints[player.uid] ?? 0}
-        />
-      ))}
+      {playerOrder.map((player) => {
+        const isActive = gameState.state.currentPlayers?.includes(player.uid) ?? false;
+        return (
+          <PlayerPanel
+            key={player.uid}
+            playerId={player.uid}
+            player={player}
+            module={module as FrontendModuleDefinition<unknown>}
+            victoryPoint={victoryPoints[player.uid] ?? 0}
+            isActive={isActive}
+          />
+        );
+      })}
     </div>
   );
 }

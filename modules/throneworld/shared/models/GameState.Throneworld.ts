@@ -20,7 +20,6 @@ export interface ThroneworldGameState extends GameState<ThroneworldState>
 {
   gameType: "throneworld";
   players: Record<string, ThroneworldPlayerState>;
-  playerView?: ThroneworldPlayerView;
 }
 
 export interface ThroneworldState extends BaseState {

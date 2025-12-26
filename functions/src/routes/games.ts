@@ -16,7 +16,10 @@ gamesRouter.use("/", gameActionsRouter);
 // POST /games - Create a new game
 gamesRouter.post("/", async (req: Request, res: Response) => {
   try {
-    console.log("POST /games body:", JSON.stringify(req.body, null, 2));
+    if(process.env.DEBUG === "true") {
+      console.log("POST /games body:", JSON.stringify(req.body, null, 2));
+    }
+
     const { gameType, scenarioId, playerSlots = [], options = {}, name } = req.body ?? {};
 
     // Validate gameType
@@ -110,6 +113,12 @@ gamesRouter.post("/", async (req: Request, res: Response) => {
 
     // Create game state via module - this handles persistence internally
     const state = await module.createGame(gameStartContext);
+    if(process.env.DEBUG == "true") {
+      console.log("new game state: ", JSON.stringify(state));
+    }
+
+    state.playerViews = undefined;  //erase playerviews if they exist
+    await dbAdapter.setDocument(`games/${gameId}`, state);
 
     // Count filled slots for summary
     const filledSlots = playerSlots.filter((s: any) => s.type !== "open");
@@ -131,7 +140,6 @@ gamesRouter.post("/", async (req: Request, res: Response) => {
       options: (state as any).options || undefined,
     };
 
-    // Save game summary (state is already saved by module.createGame)
     await dbAdapter.setDocument(`gameSummaries/${gameId}`, summary);
 
     res.json({ gameId });
@@ -172,8 +180,8 @@ gamesRouter.get("/:gameId", async (req: Request, res: Response) => {
     // Get player-specific view if module provides it
     const module = backendModules[(state as any).gameType];
     const rawExtra =
-      module?.getPlayerView
-        ? await module.getPlayerView({ gameId, playerId: userId, db: dbAdapter })
+      module?.getPlayerViews
+        ? await module.getPlayerViews({ gameId, playerId: userId, db: dbAdapter })
         : null;
 
     const extra =

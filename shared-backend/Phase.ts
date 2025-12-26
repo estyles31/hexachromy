@@ -1,8 +1,6 @@
 // /shared-backend/Phase.ts
-
-import type { ParamChoicesResponse } from "../shared/models/ActionParams";
 import type { LegalActionsResponse } from "../shared/models/ApiContexts";
-import type { ActionResponse, StateDelta, GameAction } from "../shared/models/GameAction";
+import type { ActionResponse, GameAction } from "../shared/models/GameAction";
 import type { GameDatabaseAdapter } from "../shared/models/GameDatabaseAdapter";
 import type { GameState } from "../shared/models/GameState";
 import { createAction } from "./ActionRegistry";
@@ -12,23 +10,24 @@ export interface PhaseContext {
   db: GameDatabaseAdapter;
 }
 
-/**
- * Base class for all game phases
- */
+/** Base class for all game phases */
 export abstract class Phase {
   abstract readonly name: string;
 
-  /**
-   * Called when phase begins - handles automated actions
-   */
-  async onPhaseStart?(ctx: PhaseContext): Promise<StateDelta[]>;
+  /** Called when phase begins - handles automated actions */
+  async onPhaseStart?(ctx: PhaseContext): Promise<ActionResponse>;
 
-  /* Called after an action has been completed */
-  async onActionCompleted?(ctx: PhaseContext, playerId: string, result: ActionResponse): Promise<StateDelta[]>;
+  /** Called after an action has been completed */
+  async onActionCompleted?(ctx: PhaseContext, playerId: string, result: ActionResponse): Promise<ActionResponse>;
 
-  /**
-   * Get all legal actions for a specific player in this phase
-   */
+  /** check's player's turn - true if currentPlayers is undefined, or if it contains the player's id */
+  isItMyTurn(ctx: PhaseContext, playerId: string): boolean {
+    const currentPlayers = ctx.gameState.state.currentPlayers ?? [playerId];
+    const result = currentPlayers.includes(playerId);
+    return result;
+  }
+
+  /** Get all legal actions for a specific player in this phase */
   async getLegalActions(ctx: PhaseContext, playerId: string): Promise<LegalActionsResponse> {
     const phaseActions = await this.getPhaseSpecificActions(ctx, playerId);
 
@@ -38,9 +37,7 @@ export abstract class Phase {
     };
   }
 
-  /**
-   * Get phase-specific legal actions (override in subclasses)
-   */
+  /** Get phase-specific legal actions (override in subclasses) */
   protected async getPhaseSpecificActions(ctx: PhaseContext, playerId: string): Promise<LegalActionsResponse> {
     return {
       actions: [],
@@ -48,26 +45,7 @@ export abstract class Phase {
     };
   }
 
-  /**
-   * Get legal choices for an action parameter.
-   * Override in subclasses that have parameterized actions.
-   */
-  async getParamChoices(
-    _ctx: PhaseContext,
-    _playerId: string,
-    _actionType: string,
-    _paramName: string,
-    _filledParams: Record<string, string>
-  ): Promise<ParamChoicesResponse> {
-    return {
-      choices: [],
-      error: "Parameter choices not supported in this phase",
-    };
-  }
-
-  /**
-   * Validate and execute an action
-   */
+  /** Validate and execute an action */
   async executeAction(ctx: PhaseContext, playerId: string, action: GameAction): Promise<ActionResponse> {
     return this.executePhaseAction(ctx, playerId, action);
   }
@@ -89,12 +67,7 @@ export abstract class Phase {
     action: GameAction
   ): Promise<{ success: boolean; error?: string }> {
 
-    const { currentPlayer } = ctx.gameState.state;
-
-    // 1️⃣ Turn enforcement unless ALL or null free-action phase
-    if (currentPlayer &&
-      currentPlayer !== "all" &&
-      currentPlayer !== playerId) {
+    if(!this.isItMyTurn(ctx, playerId)) {
       return {
         success: false,
         error: "it's not your turn"

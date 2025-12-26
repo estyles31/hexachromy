@@ -1,6 +1,5 @@
 // /modules/throneworld/functions/actions/JumpAction.ts
-
-import { ActionFinalize, ActionResponse, GameAction, StateDelta } from "../../../../shared/models/GameAction";
+import { ActionFinalize, ActionResponse, GameAction } from "../../../../shared/models/GameAction";
 import type { GameState } from "../../../../shared/models/GameState";
 import type { ThroneworldGameState } from "../../shared/models/GameState.Throneworld";
 import type { ParamChoicesResponse, GameObject } from "../../../../shared/models/ActionParams";
@@ -8,10 +7,18 @@ import { UNITS } from "../../shared/models/UnitTypes.ThroneWorld";
 import { getHexesWithinRange } from "../../shared/models/BoardLayout.ThroneWorld";
 import { registerAction } from "../../../../shared-backend/ActionRegistry";
 import { getCargo, type Fleet } from "../../shared/models/Fleets.Throneworld";
-import { findUnit, findFleet, IsInCommRange, markBunkerUsed, markFleetMoved } from "./ActionHelpers";
+import { findUnit, findFleet, IsInCommRange } from "./ActionHelpers";
 import { getAvailableBunkers } from "./ActionHelpers";
 
-export class JumpAction extends GameAction {
+interface JumpMetadata {
+  targetHexId?: string;
+  didScan?: boolean;
+  willCombat?: boolean;
+  commSupport?: boolean;
+  canStandardInvade?: boolean;
+}
+
+export class JumpAction extends GameAction<JumpMetadata> {
   constructor() {
     super({
       type: "jump",
@@ -45,21 +52,113 @@ export class JumpAction extends GameAction {
     });
   }
 
-  async execute(state: GameState, playerId: string) : Promise<ActionResponse> {
+  async execute(state: GameState, playerId: string): Promise<ActionResponse> {
     if (!this.allParamsComplete())
       return { action: this, success: false, error: "Missing params" };
 
+    const tw = state as ThroneworldGameState;
     const bunkerUnitId = this.getStringParam("bunkerUnitId")!;
     const fleetId = this.getStringParam("fleetId")!;
     const targetHexId = this.getStringParam("targetHexId")!;
 
-    return executeJump(
-      state as ThroneworldGameState,
-      playerId,
-      state.version,
-      { bunkerUnitId, fleetId, targetHexId },
-      this
+    // Lookups
+    const bunkerInfo = findUnit(tw, playerId, bunkerUnitId, true);
+    if (!bunkerInfo)
+      return { action: this, success: false, error: "Bunker not found" };
+
+    const { unit: bunkerUnit, hexId: bunkerHexId } = bunkerInfo;
+
+    const fleetInfo = findFleet(tw, playerId, fleetId);
+    if (!fleetInfo)
+      return { action: this, success: false, error: "Fleet not found" };
+
+    const { fleet, hexId: fleetHex } = fleetInfo;
+
+    const targetSystem = tw.state.systems[targetHexId];
+    if (!targetSystem)
+      return { action: this, success: false, error: "Invalid target hex" };
+
+    // Validation
+    if (bunkerUnit.hasMoved)
+      return { action: this, success: false, error: "Command Bunker already used" };
+
+    // Fleet jumpable validation
+    if (!fleetIsJumpable(fleet)) {
+      return { action: this, success: false, error: "Fleet cannot jump" };
+    }
+
+    const player = tw.players[playerId];
+    const comm = player.tech.Comm ?? 1;
+    const jump = player.tech.Jump ?? 1;
+    const scenario =
+      typeof tw.options.scenario === "string" && tw.options.scenario.trim()
+        ? tw.options.scenario
+        : "6p";
+
+    // Comm-range validation
+    const commReach = getHexesWithinRange(bunkerHexId, comm, scenario);
+    if (!commReach.includes(fleetHex)) {
+      return { action: this, success: false, error: "fleet_not_in_comm_range" };
+    }
+
+    // Jump-range validation
+    const jumpReach = getHexesWithinRange(fleetHex, jump, scenario);
+    if (!jumpReach.includes(targetHexId)) {
+      return { action: this, success: false, error: "target_out_of_jump_range" };
+    }
+
+    const canExplore = fleet.spaceUnits.every(
+      u => UNITS[u.unitTypeId]?.Explore
     );
+
+    if (!targetSystem.scannedBy?.includes(playerId) && !canExplore)
+      return { action: this, success: false, error: "Cannot jump to unscanned hex" };
+
+    if (getCargo(fleet) < 0) 
+      return { action: this, success: false, error: "Fleet has negative cargo capacity" };
+
+    const alreadyScanned = targetSystem.scannedBy?.includes(playerId);
+    const didScan = !alreadyScanned && canExplore;
+
+    const willCombat = Object.entries(targetSystem.fleetsInSpace)
+      .some(([owner, fl]) => owner !== playerId && fl.length > 0);
+
+    // Store metadata
+    this.metadata.targetHexId = targetHexId;
+    this.metadata.didScan = didScan;
+    this.metadata.willCombat = willCombat;
+    this.metadata.commSupport = IsInCommRange(bunkerHexId, targetHexId, playerId, tw);
+
+    // Mutate state
+    bunkerUnit.hasMoved = true;
+
+    const sourceFleets = tw.state.systems[fleetHex].fleetsInSpace[playerId];
+    const fleetIndex = sourceFleets.findIndex(f => f.id === fleetId);
+    if (fleetIndex !== -1) {
+      sourceFleets.splice(fleetIndex, 1);
+    }
+
+    fleet.spaceUnits.forEach(u => u.hasMoved = true);
+    fleet.groundUnits.forEach(u => u.hasMoved = true);
+
+    if (!targetSystem.fleetsInSpace[playerId]) {
+      targetSystem.fleetsInSpace[playerId] = [];
+    }
+    targetSystem.fleetsInSpace[playerId].push(fleet);
+
+    if (didScan) {
+      if (!targetSystem.scannedBy) {
+        targetSystem.scannedBy = [];
+      }
+      targetSystem.scannedBy.push(playerId);
+    }
+
+    return {
+      action: this,
+      success: true,
+      message: `Fleet jumped from ${fleetHex} to ${targetHexId}`,
+      undoable: true,
+    };
   }
 
   getParamChoices(
@@ -74,7 +173,6 @@ export class JumpAction extends GameAction {
     );
 
     switch (paramName) {
-
       case "bunkerUnitId":
         return getJumpableBunkerChoices(state, playerId);
 
@@ -102,7 +200,6 @@ export class JumpAction extends GameAction {
     const fleetId = this.getStringParam("fleetId");
     const targetHexId = this.getStringParam("targetHexId");
 
-    // Not all params filled yet → default finalize
     if (!bunkerUnitId || !fleetId || !targetHexId) {
       return this.finalize ?? { mode: "confirm", label: this.type };
     }
@@ -141,7 +238,6 @@ function getJumpableBunkerChoices(
   state: ThroneworldGameState,
   playerId: string
 ): ParamChoicesResponse {
-
   const bunkers = getAvailableBunkers(state, playerId);
 
   return {
@@ -163,7 +259,6 @@ function getFleetChoices(
   playerId: string,
   bunkerUnitId: string
 ): ParamChoicesResponse {
-
   const bunkerInfo = findUnit(state, playerId, bunkerUnitId, true);
   if (!bunkerInfo) {
     return { choices: [], error: "Bunker not found" };
@@ -171,7 +266,6 @@ function getFleetChoices(
 
   const { hexId: bunkerHexId } = bunkerInfo;
   const player = state.players[playerId];
-
   const commRange = player.tech.Comm || 0;
   const scenario = typeof state.options.scenario === "string" && state.options.scenario.trim().length > 0
     ? state.options.scenario
@@ -227,7 +321,6 @@ function getDestinationChoices(
   playerId: string,
   fleetId: string
 ): ParamChoicesResponse {
-
   const player = state.players[playerId];
   const jumpRange = player.tech.Jump || 0;
 
@@ -247,11 +340,7 @@ function getDestinationChoices(
       ? state.options.scenario
       : "6p";
 
-  const raw = getHexesWithinRange(
-    fleetHexId,
-    jumpRange,
-    scenario
-  );
+  const raw = getHexesWithinRange(fleetHexId, jumpRange, scenario);
 
   const choices: ParamChoicesResponse["choices"] = [];
 
@@ -295,7 +384,6 @@ function evaluateJumpConsequences(
   willCombat: boolean;
   canStandardInvade: boolean;
 } {
-
   const bunkerInfo = findUnit(state, playerId, bunkerUnitId, true);
   const fleetInfo = findFleet(state, playerId, fleetId);
   const target = state.state.systems[targetHexId];
@@ -307,42 +395,20 @@ function evaluateJumpConsequences(
   const { hexId: bunkerHexId } = bunkerInfo;
   const { fleet } = fleetInfo;
 
-  // --------------------------------------------------------
-  // 1️⃣ SCAN CHECK
-  // --------------------------------------------------------
   const alreadyScanned = target.scannedBy?.includes(playerId);
-
-  const hasExplore = fleet.spaceUnits.some(
-    u => UNITS[u.unitTypeId]?.Explore
-  );
-
+  const hasExplore = fleet.spaceUnits.some(u => UNITS[u.unitTypeId]?.Explore);
   const willScan = !alreadyScanned && hasExplore;
 
-  // --------------------------------------------------------
-  // 2️⃣ COMBAT CHECK
-  // --------------------------------------------------------
   const willCombat = Object.entries(target.fleetsInSpace)
-    .some(([owner, fl]) =>
-      owner !== playerId && fl.length > 0
-    );
+    .some(([owner, fl]) => owner !== playerId && fl.length > 0);
 
-  // --------------------------------------------------------
-  // 3️⃣ INVASION PERMISSION CHECK:
-  // Normal invasion allowed only if target hex is
-  // within original bunker Comm range
-  // --------------------------------------------------------
   const player = state.players[playerId];
   const commRange = player.tech.Comm || 0;
   const scenario = typeof state.options.scenario === "string" && state.options.scenario.trim()
     ? state.options.scenario
     : "6p";
 
-  const reachableFromBunker = getHexesWithinRange(
-    bunkerHexId,
-    commRange,
-    scenario
-  );
-
+  const reachableFromBunker = getHexesWithinRange(bunkerHexId, commRange, scenario);
   const canStandardInvade = reachableFromBunker.includes(targetHexId);
 
   return {
@@ -351,131 +417,5 @@ function evaluateJumpConsequences(
     canStandardInvade
   };
 }
-
-async function executeJump(
-  state: ThroneworldGameState,
-  playerId: string,
-  expectedVersion: number,
-  params: { bunkerUnitId: string; fleetId: string; targetHexId: string },
-  action: JumpAction
-): Promise<ActionResponse> {
-
-  const { bunkerUnitId, fleetId, targetHexId } = params;
-
-  // ─────────────────────────────────────────────
-  // 1️⃣ LOOKUPS
-  // ─────────────────────────────────────────────
-  const bunkerInfo = findUnit(state, playerId, bunkerUnitId, true);
-  if (!bunkerInfo)
-    return { action, success: false, error: "Bunker not found" };
-
-  const { unit: bunkerUnit, hexId: bunkerHexId } = bunkerInfo;
-
-  const fleetInfo = findFleet(state, playerId, fleetId);
-  if (!fleetInfo)
-    return { action, success: false, error: "Fleet not found" };
-
-  const { fleet, hexId: fleetHex } = fleetInfo;
-
-  const targetSystem = state.state.systems[targetHexId];
-  if (!targetSystem)
-    return { action, success: false, error: "Invalid target hex" };
-
-  // ─────────────────────────────────────────────
-  // 2️⃣ MOVE VALIDATION
-  // ─────────────────────────────────────────────
-  if (bunkerUnit.hasMoved)
-    return { action, success: false, error: "Command Bunker already used" };
-
-  const canExplore = fleet.spaceUnits.some(
-    u => UNITS[u.unitTypeId]?.Explore
-  );
-
-  if (!targetSystem.scannedBy?.includes(playerId) && !canExplore)
-    return { action, success: false, error: "Cannot jump to unscanned hex" };
-
-  if (getCargo(fleet) < 0)
-    return { action, success: false, error: "Fleet has negative cargo capacity" };
-
-  // store comm-support flag
-  action["commSupport"] = IsInCommRange(bunkerHexId, targetHexId, playerId, state);
-
-  // ─────────────────────────────────────────────
-  // 3️⃣ BUILD DELTAS
-  // ─────────────────────────────────────────────
-  const deltas: StateDelta[] = [];
-
-  //
-  // mark bunker used
-  //
-  deltas.push({
-    path: `state.systems.${bunkerHexId}.unitsOnPlanet.${playerId}`,
-    oldValue: state.state.systems[bunkerHexId].unitsOnPlanet[playerId],
-    newValue: markBunkerUsed(
-      state.state.systems[bunkerHexId].unitsOnPlanet[playerId],
-      bunkerUnitId
-    ),
-    visibility: "public",
-  });
-
-  //
-  // remove fleet from source
-  //
-  deltas.push({
-    path: `state.systems.${fleetHex}.fleetsInSpace.${playerId}`,
-    oldValue: state.state.systems[fleetHex].fleetsInSpace[playerId],
-    newValue: state.state.systems[fleetHex].fleetsInSpace[playerId]
-      .filter(f => f.id !== fleetId),
-    visibility: "public",
-  });
-
-  //
-  // add fleet to target
-  //
-  const targetFleets =
-    (state.state.systems[targetHexId].fleetsInSpace[playerId] ?? []);
-
-  deltas.push({
-    path: `state.systems.${targetHexId}.fleetsInSpace.${playerId}`,
-    oldValue: targetFleets,
-    newValue: [...targetFleets, markFleetMoved(fleet)],
-    visibility: "public",
-  });
-
-  //
-  // scanned mark if needed
-  //
-  if (!targetSystem.scannedBy?.includes(playerId) && canExplore) {
-    deltas.push({
-      path: `state.systems.${targetHexId}.scannedBy`,
-      oldValue: targetSystem.scannedBy ?? [],
-      newValue: [...(targetSystem.scannedBy ?? []), playerId],
-      visibility: "public",
-    });
-  }
-
-  //
-  // reveal in player view (owner-only)
-  //
-  deltas.push({
-    path: `playerViews.${playerId}.revealed.${targetHexId}`,
-    oldValue: undefined,
-    newValue: state.state.systems[targetHexId],
-    visibility: "owner",
-    ownerId: playerId,
-  });
-
-  // ─────────────────────────────────────────────
-  // 4️⃣ RETURN
-  // ─────────────────────────────────────────────
-  return {
-    action,
-    success: true,
-    stateChanges: deltas,
-    message: `Fleet jumped from ${fleetHex} to ${targetHexId}`,
-    undoable: true,
-  };
-}
-
 
 registerAction("jump", JumpAction);

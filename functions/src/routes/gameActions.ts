@@ -115,33 +115,51 @@ gameActionsRouter.get("/:gameId/actionLog", async (req: Request, res: Response) 
   }
 });
 
-// Get legal choices for an action parameter
+// Get next parameter choices for candidate actions
 gameActionsRouter.post("/:gameId/param-choices", async (req: Request, res: Response) => {
   try {
     const { gameId } = req.params;
     const userId = (req as AuthenticatedRequest).user.uid;
-    const { actionType, paramName, filledParams } = req.body;
+    const { candidateActions } = req.body;
 
-    if (!actionType || !paramName) {
-      res.status(400).json({ error: "actionType and paramName are required" });
+    if (!candidateActions || !Array.isArray(candidateActions)) {
+      res.status(400).json({ error: "candidateActions array is required" });
       return;
     }
 
     const phaseManager = await getPhaseManagerForGame(gameId);
+    const state = await phaseManager.getGameState();
 
-    if (!phaseManager?.getParamChoices) {
-      res.status(400).json({ error: "Game module does not support param choices" });
-      return;
+    // Process each candidate action
+    const results = [];
+    for (const actionData of candidateActions) {
+      // Recreate action instance and restore its filled parameters
+      const action = await createAction(phaseManager, actionData);
+      
+      if (!action) {
+        continue; // Skip unknown action types
+      }
+
+      // Find the next unfilled parameter
+      const nextParam = action.params.find(p => 
+        !p.optional && (p.value === undefined || p.value === null)
+      );
+
+      if (!nextParam) {
+        continue; // All params filled, skip
+      }
+
+      // Get choices for this parameter
+      const choices = action.getParamChoices(state, userId, nextParam.name);
+
+      results.push({
+        actionType: action.type,
+        nextParam: nextParam.name,
+        ...choices
+      });
     }
 
-    const response = await phaseManager.getParamChoices(
-      userId,
-      actionType,
-      paramName,
-      filledParams || {},
-    );
-
-    res.json(response);
+    res.json({ actions: results });
   } catch (err) {
     console.error("Error getting param choices:", err);
     res.status(500).json({
@@ -158,7 +176,7 @@ gameActionsRouter.post("/:gameId/finalize-info", async (req: Request, res: Respo
     const userId = (req as AuthenticatedRequest).user.uid;
 
     const phaseManager = await getPhaseManagerForGame(gameId);
-    const action = await createAction(phaseManager, req.body);
+    const action = await createAction(phaseManager, req.body.action);
 
     if (!action) {
       res.status(400).json({ error: "Unknown action type" });
