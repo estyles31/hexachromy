@@ -20,7 +20,7 @@ export default function ThroneworldBoard({
   onInspect,
 }: Props) {
   const gameState = useGameStateContext() as ThroneworldGameState;
-  const { selection, select,selectableBoardSpaces } = useSelection();
+  const { selection, select, selectableBoardSpaces } = useSelection();
 
   const playerColors = useMemo(
     () => Object.fromEntries(

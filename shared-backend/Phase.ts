@@ -14,6 +14,9 @@ export interface PhaseContext {
 export abstract class Phase {
   abstract readonly name: string;
 
+  /** Called when phase is loaded to initialize/verify phase state from gameState */
+  async loadPhase?(ctx: PhaseContext): Promise<void>;
+
   /** Called when phase begins - handles automated actions */
   async onPhaseStart?(ctx: PhaseContext): Promise<ActionResponse>;
 

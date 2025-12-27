@@ -24,14 +24,14 @@ export class ScanAction extends GameAction<ScanMetadata> {
           name: "bunkerUnitId",
           type: "gamePiece",
           subtype: "unit",
-          message: "Select a Command Bunker"
+          message: "Select a Command Bunker to Scan"
         },
         {
           name: "targetHexId",
           type: "boardSpace",
           subtype: "hex",
           dependsOn: "bunkerUnitId",
-          message: "Select hex to scan"
+          message: "Select target hex to Scan"
         }
       ],
       finalize: {

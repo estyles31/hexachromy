@@ -10,24 +10,36 @@ import { shuffle } from "../../../../shared/utils/RandomUtils";
 export class GameStartPhase extends Phase {
   readonly name = "GameStart";
 
+  async loadPhase(ctx: PhaseContext): Promise<void> {
+    const state = ctx.gameState as ThroneworldGameState;
+
+    // Set currentPlayers based on who needs to make choices
+    const nextPlayer = this.findNextUnfinishedPlayer(state);
+    state.state.currentPlayers = nextPlayer ? [nextPlayer] : undefined;
+  }
+
   async onPhaseStart(ctx: PhaseContext): Promise<ActionResponse> {
     const state = ctx.gameState as ThroneworldGameState;
 
-    // Set player order
+    // Set player order if not set
     if (!state.playerOrder || state.playerOrder.length === 0) {
       state.playerOrder = shuffle(Object.keys(state.players));
     }
 
-    state.state.currentPlayers = [state.playerOrder[0]];
-    
     const raceMode = (state.options.raceAssignment as string) || "random";
     const homeworldMode = (state.options.homeworldAssignment as string) || "random";
 
-    // Random assignments
-    if (raceMode === "random") {
+    // Random assignments (only if not already done)
+    const allPlayersHaveRaces = Object.values(state.players).every(p => p.race);
+    const allPlayersHaveHomeworlds = Object.values(state.players).every(p => {
+      const playerId = Object.keys(state.players).find(id => state.players[id] === p)!;
+      return this.playerHasHomeworld(state, playerId);
+    });
+
+    if (raceMode === "random" && !allPlayersHaveRaces) {
       ChooseRaceAction.assignRandomly(state);
     }
-    if (homeworldMode === "random") {
+    if (homeworldMode === "random" && !allPlayersHaveHomeworlds) {
       ChooseHomeworldAction.assignRandomly(state);
     }
 
@@ -40,9 +52,20 @@ export class GameStartPhase extends Phase {
       undoable: false,
     };
 
-    // If both random, skip directly to Outreach
-    if (raceMode === "random" && homeworldMode === "random") {
+    // Check again after potential assignments
+    const nowAllHaveRaces = Object.values(state.players).every(p => p.race);
+    const nowAllHaveHomeworlds = Object.values(state.players).every(p => {
+      const playerId = Object.keys(state.players).find(id => state.players[id] === p)!;
+      return this.playerHasHomeworld(state, playerId);
+    });
+
+    // If everyone has everything, skip directly to Outreach
+    if (nowAllHaveRaces && nowAllHaveHomeworlds) {
       result.phaseTransition = { nextPhase: "Outreach", transitionType: "nextPhase" };
+    } else {
+      // Set current player to first who needs setup
+      const nextPlayer = this.findNextUnfinishedPlayer(state);
+      state.state.currentPlayers = nextPlayer ? [nextPlayer] : undefined;
     }
     
     return result;
@@ -89,10 +112,6 @@ export class GameStartPhase extends Phase {
     if (!result.success) return result;
 
     const state = ctx.gameState as ThroneworldGameState;
-
-    if(process.env.DEBUG == "true") {
-      console.log("in onActionCompleted", playerId, JSON.stringify(result));
-    }
 
     // Process bots until we hit a human or finish setup
     let next = this.findNextUnfinishedPlayer(state);
@@ -156,7 +175,7 @@ export class GameStartPhase extends Phase {
 
     const order = state.playerOrder;
 
-    for (let i = 0; i <= order.length; i++) {
+    for (let i = 0; i < order.length; i++) {
       const pid = order[i];
       if (needsSetup(pid)) return pid;
     }

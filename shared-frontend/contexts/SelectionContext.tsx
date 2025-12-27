@@ -2,10 +2,12 @@ import { createContext, useContext } from "react";
 import type { SelectionState } from "../../shared/models/SelectionState";
 import type { GameAction } from "../../shared/models/GameAction";
 import type { GameObject } from "../../shared/models/ActionParams";
+import type { LegalActionsResponse } from "../../shared/models/ApiContexts";
 
 export interface SelectionContextValue {
   selection: SelectionState;
-  legalActions: GameAction[];
+  legalActions: LegalActionsResponse;
+  candidateActions: GameAction[];
   resolvedActions: GameAction[];
   selectableBoardSpaces: Set<string>;
   selectableGamePieces: Set<string>;

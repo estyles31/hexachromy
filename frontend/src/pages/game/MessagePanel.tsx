@@ -1,13 +1,9 @@
 // /frontend/src/components/MessagePanel.tsx
-import { useLegalActions } from "../../../../shared-frontend/hooks/useLegalActions";
 import { useSelection } from "../../../../shared-frontend/contexts/SelectionContext";
 import "./MessagePanel.css";
-import { useGameStateContext } from "../../../../shared-frontend/contexts/GameStateContext";
 
 export default function MessagePanel() {
-  const gameState = useGameStateContext();
-  const { legalActions } = useLegalActions(gameState.gameId, gameState.version);
-  const { selection, resolvedActions } = useSelection();
+  const { selection, legalActions, resolvedActions } = useSelection();
 
   const backendMessage = legalActions?.message ?? null;
 

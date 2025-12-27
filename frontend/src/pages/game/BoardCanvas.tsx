@@ -40,8 +40,12 @@ export default function BoardCanvas({
     // Only drag with primary button (left click)
     if (e.button !== 0) return;
 
-    // Check if we clicked on an interactive game element (counter, unit, etc)
-    const target = e.target as Element;
+    const target = e.target as HTMLElement;
+
+    // ignore clicks from floating UI
+    if (target.closest('.ui-overlay')) {
+      return;
+    }
 
     // Check if we're inside a nested SVG element (SystemMarker counters)
     const isSVGElement = target instanceof SVGElement;
@@ -94,14 +98,14 @@ export default function BoardCanvas({
     <div className="board-viewport">
       <div className="board-controls">
         <button onClick={handleZoomIn} title="Zoom In" className="zoom-btn">+</button>
-        <button onClick={handleZoomReset} title="Reset View" className="zoom-btn">⟲</button>
+        {/* <button onClick={handleZoomReset} title="Reset View" className="zoom-btn">⟲</button> */}
         <button onClick={handleZoomOut} title="Zoom Out" className="zoom-btn">-</button>
         <span className="zoom-label">{Math.round(scale * 100)}%</span>
       </div>
 
       <div
         ref={containerRef}
-        className={`board-container ${isDragging ? 'dragging' : ''}`}
+        className={`board-pan-surface ${isDragging ? 'dragging' : ''}`}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}

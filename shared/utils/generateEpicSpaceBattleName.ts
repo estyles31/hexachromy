@@ -1,4 +1,4 @@
-import { TemplatedNameGenerator, randomFrom, randomColor, randomAnimal, randomRomanNumneral, NameTemplate } from "../models/templatedNameGenerator";
+import { TemplatedNameGenerator, randomFrom, randomColor, randomAnimal, randomRomanNumneral, type NameTemplate } from "../models/templatedNameGenerator";
 
 /* ---------------------------------------------
  * Word pools
@@ -136,7 +136,7 @@ const ofNameSuffix = { base: "of {EpicName}", suffix: [ { base: "" }, { base: "{
 const epicTemplate: NameTemplate = {
   base: "{EpicName} {EpicNoun}",
   suffix: [
-    { base: "" },
+    { base: "", weight: 2 },
     { base: "{Roman}"},
     ofNameSuffix,
   ]

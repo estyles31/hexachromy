@@ -28,14 +28,14 @@ export class JumpAction extends GameAction<JumpMetadata> {
           name: "bunkerUnitId",
           type: "gamePiece",
           subtype: "unit",
-          message: "Select a Command Bunker"
+          message: "Select a Command Bunker to Jump"
         },
         {
           name: "fleetId",
           type: "gamePiece",
           subtype: "fleet",
           dependsOn: "bunkerUnitId",
-          message: "Select a fleet to jump"
+          message: "Select a Fleet to Jump"
         },
         {
           name: "targetHexId",

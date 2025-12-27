@@ -31,7 +31,14 @@ export class BasePhaseManager implements IPhaseManager {
   async getCurrentPhase(): Promise<Phase> {
     const state = await this.getGameState();
     const ctor = this.phases[state!.state.currentPhase];
-    return ctor ? new ctor() : new EmptyPhase();
+    const phase = ctor ? new ctor() : new EmptyPhase();
+    
+    // Load/initialize phase state
+    if (phase.loadPhase) {
+      await phase.loadPhase({ gameState: state, db: this.db });
+    }
+    
+    return phase;
   }
 
   async validateAction(playerId: string, action: GameAction): Promise<{ success: boolean; error?: string }> {
@@ -59,18 +66,8 @@ export class BasePhaseManager implements IPhaseManager {
       return result;
     }
 
-    if(process.env.DEBUG === "true") {
-      console.log(`Post-processing action of type ${result.action.type} in phase ${phase.name}`);
-      console.log("Action result:", JSON.stringify(result));
-      console.log("Phase:", JSON.stringify(phase));
-      console.log("onActionCompleted: ", JSON.stringify(phase.onActionCompleted));
-      console.log("Phase constructor:", phase.constructor.name);
-      console.log("Has onActionCompleted:", typeof phase.onActionCompleted);
-      console.log("onActionCompleted:", phase.onActionCompleted);
-    }
-
     if (phase.onActionCompleted) {
-        result = await phase.onActionCompleted(
+      result = await phase.onActionCompleted(
         { gameState: this.state!, db: this.db },
         playerId,
         result

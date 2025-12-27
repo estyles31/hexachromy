@@ -59,7 +59,7 @@
 }
 
 /* Board container - scrollable area with draggable content */
-.board-container {
+.board-pan-canvas {
   flex: 1;
   background: #222;
   overflow: hidden;
@@ -67,11 +67,11 @@
   user-select: none;
 }
 
-.board-container.dragging {
+.board-pan-canvas.dragging {
   cursor: grabbing !important;
 }
 
-.board-container.dragging * {
+.board-pan-canvas.dragging * {
   cursor: grabbing !important;
 }
 

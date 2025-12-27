@@ -9,6 +9,7 @@ import { useGameStateContext } from "../../../../shared-frontend/contexts/GameSt
 
 /**
  * Displays:
+ *  - Guidance messages for incomplete actions
  *  - All resolved (finalizable) actions
  *  - Auto-executes single trivial resolved actions
  *  - Allows canceling current selection
@@ -18,6 +19,7 @@ export default function ActionPanel() {
     resolvedActions,
     legalActions,
     executeAction,
+    candidateActions,
     cancelAction,
     selection,
   } = useSelection();
@@ -25,8 +27,25 @@ export default function ActionPanel() {
   const user = useAuth();
   const gameState = useGameStateContext();
   const gameId = gameState.gameId;
+
   const [finalizeInfo, setFinalizeInfo] =
     useState<Record<string, ActionFinalize>>({});
+
+  const hasResolved = resolvedActions.length > 0;
+  const hasSelection = selection.items.length > 0;
+
+  // ────────────────────────────────────────────────
+  // Action guidance messages (next required params)
+  // ────────────────────────────────────────────────
+  // note - these are intentionally not memoized, because that keeps them from updating
+  // I am fine with these being re-rendered on any state change (because most will intentionally require a re-render)
+  const actionMessages = (candidateActions ?? legalActions.actions)
+    .map(action => {
+      const nextParam = action.params.find(p => p.value == null);
+      return nextParam?.message;
+    })
+    .filter((m): m is string => Boolean(m));
+  const showMessages = actionMessages.length > 0 && !hasResolved;
 
   // ────────────────────────────────────────────────
   // Load finalize info for resolved actions
@@ -54,7 +73,6 @@ export default function ActionPanel() {
         );
 
         if (!res.ok) continue;
-
         info[action.type] = await res.json();
       }
 
@@ -82,29 +100,29 @@ export default function ActionPanel() {
     }
   }, [resolvedActions, finalizeInfo, executeAction]);
 
-  const hasResolved = resolvedActions.length > 0;
-  const hasSelection = selection.items.length > 0;
-
   // ────────────────────────────────────────────────
-  // Empty state
-  // ────────────────────────────────────────────────
-  if (!hasResolved && !hasSelection) {
-    return (
-      <div className="action-panel empty">
-        <div className="action-message">
-          {legalActions.length === 0
-            ? "No actions available"
-            : "Select game objects to begin an action"}
-        </div>
-      </div>
-    );
-  }
-
-  // ────────────────────────────────────────────────
-  // MAIN RENDER
+  // RENDER
   // ────────────────────────────────────────────────
   return (
-    <div className="action-panel">
+    <div className={`action-panel ${!hasResolved && !hasSelection ? "empty" : ""}`}>
+
+      {/* Guidance messages */}
+      {showMessages && (
+        <div className="action-panel__messages">
+          {actionMessages.map((m, i) => (
+            <div key={i} className="action-message">
+              {m}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* No actions at all */}
+      {!showMessages && legalActions.actions.length === 0 && (
+        <div className="action-message">
+          No actions available
+        </div>
+      )}
 
       {/* Finalization buttons */}
       {hasResolved && (

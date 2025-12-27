@@ -147,7 +147,8 @@ export function SelectionProvider({ children }: { children: React.ReactNode }) {
     <SelectionContext.Provider
       value={{
         selection,
-        legalActions: legalActions?.actions ?? [],
+        legalActions: legalActions ?? { actions: []},
+        candidateActions,
         resolvedActions,
         selectableBoardSpaces,
         selectableGamePieces,
