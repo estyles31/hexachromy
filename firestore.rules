@@ -2,98 +2,35 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
+
+    // Authentication helpers
     function isSignedIn() {
       return request.auth != null;
     }
 
-    function isAdmin() {
+		function isAdmin() {
       return isSignedIn() && request.auth.token.admin == true;
     }
 
-    function uidInList(listField) {
-      return listField is list && request.auth.uid in listField;
+		match /games/{gameId}/private {
+    	allow read, write, update, delete: if isAdmin();
     }
-
-    function uidInMap(mapField) {
-      return mapField is map && mapField[request.auth.uid] != null;
-    }
-
-    function isListed(field) {
-      return uidInList(field) || uidInMap(field);
-    }
-
-    function gameIsPublic(gameData) {
-      return (gameData.visibility is map && gameData.visibility.public == true)
-          || gameData.public == true;
-    }
-
-    function isPlayer(gameData) {
-      return isListed(gameData.players);
-    }
-
-    function isParticipant(gameData) {
-      return isListed(gameData.players) || isListed(gameData.observers);
-    }
-
-    // Public game state (the core game document and action history) should be readable
-    // by any authenticated user. Hidden information stays in per-player views.
-    function canReadGame(gameData) {
-      return isAdmin() || isSignedIn();
-    }
-
-    function canReadView(gameData, playerId) {
-      return isAdmin()
-          || (isSignedIn()
-              && request.auth.uid == playerId
-              && isPlayer(gameData));
-    }
-
-    function getGame(gameId) {
-      return get(/databases/$(database)/documents/games/$(gameId));
-    }
-
+    
+		match /games/{gameId}/playerViews/{playerId} {
+    	allow read, write, update: if request.auth.uid == playerId;
+    }	
+    
     match /games/{gameId} {
-      allow read: if canReadGame(resource.data);
-      allow write, update, delete: if isAdmin();
-
-      // Per-player fogged overlays keyed by player UID. These documents should only
-      // contain information that the specified player is allowed to see until it
-      // becomes public.
-      match /views/{playerId} {
-        allow read: if getGame(gameId).exists && canReadView(getGame(gameId).data, playerId);
-        allow write, update, delete: if isAdmin();
-      }
-
-      // Append-only action history for timeline navigation.
-      match /actions/{actionId} {
-        allow read: if getGame(gameId).exists && canReadGame(getGame(gameId).data);
-        allow write, update, delete: if isAdmin();
-      }
+    	allow read: if isSignedIn();
     }
-
-    // Public player profiles
-    match /profiles/{userId} {
-      allow read: if isSignedIn();
-      allow write, update: if isSignedIn() && request.auth.uid == userId;
-
-      match /private/{docId} {
-        allow read, write, update: if isSignedIn() && request.auth.uid == userId;
-      }
-    }
-
-    // Game metadata
+  	
     match /gameSummaries/{gameId} {
-      allow read: if isSignedIn();
-      allow write, update, delete: if isAdmin();
+    	allow read: if isSignedIn();
     }
 
-    // Game definitions
-    match /gameDefinitions/{gameType} {
-      allow read: if isSignedIn();
-      allow write, update, delete: if isAdmin();
-    }
-
-    // Deny everything else by default.
+    //----------------------------------------------------------------------
+    // Deny everything else
+    //----------------------------------------------------------------------
     match /{document=**} {
       allow read, write: if false;
     }

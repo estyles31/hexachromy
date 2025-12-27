@@ -1,5 +1,5 @@
 import { useAuthState } from "react-firebase-hooks/auth";
-import { auth } from "../firebase";
+import { auth } from "../../../shared-frontend/firebase";
 import type { User } from "firebase/auth";
 
 export type DisplayUser = {

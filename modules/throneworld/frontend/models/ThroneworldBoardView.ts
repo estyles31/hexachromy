@@ -1,6 +1,10 @@
 // /modules/throneworld/frontend/models/ThroneworldBoardView.ts
-import type { ThroneworldGameState, ThroneworldSystemDetails } from "../../shared/models/GameState.Throneworld";
+import type { ThroneworldGameState } from "../../shared/models/GameState.Throneworld";
 import type { ThroneworldBoardGeometry } from "../../shared/models/BoardGeometry.ThroneWorld";
+import type { ThroneworldPublicSystemState, ThroneworldSystemDetails } from "../../shared/models/Systems.ThroneWorld";
+import type { WorldType } from "../../shared/models/BoardLayout.ThroneWorld";
+import type { Fleet } from "../../shared/models/Fleets.Throneworld";
+import type { ThroneworldUnit } from "../../shared/models/Unit.Throneworld";
 
 export interface ThroneworldBoardView {
     systems: RenderableSystem[];
@@ -8,7 +12,8 @@ export interface ThroneworldBoardView {
 
 export interface RenderableSystem {
     hexId: string;
-    worldType: string;
+    worldType: WorldType;
+    owner?: string;
 
     position: {
         x: number;
@@ -29,6 +34,10 @@ export interface RenderableSystem {
         system: ThroneworldSystemDetails;
         revealed: boolean;
     };
+
+    groundUnits: Record<string, ThroneworldUnit[]>;
+    fleets: Record<string, Fleet[]>;
+    playerColors: Record<string, string>;
 }
 
 interface BuildBoardViewParams {
@@ -43,9 +52,12 @@ export function buildThroneworldBoardView(
     const { game, boardGeometry, playerColors } = params;
 
     // DEBUG: Log the entire playerView structure
-    console.log("🔍 Building board view - playerView:", game.playerView);
+    // console.log("🔍 Building board view - playerViews:", game.playerViews);
 
     const systems: RenderableSystem[] = [];
+
+    const playerView = game.playerViews ? Object.entries(game.playerViews).find(
+                        ([key]) => key !== "neutral")?.[1] : undefined;
 
     for (const [hexId, publicSystem] of Object.entries(game.state.systems)) {
         const hex = boardGeometry.hexes[hexId];
@@ -61,7 +73,7 @@ export function buildThroneworldBoardView(
                     hexRadius: boardGeometry.hexRadius,
                 },
                 publicSystem,
-                playerView: game.playerView?.systems[hexId],
+                playerView: playerView?.systems[hexId],
                 playerColors,
             })
         );
@@ -72,18 +84,14 @@ export function buildThroneworldBoardView(
 
 interface BuildRenderableSystemParams {
     hexId: string;
-    worldType: string;
+    worldType: WorldType;
     position: {
         x: number;
         y: number;
         hexRadius: number;
     };
 
-    publicSystem: {
-        revealed: boolean;
-        details?: ThroneworldSystemDetails;
-        scannedBy?: string[];
-    };
+    publicSystem: ThroneworldPublicSystemState;
 
     playerView?: ThroneworldSystemDetails;
     playerColors: Record<string, string>;
@@ -109,16 +117,15 @@ function buildRenderableSystem(
     //     scannedBy: publicSystem.scannedBy,
     // });
 
-    const isRevealed = publicSystem.revealed || worldType === "homeworld";
+    const isRevealed = publicSystem.revealed || worldType === "Homeworld";
     const hasPrivateView = Boolean(playerView);
     const canHoverReveal = isRevealed || hasPrivateView;
 
     const resolvedDetails: ThroneworldSystemDetails =
-        publicSystem.details ??
-        playerView ??
-        {
+        publicSystem.details
+        ?? playerView 
+        ?? {
             systemId: hexId,
-            owner: null,
             dev: 0,
             spaceTech: 0,
             groundTech: 0,
@@ -152,6 +159,7 @@ function buildRenderableSystem(
         hexId,
         worldType,
         position,
+        owner: publicSystem.details?.owner,
 
         marker: {
             system: resolvedDetails,
@@ -166,5 +174,9 @@ function buildRenderableSystem(
             system: resolvedDetails,
             revealed: isRevealed || hasPrivateView,
         },
+
+        fleets: publicSystem.fleetsInSpace,
+        groundUnits: publicSystem.unitsOnPlanet,
+        playerColors: playerColors,
     };
 }

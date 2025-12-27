@@ -1,0 +1,12 @@
+
+{
+  "name": "shared-backend",
+  "private": true,
+  "peerDependencies": {
+    "firebase": "*",
+    "firebase-tools": "*",
+    "react": "*",
+    "react-dom": "*",
+    "react-firebase-hooks": "*"
+  }
+}

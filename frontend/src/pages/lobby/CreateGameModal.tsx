@@ -9,9 +9,10 @@ import type { CreateGameOptions } from "../../../../shared/models/CreateGameOpti
 import type { User } from "firebase/auth";
 import "./CreateGameModal.css";
 import Draggable from "react-draggable";
-import PlayerSlotControl from "../../components/PlayerSlotControl";
+import PlayerSlotControl from "./PlayerSlotControl";
 import type { PlayerSlot } from "../../../../shared/models/PlayerSlot";
-import { OptionControl } from "../../components/OptionControl";
+import { OptionControl } from "./OptionControl";
+import { EpicSpaceBattleNameGenerator } from "../../../../shared/utils/generateEpicSpaceBattleName";
 
 interface Props {
   modules: ModuleDescription[];
@@ -44,6 +45,7 @@ export default function CreateGameModal({
 
   const user = useAuth();
   const modalRef = useRef<HTMLDivElement>(null);
+  const namer = new EpicSpaceBattleNameGenerator();
 
   /* ------------------ Game ---------------------- */
 
@@ -57,7 +59,15 @@ export default function CreateGameModal({
       .then(def => setDefinition(def))
       .catch(err => setDefinitionError(String(err)))
       .finally(() => setLoadingDefinition(false));
+
+    if (!gameName) {
+      setGameName(namer.generate());
+    };
   }, [moduleId]);
+
+  const rerollGameName = () => {
+    setGameName(namer.generate());
+  };
 
   /* ------------------ Scenario ------------------ */
 
@@ -137,12 +147,17 @@ export default function CreateGameModal({
   const handleCreate = () => {
     if (!scenario || !playerCount) return;
 
+    //if user leaves game name blank or tries to use whitespace or a single letter, then screw them, random name
+    let gn = gameName?.trim();
+    if(!gn || gn.length < 2)
+      gn = namer.generate();
+
     onCreate({
       gameType: definition?.id ?? "throneworld",
       scenarioId: scenario.id,
       playerSlots,  // Send slots instead of player IDs
       options: resolvedOptions,
-      name: gameName || undefined,
+      name: gn,
     });
   };
 
@@ -198,12 +213,22 @@ export default function CreateGameModal({
 
             {/* Game name */}
             <label>
-              Game name (optional)
-              <input
-                type="text"
-                value={gameName}
-                onChange={e => setGameName(e.target.value)}
-              />
+              <div className="game-name-row">
+              Game name
+                <button
+                  type="button"
+                  className="reroll-button"
+                  title="Reroll name"
+                  onClick={rerollGameName}
+                >
+                  🎲
+                </button>
+              </div>
+                <input
+                  type="text"
+                  value={gameName}
+                  onChange={e => setGameName(e.target.value)}
+                />
             </label>
 
             {/* Player count */}

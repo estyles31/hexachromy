@@ -9,38 +9,16 @@ import { buildDefs, getWorldFill, getBackgroundRects, getBaseStyles, config }
 
 import {
   BOARD_HEXES,
-  getWorldType,
-  isInPlay,
+  scenarioIds,
   type WorldType
 } from "../../shared/models/BoardLayout.ThroneWorld";
 
+import { 
+  computeBoardGeometry 
+} from "../../shared/models/BoardGeometry.ThroneWorld";
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
-// Which player counts to generate boards for
-const PLAYER_COUNTS = [2, 3, 4, 5, 6];
-
-// Hex geometry (flat-top)
-const HEX_RADIUS = 64;
-const HEX_PADDING = 1;
-
-const HEX_WIDTH  = HEX_RADIUS * 2;
-const HEX_HEIGHT = Math.sqrt(3) * HEX_RADIUS;
-
-// Spacing derived from your coordinate system
-const X_SPACING = HEX_WIDTH * 0.75 + HEX_PADDING;     
-const Y_SPACING = HEX_HEIGHT * 0.5 + HEX_PADDING;      
-
-const MARGIN = 20;
-
-type HexRender = {
-  id: string;
-  col: string;
-  row: number;
-  worldType: WorldType;
-  cx: number;
-  cy: number;
-};
 
 /* ───────── Entry point ───────── */
 
@@ -48,91 +26,55 @@ export async function generateBoardSvgs() {
   const outDir = path.resolve(__dirname, "../public/boards");
   fs.mkdirSync(outDir, { recursive: true });
 
-  for (const pc of PLAYER_COUNTS) {
-  const svg = generateSvgForPlayerCount(pc);
-  const fileName = `throneworld-${pc}p.svg`;
-  const outPath = path.join(outDir, fileName);
-  fs.writeFileSync(outPath, svg, "utf-8");
-  console.log(`Wrote ${outPath}`);
+  for (const scen of scenarioIds) {
+    const svg = generateSvgForScenario(scen);
+    const fileName = `throneworld-${scen}.svg`;
+    const outPath = path.join(outDir, fileName);
+    fs.writeFileSync(outPath, svg, "utf-8");
+    console.log(`Wrote ${outPath}`);
   }
 }
 
 /* ───────── Board Generator ───────── */
 
-function generateSvgForPlayerCount(playerCount: number): string {
-  const playable = BOARD_HEXES.filter(h => isInPlay(h.id, playerCount));
-
-  if (playable.length === 0) {
-    throw new Error(`No playable hexes for playerCount=${playerCount}`);
-  }
-
-  const hexes: HexRender[] = [];
-
-  let minX = Infinity;
-  let maxX = -Infinity;
-  let minY = Infinity;
-  let maxY = -Infinity;
-
-  for (const hex of playable) {
-    const cx = hex.colIndex * X_SPACING;
-    const cy = hex.row * Y_SPACING;
-
-    const worldType = getWorldType(hex.id, playerCount);
-
-    hexes.push({
-      id: hex.id,
-      col: hex.col,
-      row: hex.row,
-      worldType,
-      cx,
-      cy
-    });
-
-    minX = Math.min(minX, cx - HEX_RADIUS);
-    maxX = Math.max(maxX, cx + HEX_RADIUS);
-    minY = Math.min(minY, cy - HEX_RADIUS);
-    maxY = Math.max(maxY, cy + HEX_RADIUS);
-  }
-
-  // Normalize board to positive space with margin
-  const width  = (maxX - minX) + MARGIN * 2;
-  const height = (maxY - minY) + MARGIN * 2;
-
-  const shiftX = -minX + MARGIN;
-  const shiftY = -minY + MARGIN;
+function generateSvgForScenario(scenarioId: string): string {
+  // Use the same geometry calculation as the game runtime
+  const geometry = computeBoardGeometry(scenarioId);
 
   const defs = buildDefs();
-  const bg = getBackgroundRects(width, height);
+  const bg = getBackgroundRects(geometry.width, geometry.height);
   const styles = getBaseStyles();
 
   const elements: string[] = [];
 
-  for (const h of hexes) {
-    const cx = h.cx + shiftX;
-    const cy = h.cy + shiftY;
-
-    const points = hexagonPoints(cx, cy, HEX_RADIUS);
-    const fill = getWorldFill(h.worldType);
+  // Render each hex from the computed geometry
+  for (const [hexId, hex] of Object.entries(geometry.hexes)) {
+    const points = hexagonPoints(hex.x, hex.y, geometry.hexRadius);
+    const fill = getWorldFill(hex.worldType);
+    
+    // Get original hex data for metadata
+    const originalHex = BOARD_HEXES.find(h => h.id === hexId);
+    if (!originalHex) continue;
     
     elements.push(
-      `  <g id="hex-group-${h.id}" data-hex="${h.id}" data-col="${h.col}" data-row="${h.row}" data-world-type="${h.worldType}">`,
+      `  <g id="hex-group-${hexId}" data-hex="${hexId}" data-col="${originalHex.col}" data-row="${originalHex.row}" data-world-type="${hex.worldType}">`,
       `    <polygon`,
-      `      id="hex-${h.id}"`,
-      `      class="hex ${cssWorldTypeClass(h.worldType)}"`,
+      `      id="hex-${hexId}"`,
+      `      class="hex ${cssWorldTypeClass(hex.worldType)}"`,
       `      points="${points}"`,
       `      fill="${fill}"`,
       `      stroke="${config.hexBorder.color}"`,
       `      stroke-width="2"`,
       `    />`,
       `    <text`,
-      `      id="label-${h.id}"`,
+      `      id="label-${hexId}"`,
       `      class="hex-label"`,
-      `      x="${cx}"`,
-      `      y="${cy + 4}"`,
+      `      x="${hex.x}"`,
+      `      y="${hex.y + 4}"`,
       `      text-anchor="middle"`,
       `      font-size="11"`,
       `      fill="#111"`,
-      `    >${h.id}</text>`,
+      `    >${hexId}</text>`,
       `  </g>`
     );
   }
@@ -141,9 +83,9 @@ function generateSvgForPlayerCount(playerCount: number): string {
     `<?xml version="1.0" encoding="UTF-8"?>`,
     `<svg`,
     `  xmlns="http://www.w3.org/2000/svg"`,
-    `  width="${width}"`,
-    `  height="${height}"`,
-    `  viewBox="0 0 ${width} ${height}"`,
+    `  width="${geometry.width}"`,
+    `  height="${geometry.height}"`,
+    `  viewBox="0 0 ${geometry.width} ${geometry.height}"`,
     `>`,
     `  <defs>`,
     ...defs.map(d => `    ${d}`),

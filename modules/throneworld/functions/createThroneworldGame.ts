@@ -4,39 +4,39 @@ import {
     BOARD_HEXES,
     getWorldType,
     isInPlay,
-    type WorldType,
 } from "../shared/models/BoardLayout.ThroneWorld";
 import type {
     ThroneworldGameState,
     ThroneworldPlayerView,
-    ThroneworldSystemDetails,
     ThroneworldPlayerState,
-    ThroneworldWorldType,
     ThroneworldState,
 } from "../shared/models/GameState.Throneworld";
-import type { Player, PlayerStatus } from "../../../shared/models/GameState";
-import type { SystemDefinition, SystemPool } from "../shared/models/Systems.ThroneWorld";
+import type { GameState, Player, PlayerStatus } from "../../../shared/models/GameState";
+import type { SystemPool, ThroneworldSystemDetails } from "../shared/models/Systems.ThroneWorld";
 import systemsJson from "../shared/data/systems.throneworld.json";
-import racesJson from "../shared/data/races.throneworld.json";
-import { GameStartContext } from "../../../shared/models/GameStartContext";
-import { ThroneworldFaction } from "../shared/models/Faction.ThroneWorld";
+import { GameStartContext } from "../../../shared/models/ApiContexts";
 import { PlayerSlot } from "../../../shared/models/PlayerSlot";
+import { ThroneworldPhaseManager } from "./phases/PhaseManager";
+import { dbAdapter } from "../../../functions/src/services/database";
+import { ActionResponse, SystemAction } from "../../../shared/models/GameAction";
 
 // TODO: extract this to a shared file
 const PLAYER_COLORS = ["#ff7043", "#4dd0e1", "#ce93d8", "#aed581", "#ffd54f", "#90caf9"];
 
-export async function createGame(ctx: GameStartContext): Promise<ThroneworldGameState> {
+export async function createGame(ctx: GameStartContext): Promise<GameState> {
     const filledPlayers = playerSlotsToPlayers(ctx.playerSlots);
 
-    const { state, playerViews } = buildInitialGameDocuments({
+    const { state, playerViews } = await buildInitialGameDocuments({
         gameId: ctx.gameId,
-        playerSlots: ctx.playerSlots,  
+        playerSlots: ctx.playerSlots,
         players: filledPlayers,
         options: ctx.options,
         name: ctx.name,
         scenario: ctx.scenario.id,
         requiredPlayers: ctx.scenario.playerCount,
     });
+
+    console.log(`Created Throneworld game ${ctx.gameId} with ${ctx.playerSlots.length} players.`);
 
     // Persist core state
     await ctx.db.setDocument(`games/${ctx.gameId}`, state);
@@ -46,13 +46,32 @@ export async function createGame(ctx: GameStartContext): Promise<ThroneworldGame
         await ctx.db.setDocument(`games/${ctx.gameId}/playerViews/${pid}`, view);
     }
 
-    return state;
+    // Initialize the starting phase (handles random assignment, etc.)
+    const phaseManager = new ThroneworldPhaseManager(state.gameId, dbAdapter);
+    await phaseManager.getGameState();
+
+    // Trigger the phase start through the normal action flow
+    const systemAction = new SystemAction();
+    const result: ActionResponse = {
+        action: systemAction,
+        success: true,
+        message: "Game initialized",
+        undoable: false,
+        phaseTransition: {
+            nextPhase: "GameStart",
+            transitionType: "nextPhase"
+        }
+    };
+
+    await phaseManager.postExecuteAction("system", result);
+    return phaseManager.getGameState();
 }
 
 const SYSTEM_POOLS = systemsJson as SystemPool;
-type SystemTile = { systemId: string; definition: SystemDefinition };
+type SystemTile = { systemId: string; definition: ThroneworldSystemDetails };
 
-const HOMEWORLD_BASE: SystemDefinition = {
+const HOMEWORLD_BASE: ThroneworldSystemDetails = {
+    systemId: "homeworld",
     dev: 10,
     spaceTech: 0,
     groundTech: 0,
@@ -60,11 +79,8 @@ const HOMEWORLD_BASE: SystemDefinition = {
     groundUnits: {},
 };
 
-const Factions = racesJson as Record<string, ThroneworldFaction>;
-const ALL_FACTIONS: ThroneworldFaction[] = Object.values(Factions);
 
 type PoolKey = keyof SystemPool;
-type NormalizedWorldType = ThroneworldWorldType | "notinplay";
 
 /* ------------------------------------------------------------------ */
 /* Helpers                                                            */
@@ -80,46 +96,32 @@ function shuffle<T>(items: T[]): T[] {
 }
 
 function playerSlotsToPlayers(slots: PlayerSlot[]): Player[] {
-  return slots
-    .filter(slot => slot.type === "human" || slot.type === "bot")
-    .map(slot => {
-      if (slot.type === "human") {
-        return {
-          uid: slot.uid,
-          displayName: slot.displayName,
-          status: "joined" as const,
-        };
-      } else {
-        return {
-          uid: slot.botId,
-          displayName: slot.displayName,
-          status: "dummy" as const,
-        };
-      }
-    });
+    return slots
+        .filter(slot => slot.type === "human" || slot.type === "bot")
+        .map(slot => {
+            if (slot.type === "human") {
+                return {
+                    uid: slot.uid,
+                    displayName: slot.displayName,
+                    status: "joined" as const,
+                };
+            } else {
+                return {
+                    uid: slot.botId,
+                    displayName: slot.displayName,
+                    status: "dummy" as const,
+                };
+            }
+        });
 }
 
 function allSlotsFilled(slots: PlayerSlot[]): boolean {
-  return slots.every(slot => slot.type !== "open");
+    return slots.every(slot => slot.type !== "open");
 }
 
 // function getFilledSlotCount(slots: PlayerSlot[]): number {
 //   return slots.filter(slot => slot.type !== "open").length;
 // }
-
-function normalizeWorldType(worldType: WorldType): NormalizedWorldType {
-    const normalized = worldType.toLowerCase();
-    if (
-        normalized === "outer" ||
-        normalized === "inner" ||
-        normalized === "fringe" ||
-        normalized === "throneworld"
-    ) {
-        return normalized;
-    }
-    if (normalized === "homeworld") return "homeworld";
-    return "notinplay";
-}
 
 function buildSystemPool(poolKey: PoolKey): SystemTile[] {
     return SYSTEM_POOLS[poolKey].map((definition, idx) => ({
@@ -132,23 +134,6 @@ function drawRandomSystem(pool: SystemTile[]): SystemTile {
     const index = randomInt(0, pool.length);
     const [tile] = pool.splice(index, 1);
     return tile;
-}
-
-/**
- * Assign races randomly to players (current behavior).
- * Later you can branch on options.raceAssignment === "playerChoice".
- */
-function assignFactions(players: Player[]): Record<string, string> {
-    if (players.length > ALL_FACTIONS.length) {
-        throw new Error(`Not enough unique factions for ${players.length} players`);
-    }
-
-    const pool = shuffle(ALL_FACTIONS).slice(0, players.length);
-
-    return players.reduce<Record<string, string>>((acc, player, idx) => {
-        acc[player.uid] = pool[idx]?.Name ?? "";
-        return acc;
-    }, {});
 }
 
 //eventually want a better way to assign colors
@@ -165,14 +150,6 @@ function assignColors(players: Player[]): Record<string, string> {
     }, {});
 }
 
-/**
- * Right now we always randomize homeworld order.
- * Later you can branch on options.homeworldAssignment === "playerOrder".
- */
-function resolveHomeworldOrder(players: Player[]): Player[] {
-    return shuffle(players);
-}
-
 /* ------------------------------------------------------------------ */
 /* Main: buildInitialGameDocuments                                    */
 /* ------------------------------------------------------------------ */
@@ -183,41 +160,36 @@ interface BuildInitialParams {
     players: Player[];
     options: Record<string, unknown | null>;
     name?: string;
-    scenario?: string;        // e.g. "standard-4p", but we mostly care about playerCount
+    scenario: string;        // e.g. "4p", "6p", "4p-alt"
     requiredPlayers?: number; // if you want to enforce a min player count
 }
 
 /**
  * Builds the initial Throneworld state + per-player views:
- * - assigns factions
- * - assigns homeworlds
  * - draws random systems
  * - respects startScannedForAll (and revealAll, if you add it later)
  */
-export function buildInitialGameDocuments(
+export async function buildInitialGameDocuments(
     params: BuildInitialParams,
-): {
+): Promise<{
     state: ThroneworldGameState;
     playerViews: Record<string, ThroneworldPlayerView>;
-} {
+}> {
     const {
         gameId,
         playerSlots,
         players,
         options,
+        scenario,
     } = params;
 
-    const totalSlots = playerSlots.length;
     const allFilled = allSlotsFilled(playerSlots);
-    const name = params.name ?? undefined;
+    const name = params.name ?? "";
 
     // Game options we actually use right now
     const startScannedForAll = Boolean(options.startScannedForAll);
     const scanForAll = startScannedForAll; // you can add revealAllSystems later if you want
 
-    // For now: always random factions and random homeworlds
-    const factions = assignFactions(players);
-    const homeworldQueue = resolveHomeworldOrder(players);
     const colors = assignColors(players);
 
     // If you want initial statuses from options, add a field to ThroneworldGameOptions
@@ -233,19 +205,19 @@ export function buildInitialGameDocuments(
                 uid: player.uid,
                 displayName: player.displayName,
                 status: playerStatuses[player.uid],
-                race: factions[player.uid],
                 resources: 0,
                 color: colors[player.uid],
+                tech: { Ground: 1, Space: 1, Comm: 1, Jump: 1 },
             }
             return acc;
         }, {});
 
     // System pools: outer / inner / fringe / throneworld
     const pools: Record<PoolKey, SystemTile[]> = {
-        outer: buildSystemPool("outer"),
-        inner: buildSystemPool("inner"),
-        fringe: buildSystemPool("fringe"),
-        throneworld: buildSystemPool("throneworld"),
+        Outer: buildSystemPool("Outer"),
+        Inner: buildSystemPool("Inner"),
+        Fringe: buildSystemPool("Fringe"),
+        Throneworld: buildSystemPool("Throneworld"),
     };
 
     const systems: ThroneworldState["systems"] = {} as ThroneworldState["systems"];
@@ -260,30 +232,27 @@ export function buildInitialGameDocuments(
 
     // Place systems on the board
     for (const hex of BOARD_HEXES) {
-        if (!isInPlay(hex.id, totalSlots)) continue;
+        if (!isInPlay(hex.id, String(scenario))) continue;
 
-        const worldType = normalizeWorldType(getWorldType(hex.id, totalSlots));
-        if (worldType === "notinplay") continue;
+        const worldType = getWorldType(hex.id, scenario);
+        if (worldType === "NotInPlay") continue;
 
         // Homeworlds
-        if (worldType === "homeworld") {
-            const player = homeworldQueue.shift();
-            if (player) {
-                const details: ThroneworldSystemDetails = {
-                    systemId: `homeworld-${player.uid}`,
-                    owner: player.uid,
+        if (worldType === "Homeworld") {
+            systems[hex.id] = {
+                hexId: hex.id,
+                location: { col: hex.col, row: hex.row },
+                worldType,
+                revealed: true,
+                scannedBy: [],
+                details: {
                     ...HOMEWORLD_BASE,
-                };
+                    systemId: `Homeworld-${hex.id}`,
+                } as ThroneworldSystemDetails,
+                unitsOnPlanet: {},
+                fleetsInSpace: {}
+            };
 
-                systems[hex.id] = {
-                    hexId: hex.id,
-                    location: { col: hex.col, row: hex.row },
-                    worldType,
-                    revealed: true,
-                    scannedBy: [],
-                    details,
-                };
-            }
             continue;
         }
 
@@ -296,9 +265,8 @@ export function buildInitialGameDocuments(
 
         const { systemId, definition } = drawRandomSystem(pool);
         const details: ThroneworldSystemDetails = {
-            systemId,
-            owner: null,
             ...definition,
+            systemId,
         };
 
         const revealed = false;        // not revealed at start, unless you add a debug flag
@@ -311,6 +279,8 @@ export function buildInitialGameDocuments(
             revealed,
             scannedBy,
             ...(revealed ? { details } : {}),
+            unitsOnPlanet: {},
+            fleetsInSpace: {},
         };
 
         // Neutral view knows the full system contents
@@ -321,10 +291,6 @@ export function buildInitialGameDocuments(
                 playerViews[player.uid].systems[hex.id] = details;
             }
         }
-    }
-
-    if (homeworldQueue.length > 0) {
-        throw new Error("Not all players received a homeworld assignment");
     }
 
     const allPlayersReady = allFilled && players.every(
@@ -340,6 +306,7 @@ export function buildInitialGameDocuments(
 
         status: allPlayersReady ? "in-progress" : "waiting",
         players: throneworldPlayers,
+        playerOrder: shuffle(players.map((player) => player.uid)),
 
         options: {
             ...options,
@@ -349,8 +316,12 @@ export function buildInitialGameDocuments(
 
         state: {
             systems,
-            currentPhase: "Beginning",
+            currentPhase: "Init",
         },
+
+        version: 0,
+        actionSequence: 0,
+        //playerUndoStacks: {},
     };
 
     return { state, playerViews };

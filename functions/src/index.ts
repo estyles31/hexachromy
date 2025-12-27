@@ -8,7 +8,8 @@
  */
 
 import {setGlobalOptions} from "firebase-functions";
-setGlobalOptions({maxInstances: 10});
+import "dotenv/config";
 
+setGlobalOptions({maxInstances: 10});
 
 export { api } from "./api.js";

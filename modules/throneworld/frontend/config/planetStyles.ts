@@ -9,12 +9,12 @@ export const planetStyles = {
   dev5: { gradient: ["#5ac8fa", "#004c99"], highlight: "#ffffff" },
   dev6: { gradient: ["#5ac8fa", "#003c88"], highlight: "#ffffff" },
 
-  homeworld: {
+  Homeworld: {
     gradient: ["#8ad47a", "#2f7a44"],
     highlight: "#eaffea"
   },
 
-  throneworld: {
+  Throneworld: {
     gradient: ["#6c3bcc", "#36206a"],
     highlight: "#ddb84e"
   }

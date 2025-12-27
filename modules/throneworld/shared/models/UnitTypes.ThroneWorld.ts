@@ -1,10 +1,10 @@
 import raw from "../data/units.throneworld.json";
-import type { ThroneworldUnit } from "./UnitType.ThroneWorld";
+import type { ThroneworldUnitType } from "./UnitType.ThroneWorld";
 
 // Make the JSON strongly typed
-const loadedUnits: Record<string, ThroneworldUnit> = raw as Record<
+const loadedUnits: Record<string, ThroneworldUnitType> = raw as Record<
   string,
-  ThroneworldUnit
+  ThroneworldUnitType
 >;
 
 export const UNITS = Object.fromEntries(
@@ -14,7 +14,7 @@ export const UNITS = Object.fromEntries(
 // Export the unit ID type
 export type UnitId = keyof typeof UNITS;
 
-export function normalizeUnit(u: ThroneworldUnit) {
+export function normalizeUnit(u: ThroneworldUnitType) {
   return {
     Attack: 0,
     Defense: 0,

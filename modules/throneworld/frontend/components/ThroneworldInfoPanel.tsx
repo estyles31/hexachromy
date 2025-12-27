@@ -2,20 +2,21 @@ import type { ThroneworldGameState } from "../../shared/models/GameState.Thronew
 import type HoveredSystemInfo from "../models/HoveredSystemInfo";
 import type InspectContext from "../../../../shared/models/InspectContext";
 import "./ThroneworldInfoPanel.css";
+import { useGameStateContext } from "../../../../shared-frontend/contexts/GameStateContext";
 
 export default function ThroneworldInfoPanel({
-  gameState,
   inspected,
 }: {
-  gameState: ThroneworldGameState;
   inspected: InspectContext<HoveredSystemInfo> | null;
 }) {
   if (!inspected) return null;
 
+  const gameState = useGameStateContext() as ThroneworldGameState;
+
   const systemInfo = inspected?.data;
   const hexId = systemInfo?.hexId ?? "unknown";
   const revealed = systemInfo?.revealed ??false;
-  const system = gameState.state.systems[hexId]?.details;
+  const system = systemInfo?.details ?? gameState.state.systems[hexId]?.details;
 
   if (!system) {
     return (
@@ -34,7 +35,7 @@ export default function ThroneworldInfoPanel({
     );
   }
 
-  const owner = system.owner ?? "Unclaimed";
+  const owner = system?.owner ?? "Unclaimed";
 
   return (
     <div className="throneworld-info">

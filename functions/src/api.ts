@@ -1,7 +1,7 @@
 // functions/src/api.ts
 import express from "express";
 import { onRequest } from "firebase-functions/v2/https";
-import { authMiddleware } from "./middleware/auth";
+import { authMiddleware } from "./auth";
 import { gameDefinitionsRouter } from "./routes/gameDefinitions";
 import { gamesRouter } from "./routes/games";
 import { profilesRouter } from "./routes/profiles";
@@ -41,6 +41,8 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
     error: err.code || "internal",
     message: err.message || "Internal server error",
   });
+
+  next();
 });
 
 export const api = onRequest({ invoker: "public" }, app);

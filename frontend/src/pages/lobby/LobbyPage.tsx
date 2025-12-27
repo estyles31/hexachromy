@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useAuth } from "../../auth/useAuth";
 import { authFetch } from "../../auth/authFetch";
-import LoginProfile from "../../components/LoginProfile";
+import LoginProfile from "./LoginProfile";
 import { GameList } from "./GameList";
 import { useLobbyGames } from "./LobbyGames";
 import { useNavigate } from "react-router-dom";

@@ -1,6 +1,6 @@
 export type UnitType = "Space" | "Ground";
 
-export interface ThroneworldUnit {
+export interface ThroneworldUnitType {
   id: string;            // "F", "M", "A", "qC", etc
   Name: string;
   Symbol: string;

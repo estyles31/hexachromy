@@ -3,9 +3,10 @@ import { useState } from "react";
 import type { ThroneworldBoardView, RenderableSystem } from "../models/ThroneworldBoardView";
 import type InspectContext from "../../../../shared/models/InspectContext";
 import type HoveredSystemInfo from "../models/HoveredSystemInfo";
-
 import { SystemMarker } from "./SystemMarker";
 import PlanetArc from "./PlanetArc";
+import HexUnitsLayer from "./HexUnitsLayer";
+import { DEFAULT_SIZE as sysMarkerSize } from "./SystemMarker";
 
 interface Props {
   boardView: ThroneworldBoardView;
@@ -16,40 +17,24 @@ interface HoverPreview {
   system: RenderableSystem;
 }
 
-/**
- * Renders all system markers + planet arcs for Throneworld.
- * Hover logic lives here because it affects board-layer visuals.
- */
 export default function ThroneworldSystemLayer({
   boardView,
-  onInspect,
+  onInspect
 }: Props) {
   const [hoverPreview, setHoverPreview] = useState<HoverPreview | null>(null);
 
   return (
     <>
       {boardView.systems.map((sys) => {
-        const {
-          hexId,
-          worldType,
-          position,
-          marker,
-          hover,
-        } = sys;
-
+        const { hexId, worldType, position, marker, hover } = sys;
         const { x, y, hexRadius } = position;
 
-        // Marker positioning relative to hex center
-        const markerX =
-          x - hexRadius * 0.55 + hexRadius * -0.2;
-        const markerY =
-          y - hexRadius * (Math.sqrt(3) / 2) +
-          hexRadius * 0.5 +
-          hexRadius * 0.08;
+        const markerX = x - hexRadius + 0.33 * sysMarkerSize;
+        const markerY = y - 0.5 * sysMarkerSize;
 
         return (
           <g key={hexId}>
-            {/* Planet arc (only when allowed) */}
+            {/* Planet arc (only when revealed) */}
             {marker.revealed && (
               <PlanetArc
                 cx={x}
@@ -61,14 +46,19 @@ export default function ThroneworldSystemLayer({
               />
             )}
 
+            {/* Units layer */}
+            <HexUnitsLayer
+              hexId={hexId}
+              hexCenter={{ x, y }}
+              hexRadius={hexRadius}
+              system={sys}
+              playerColors={sys.playerColors}
+            />
+
             {/* System marker */}
             <g transform={`translate(${markerX}, ${markerY})`}>
               <SystemMarker
-                system={
-                  marker.revealed
-                    ? marker.system
-                    : marker.system
-                }
+                system={marker.system}
                 worldType={worldType}
                 revealed={marker.revealed}
                 ownerColor={marker.ownerColor}
@@ -98,7 +88,7 @@ export default function ThroneworldSystemLayer({
         );
       })}
 
-      {/* Hover preview overlay — always on top */}
+      {/* Hover preview overlay */}
       {hoverPreview && (
         <g
           pointerEvents="none"
@@ -109,7 +99,7 @@ export default function ThroneworldSystemLayer({
             system={hoverPreview.system.hover.system}
             worldType={hoverPreview.system.worldType}
             revealed={hoverPreview.system.hover.revealed}
-            size={125}
+            size={80}
             ownerColor={hoverPreview.system.marker.ownerColor}
             hideUnits={hoverPreview.system.marker.hideUnits}
           />

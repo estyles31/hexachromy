@@ -10,7 +10,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin: 0 0 10px;
+  margin: 0 0 2px;
   font-size: 1.1rem;
   letter-spacing: 0.04em;
 }
@@ -48,4 +48,9 @@
   font-size: 0.85rem;
   color: #a5a5a5;
   margin-top: 4px;
+}
+
+.player-panel--active {
+  outline: 3px solid #fff;
+  box-shadow: 0 0 0 2px #000;
 }

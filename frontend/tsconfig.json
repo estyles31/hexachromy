@@ -9,9 +9,11 @@
   },
   "include": [
     "./src/**/*",
+    "../shared/*",
     "../shared/**/*",
-    "../modules/frontend.js",
-    "../modules/FrontendModuleDefinition.js",
+    "../shared-frontend/*",
+    "../shared-frontend/**/*",
+    "../modules/*",
     "../modules/**/*",
   ],
   "exclude": [

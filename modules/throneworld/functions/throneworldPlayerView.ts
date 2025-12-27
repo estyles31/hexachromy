@@ -1,22 +1,18 @@
 // /modules/throneworld/functions/throneworldPlayerView.ts
-import { GameDatabaseAdapter } from "../../types";
+import { GameDatabaseAdapter } from "../../../shared/models/GameDatabaseAdapter";
 import { ThroneworldPlayerView } from "../shared/models/GameState.Throneworld";
 
-export async function getPlayerView({
-  gameId,
-  playerId,
-  db,
-}: {
-  gameId: string;
-  playerId: string;
-  db: GameDatabaseAdapter;
-}) {
+export async function getPlayerViews({ gameId, playerId, db}: {
+  gameId: string; playerId: string; db: GameDatabaseAdapter}) {
   const view =
     await db.getDocument<ThroneworldPlayerView>(
       `games/${gameId}/playerViews/${playerId}`,
     );
 
-  return {
-    playerView: view ?? { playerId, systems: {} },
-  };
+    const views : Record<string, ThroneworldPlayerView> = {};
+    if(view) {
+      views[playerId] = view;
+    }
+
+  return { playerViews: views };
 }

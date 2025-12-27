@@ -3,25 +3,32 @@
 .game-root {
   display: grid;
   grid-template-columns: 1fr 320px;
-  min-height: 100vh;
+  height: 100vh;
   background: #111;
   color: #eee;
-  position: relative; /* anchor for overlays */
+  position: relative;
+  overflow: hidden;
+}
+
+.ui-overlay {
+  pointer-events: auto;
 }
 
 /* Board area */
 .board-container {
+  position: relative;
   grid-column: 1;
   background: #222;
   display: flex;
   justify-content: center;
   align-items: flex-start;
+  box-sizing: border-box;
   overflow: auto;
-  padding: 16px;
 }
 
 /* Right sidebar (game info + players + controls) */
 .right-panel {
+  position: relative;
   grid-column: 2;
   display: flex;
   flex-direction: column;
@@ -31,29 +38,78 @@
   overflow-y: auto;
 }
 
+.right-panel-resizer {
+  position: absolute;
+  top: 0;
+  left: -4px;
+  width: 8px;
+  height: 100%;
+  cursor: col-resize;
+  z-index: 20;
+}
+
+.right-panel-resizer:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
 /* ===== Overlay containers (base app only positions these) ===== */
 
 /* Floating inspect / hover info panel */
 .info-panel-container {
   position: absolute;
-  right: 320px;        /* align next to right panel */
+  right: 10px;
   bottom: 24px;
   max-width: min(420px, 45vw);
   z-index: 1000;
 }
 
-/* Floating inspect / hover info panel */
-.info-panel-container {
-  position: fixed;      /* Changed from absolute to fixed */
-  right: 330px;         /* 320px panel + 10px margin */
+/* Floating action history panel (lower left) */
+.action-history-container {
+  position: absolute;
+  left: 24px;
   bottom: 24px;
-  max-width: min(420px, 45vw);
+  width: 400px;
+  max-height: 500px;
+  z-index: 999;
+  cursor: grab;
+}
+
+.action-history-container:active {
+  cursor:grabbing;
+}
+
+.message-panel-overlay {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
   z-index: 1000;
 }
 
-/* Optional: keep overlays visible on smaller screens */
+.action-panel-overlay {
+  position: absolute;
+  top: 32px;
+  left: 100%;
+  min-width: 100px;
+  width: 180px;
+  margin-right: 20px;
+  transform: translateX(-100%);
+  z-index: 1001;
+}
+
+.info-panel-toggle {
+  margin: 5px;
+  font-size:small;
+  margin-top: auto;
+}
+
 @media (max-width: 1100px) {
   .info-panel-container {
     right: 16px;
+  }
+
+  .action-history-container {
+    left: 16px;
+    width: 350px;
   }
 }

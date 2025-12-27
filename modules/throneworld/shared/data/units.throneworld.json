@@ -2,7 +2,7 @@
 	"Sv": {
 		"id": "Sv",
 		"Name": "Survey Team",
-		"Symbol": "🏴",
+		"Symbol": "🏳️",
 		"Type": "Space",
 		"Cost": 1,
 		"Explore": true
@@ -129,7 +129,7 @@
 	"C": {
 		"id": "C",
 		"Name": "Command Bunker",
-		"Symbol": "⛬",
+		"Symbol": "📡",
 		"Type": "Ground",
 		"Cost": 10,
 		"Attack": 0,
@@ -168,7 +168,7 @@
 	"qC": {
 		"id": "qC",
 		"Name": "Q'teni Command Bunker",
-		"Symbol": "🜁",
+		"Symbol": "📡",
 		"Type": "Ground",
 		"Cost": 5,
 		"Attack": 0,
