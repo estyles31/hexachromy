@@ -18,7 +18,7 @@ export default function ThroneworldPlayerArea({ playerId }: { playerId: string; 
   if (!player) return null;
 
   const production = useMemo(
-    () => getProductionForPlayer(gameState.state, playerId),
+    () => getProductionForPlayer(gameState, playerId),
     [gameState.state.systems, playerId]
   );
 

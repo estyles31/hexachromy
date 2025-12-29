@@ -3,8 +3,14 @@ import type { GameDefinition } from "../shared/models/GameDefinition";
 import type { GameState } from "../shared/models/GameState";
 import type InspectContext from "../shared/models/InspectContext";
 import type { BoardGeometry } from "../shared/models/BoardGeometry";
+import type { LegalChoice } from "../shared/models/GameAction";
 
 export type VictoryPoints = Record<string, number>;
+
+export interface ChoiceRendererProps {
+  choice: LegalChoice;
+  onClick: () => void;
+}
 
 export interface FrontendModuleDefinition<State = unknown, InspectPayload = unknown> {
   getGameDefinition(): GameDefinition;
@@ -19,4 +25,6 @@ export interface FrontendModuleDefinition<State = unknown, InspectPayload = unkn
   PlayerAreaComponent?: React.ComponentType<{ playerId: string }>;
   GameInfoAreaComponent?: React.ComponentType<Record<never, never>>;
   InfoPanelComponent?: React.ComponentType<{ inspected: InspectContext<InspectPayload> | null }>;
+
+  choiceRenderers?: Record<string, React.ComponentType<ChoiceRendererProps>>;
 }

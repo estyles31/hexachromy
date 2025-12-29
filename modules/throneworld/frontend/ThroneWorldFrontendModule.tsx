@@ -13,6 +13,7 @@ import type { VictoryPoints } from "../../../shared-frontend/FrontendModuleDefin
 import { ThroneworldGameDefinition } from "../shared/models/GameDefinition.Throneworld";
 import type { BoardGeometry } from "../../../shared/models/BoardGeometry";
 import ThroneworldBoard from "./components/ThroneworldBoard";
+import ThroneworldUnitCounterButton from "./components/ThroneworldUnitCounterButton";
 
 export const ThroneworldFrontendModule: FrontendModuleDefinition<ThroneworldState, HoveredSystemInfo> = {
   getBoardGeometry: (gameState: ThroneworldGameState) => {
@@ -25,6 +26,9 @@ export const ThroneworldFrontendModule: FrontendModuleDefinition<ThroneworldStat
   GameInfoAreaComponent: ThroneworldGameInfoArea,
   InfoPanelComponent: ThroneworldInfoPanel,
   getVictoryPoints,
+  choiceRenderers: { 
+    "unitType": ThroneworldUnitCounterButton
+  }
 };
 
 function MainBoardComponent(params: {

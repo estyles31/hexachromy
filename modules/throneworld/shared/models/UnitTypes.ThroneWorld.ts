@@ -12,7 +12,7 @@ export const UNITS = Object.fromEntries(
 );
 
 // Export the unit ID type
-export type UnitId = keyof typeof UNITS;
+export type UnitTypeId = keyof typeof UNITS;
 
 export function normalizeUnit(u: ThroneworldUnitType) {
   return {

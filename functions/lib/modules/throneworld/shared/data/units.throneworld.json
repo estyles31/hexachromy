@@ -86,8 +86,7 @@
         "Cargo": -1,
         "DefenseBonus": {
             "CombinedArms": {
-                "C": 1,
-                "qC": 1
+                "C": 1
             }
         }
     },
@@ -164,19 +163,5 @@
         "Cargo": -1,
         "DropAttack": true,
         "Restricted": true
-    },
-    "qC": {
-        "id": "qC",
-        "Name": "Q'teni Command Bunker",
-        "Symbol": "📡",
-        "Type": "Ground",
-        "Cost": 5,
-        "Attack": 0,
-        "Defense": 2,
-        "HP": 3,
-        "Cargo": 0,
-        "Static": true,
-        "Command": true,
-        "FirstDefend": true
     }
 }

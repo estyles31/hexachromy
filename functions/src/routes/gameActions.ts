@@ -1,4 +1,4 @@
-// functions/src/routes/gameActions.ts
+// /functions/src/routes/gameActions.ts
 import { Router } from "express";
 import type { Request, Response } from "express";
 import type { AuthenticatedRequest } from "../auth.js";
@@ -9,7 +9,6 @@ import { BasePhaseManager } from "../../../shared-backend/BasePhaseManager.js";
 import { IPhaseManager } from "../../../shared-backend/BackendModuleDefinition.js";
 import { GameAction } from "../../../shared/models/GameAction.js";
 
-
 export const gameActionsRouter = Router();
 
 async function getPhaseManagerForGame(gameId: string): Promise<IPhaseManager> {
@@ -18,11 +17,12 @@ async function getPhaseManagerForGame(gameId: string): Promise<IPhaseManager> {
   return phaseManager;
 }
 
-// GET /:gameId/actions - Get legal actions for current player
-gameActionsRouter.get("/:gameId/actions", async (req: Request, res: Response) => {
+// POST /:gameId/legal-actions - Get legal actions with optional filled params
+gameActionsRouter.post("/:gameId/legal-actions", async (req: Request, res: Response) => {
   try {
     const { gameId } = req.params;
     const userId = (req as AuthenticatedRequest).user.uid;
+    const { filledParams } = req.body as { filledParams?: Record<string, string> };
 
     const phaseManager = await getPhaseManagerForGame(gameId);
 
@@ -31,12 +31,12 @@ gameActionsRouter.get("/:gameId/actions", async (req: Request, res: Response) =>
       return;
     }
 
-    const response = await phaseManager.getLegalActions(userId);
-
+    const response = await phaseManager.getLegalActions(userId, filledParams);
     res.json(response);
+
   } catch (err) {
     console.error("Error getting legal actions:", err);
-    res.status(500).json({ 
+    res.status(500).json({
       error: "Failed to get legal actions",
       details: err instanceof Error ? err.message : String(err)
     });
@@ -57,12 +57,14 @@ gameActionsRouter.post("/:gameId/action", async (req: Request, res: Response) =>
       return;
     }
 
-    const response = await baseActionHandler({ gameId, playerId: userId, action, db: dbAdapter}, phaseManager);
+    const response = await baseActionHandler(
+      { gameId, playerId: userId, action, db: dbAdapter },
+      phaseManager
+    );
 
     if (response.success) {
       res.json(response);
     } else {
-      // Handle stale state specially
       if (response.error === "stale_state") {
         res.status(409).json(response);  // 409 Conflict
       } else {
@@ -71,26 +73,19 @@ gameActionsRouter.post("/:gameId/action", async (req: Request, res: Response) =>
     }
   } catch (err) {
     console.error("Error handling action:", err);
-    res.status(500).json({ 
+    res.status(500).json({
       error: "Failed to handle action",
       details: err instanceof Error ? err.message : String(err)
     });
   }
 });
 
-// not handling undo just yet
-// POST /:gameId/undo - Undo last action
-// gameActionsRouter.post("/:gameId/undo", async (req: Request, res: Response) => {
-// });
-
 // GET /:gameId/actionLog - Get action history
 gameActionsRouter.get("/:gameId/actionLog", async (req: Request, res: Response) => {
   try {
     const { gameId } = req.params;
-    // const userId = (req as AuthenticatedRequest).user.uid;
     const limit = parseInt(req.query.limit as string) || 100;
 
-    // Query action log from Firestore
     const { db } = await import("../services/database.js");
     const actionLogRef = db.collection(`games/${gameId}/actionLog`);
     const snapshot = await actionLogRef
@@ -98,73 +93,14 @@ gameActionsRouter.get("/:gameId/actionLog", async (req: Request, res: Response) 
       .limit(limit)
       .get();
 
-    const actions = snapshot.docs
-      .map(doc => doc.data())
-      .reverse(); // Reverse to get chronological order (oldest first)
+    const actions = snapshot.docs.map(doc => doc.data()).reverse();
 
-    res.json({
-      actions,
-      hasMore: snapshot.docs.length === limit,
-    });
+    res.json({ actions, hasMore: snapshot.docs.length === limit });
   } catch (err) {
     console.error("Error loading action log:", err);
-    res.status(500).json({ 
+    res.status(500).json({
       error: "Failed to load action log",
       details: err instanceof Error ? err.message : String(err)
-    });
-  }
-});
-
-// Get next parameter choices for candidate actions
-gameActionsRouter.post("/:gameId/param-choices", async (req: Request, res: Response) => {
-  try {
-    const { gameId } = req.params;
-    const userId = (req as AuthenticatedRequest).user.uid;
-    const { candidateActions } = req.body;
-
-    if (!candidateActions || !Array.isArray(candidateActions)) {
-      res.status(400).json({ error: "candidateActions array is required" });
-      return;
-    }
-
-    const phaseManager = await getPhaseManagerForGame(gameId);
-    const state = await phaseManager.getGameState();
-
-    // Process each candidate action
-    const results = [];
-    for (const actionData of candidateActions) {
-      // Recreate action instance and restore its filled parameters
-      const action = await createAction(phaseManager, actionData);
-      
-      if (!action) {
-        continue; // Skip unknown action types
-      }
-
-      // Find the next unfilled parameter
-      const nextParam = action.params.find(p => 
-        !p.optional && (p.value === undefined || p.value === null)
-      );
-
-      if (!nextParam) {
-        continue; // All params filled, skip
-      }
-
-      // Get choices for this parameter
-      const choices = action.getParamChoices(state, userId, nextParam.name);
-
-      results.push({
-        actionType: action.type,
-        nextParam: nextParam.name,
-        ...choices
-      });
-    }
-
-    res.json({ actions: results });
-  } catch (err) {
-    console.error("Error getting param choices:", err);
-    res.status(500).json({
-      error: "Failed to get param choices",
-      details: err instanceof Error ? err.message : String(err),
     });
   }
 });
@@ -197,7 +133,7 @@ gameActionsRouter.post("/:gameId/finalize-info", async (req: Request, res: Respo
 
 async function createAction(phaseManager: IPhaseManager, action: any): Promise<GameAction | null> {
   const instance = await phaseManager.createAction(action.type);
-  if(instance) {
+  if (instance) {
     return Object.assign(instance, action) as GameAction;
   }
   return null;

@@ -10,6 +10,7 @@ export interface Player {
 export interface BaseState {
   currentPlayers?: string[];
   currentPhase: string;
+  phaseMetadata?: Record<string, unknown>; // Phase-specific temporary state
 }
 
 export interface GameState<State = BaseState> {

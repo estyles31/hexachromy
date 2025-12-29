@@ -1,155 +1,117 @@
-// /frontend/src/contexts/SelectionProvider.tsx (base frontend)
-// Uses SelectionContext from /shared-frontend/contexts/SelectionContext
+// /frontend/src/components/SelectionProvider.tsx
+// Refactored: Direct filledParams, no wrapper types
 
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { SelectionContext } from "../../../shared-frontend/contexts/SelectionContext";
-import { EMPTY_SELECTION, type SelectionState } from "../../../shared/models/SelectionState";
 import { useGameStateContext } from "../../../shared-frontend/contexts/GameStateContext";
-import { useLegalActions } from "../../../shared-frontend/hooks/useLegalActions";
 import type { GameAction } from "../../../shared/models/GameAction";
-import type { GameObject, ParamChoicesResponse } from "../../../shared/models/ActionParams";
+import type { LegalActionsResponse } from "../../../shared/models/ApiContexts";
 import { authFetch } from "../auth/authFetch";
 import { useAuth } from "../auth/useAuth";
 import { useActionExecutor } from "../hooks/useActionExecutor";
-
-function nextUnfilledParam(action: GameAction) {
-  return (action.params ?? []).find(p => p.value === undefined || p.value === null);
-}
-
-function isActionResolved(action: GameAction): boolean {
-  for (const p of action.params ?? []) {
-    if (p.optional) continue;
-    if (p.value === undefined || p.value === null) return false;
-  }
-  return true;
-}
 
 export function SelectionProvider({ children }: { children: React.ReactNode }) {
   const user = useAuth();
   const { gameId, version } = useGameStateContext();
 
-  const { legalActions, refresh } = useLegalActions(gameId, version);
-
-  // Candidate actions are the *actual* action instances we're filling.
-  const [candidateActions, setCandidateActions] = useState<GameAction[]>([]);
-  const [selection, setSelection] = useState<SelectionState>(EMPTY_SELECTION);
-
+  const [legalActions, setLegalActions] = useState<LegalActionsResponse>({ actions: [] });
+  const [filledParams, setFilledParams] = useState<Record<string, string>>({});
   const [selectableBoardSpaces, setSelectableBoardSpaces] = useState<Set<string>>(new Set());
   const [selectableGamePieces, setSelectableGamePieces] = useState<Set<string>>(new Set());
 
   const { executeAction: sendAction } = useActionExecutor();
 
-  // Reset candidates when legal actions change
-  useEffect(() => {
-    setSelection(EMPTY_SELECTION);
-    setCandidateActions(legalActions?.actions ?? []);
-  }, [legalActions]);
-
-  const cancelAction = useCallback(() => {
-    setSelection(EMPTY_SELECTION);
-    refresh();
-  }, [legalActions]);
-
-  // Updated fetchParamChoices - sends candidate actions instead of single action
-  const fetchParamChoices = useCallback(async (
-    candidateActions: GameAction[]
-  ): Promise<{ actions: Array<{ actionType: string; nextParam: string } & ParamChoicesResponse> }> => {
-    if (!user) return { actions: [] };
+  // Fetch legal actions from backend
+  const fetchLegalActions = useCallback(async (params?: Record<string, string>) => {
+    if (!user) return;
 
     try {
-      const res = await authFetch(user, `/api/games/${gameId}/param-choices`, {
+      const res = await authFetch(user, `/api/games/${gameId}/legal-actions`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          candidateActions: candidateActions.map(a => ({
-            type: a.type,
-            params: a.params
-          }))
-        }),
+        body: JSON.stringify({ filledParams: params || {} })
       });
 
       if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        console.error("fetchParamChoices failed:", err);
-        return { actions: [] };
+        console.error("fetchLegalActions failed");
+        return;
       }
 
-      return await res.json();
+      const response: LegalActionsResponse = await res.json();
+      setLegalActions(response);
+      buildHighlights(response.actions);
     } catch (e) {
-      console.error("fetchParamChoices failed:", e);
-      return { actions: [] };
+      console.error("fetchLegalActions failed:", e);
     }
   }, [user, gameId]);
 
-  const buildHighlightState = useCallback(async () => {
-    const newBoardSpaces = new Set<string>();
-    const newGamePieces = new Set<string>();
+  // Build highlight sets from actions with populated choices
+  const buildHighlights = useCallback((actions: GameAction[]) => {
+    const boardSpaces = new Set<string>();
+    const gamePieces = new Set<string>();
 
-    if (candidateActions.length > 0) {
-      // Make one call with all candidate actions
-      const response = await fetchParamChoices(candidateActions);
+    for (const action of actions) {
+      const nextParam = action.params.find(p => !p.optional && (p.value === undefined || p.value === null));
+      if (!nextParam?.choices) continue;
 
-      // Process all returned choices
-      for (const actionResult of response.actions) {
-        for (const choice of actionResult.choices ?? []) {
-          if (choice.type === "boardSpace" && choice.displayHint?.hexId) {
-            newBoardSpaces.add(choice.displayHint.hexId);
-          } else if (choice.type === "gamePiece" && choice.displayHint?.pieceId) {
-            newGamePieces.add(choice.displayHint.pieceId);
-          }
+      for (const choice of nextParam.choices) {
+        if (nextParam.type === "boardSpace" && choice.displayHint?.hexId) {
+          boardSpaces.add(choice.displayHint.hexId);
+        } else if (nextParam.type === "gamePiece" && choice.displayHint?.pieceId) {
+          gamePieces.add(choice.displayHint.pieceId);
         }
       }
     }
 
-    setSelectableBoardSpaces(newBoardSpaces);
-    setSelectableGamePieces(newGamePieces);
-  }, [candidateActions, fetchParamChoices]);
+    setSelectableBoardSpaces(boardSpaces);
+    setSelectableGamePieces(gamePieces);
+  }, []);
 
+  // Initial fetch on mount and when version changes
   useEffect(() => {
-    buildHighlightState();
-  }, [buildHighlightState]);
+    setFilledParams({});
+    fetchLegalActions();
+  }, [fetchLegalActions, version]);
 
-  // Selection step: mutate param.value on each surviving action instance
-  const select = useCallback((item: GameObject) => {
-    const survivors: GameAction[] = [];
+  // User selects something (hex, piece, or choice button)
+  const select = useCallback(async (choiceId: string) => {
+    // Find which param this choice belongs to
+    const activeParam = legalActions.actions
+      .flatMap(a => a.params)
+      .find(p => p.choices?.some(c => c.id === choiceId));
 
-    for (const action of candidateActions) {
-      const next = nextUnfilledParam(action);
-      if (!next) continue;
-
-      if (next.type !== item.type) continue;
-      if (next.subtype && item.subtype && next.subtype !== item.subtype) continue;
-
-      // fill on the action instance
-      next.value = item.id;
-      survivors.push(action);
+    if (!activeParam) {
+      console.error("No active param found for choice:", choiceId);
+      return;
     }
 
-    setCandidateActions(survivors);
-    setSelection(prev => ({
-      ...prev,
-      items: [...prev.items, item],
-    }));
-  }, [candidateActions]);
+    const newFilledParams = {
+      ...filledParams,
+      [activeParam.name]: choiceId
+    };
 
-  const resolvedActions = useMemo(() => {
-    return candidateActions.filter(isActionResolved);
-  }, [candidateActions]);
+    setFilledParams(newFilledParams);
+    await fetchLegalActions(newFilledParams);
+  }, [legalActions.actions, filledParams, fetchLegalActions]);
 
-  // Execute is explicit only: receives a fully-parameterized action envelope
+  // Cancel current selection chain
+  const cancelAction = useCallback(() => {
+    setFilledParams({});
+    fetchLegalActions();
+  }, [fetchLegalActions]);
+
+  // Execute a complete action
   const executeAction = useCallback((action: GameAction) => {
     sendAction(action);
-    setSelection(EMPTY_SELECTION);
-    setCandidateActions(legalActions?.actions ?? []);
-  }, [sendAction, legalActions]);
+    setFilledParams({});
+    fetchLegalActions();
+  }, [sendAction, fetchLegalActions]);
 
   return (
     <SelectionContext.Provider
       value={{
-        selection,
-        legalActions: legalActions ?? { actions: []},
-        candidateActions,
-        resolvedActions,
+        legalActions,
+        filledParams,
         selectableBoardSpaces,
         selectableGamePieces,
         select,

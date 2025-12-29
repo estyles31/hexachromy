@@ -1,5 +1,33 @@
-import type { ActionParam } from "./ActionParams";
+// /shared/models/GameAction.ts
 import type { GameState } from "./GameState";
+
+/** Base parameter types that the framework understands */
+export type ParamType = "boardSpace" | "gamePiece" | "choice" | "number" | "text";
+
+/** A legal choice for a parameter value */
+export interface LegalChoice {
+  id: string;
+  label?: string;
+  displayHint?: {
+    hexId?: string;
+    pieceId?: string;
+  };
+  metadata?: Record<string, unknown>;
+}
+
+/** Definition of a single action parameter */
+export interface ActionParam<T = string> {
+  name: string;
+  type: ParamType;
+  optional?: boolean;
+  subtype?: string;
+  filter?: Record<string, unknown>;
+  dependsOn?: string;
+  message?: string;
+  value?: T | null;
+  choices?: LegalChoice[];
+  populateChoices?: (state: GameState, playerId: string) => LegalChoice[];
+}
 
 export interface ActionResponse {
   action: GameAction | IAction;
@@ -13,15 +41,12 @@ export interface ActionResponse {
 export interface PhaseTransition {
   nextPhase: string;
   transitionType: "nextPhase" | "subPhase" | "temporary";
-  runPhaseStart?: boolean;  //default = true
+  runPhaseStart?: boolean;
 }
 
-/**
- * How an action is finalized after all params are collected
- */
 export interface ActionFinalize {
   mode: "auto" | "confirm";
-  label?: string;                      // Static label for confirm button
+  label?: string;
   warnings?: string[];
 }
 
@@ -40,24 +65,12 @@ export class SystemAction<T = Record<string, unknown>> implements IAction<T> {
 }
 
 export abstract class GameAction<T = Record<string, unknown>> implements IAction<T> {
-  /** Required basic identity & undo semantics */
   readonly type: string;
   undoable: boolean;
-
-  /** Server-side execution metadata */
-  expectedVersion?: number;              // optimistic concurrency
-  undoAction?: GameAction;               // how to reverse this action, only if special handling needed
-
-  /** Parameters needed before execution */
-  params: ActionParam<any>[] = [];                // UI/logic parameter definitions
-
-  /** Optional UI rendering info */
-  //renderHint?: RenderHint;               // currently not used
-
-  /** Optional finalize mode */
-  finalize?: ActionFinalize;             // confirm button rules
-
-  /** game and action specific metadata */
+  expectedVersion?: number;
+  undoAction?: GameAction;
+  params: ActionParam<any>[] = [];
+  finalize?: ActionFinalize;
   metadata: Partial<T> = {};
 
   constructor(init: {
@@ -68,13 +81,35 @@ export abstract class GameAction<T = Record<string, unknown>> implements IAction
   }) {
     this.type = init.type;
     this.undoable = init.undoable;
-
     this.params = init.params ?? [];
     this.finalize = init.finalize;
   }
 
   abstract execute(state: GameState, playerId: string): Promise<ActionResponse>;
-  abstract getParamChoices(state: GameState, playerId: string, paramName: string): any;
+
+  /**
+   * Populate choices for all unfilled params whose dependencies are met.
+   * Called by framework after params are filled.
+   */
+  populateParamChoices(state: GameState, playerId: string): void {
+    for (const param of this.params) {
+      // Skip if already filled
+      if (param.value !== undefined && param.value !== null) continue;
+      
+      // Skip if depends on unfilled param
+      if (param.dependsOn) {
+        const dependency = this.params.find(p => p.name === param.dependsOn);
+        if (!dependency || dependency.value === undefined || dependency.value === null) {
+          continue;
+        }
+      }
+      
+      // Populate choices if function provided
+      if (param.populateChoices) {
+        param.choices = param.populateChoices(state, playerId);
+      }
+    }
+  }
 
   isParamComplete(name: string): boolean {
     return this.params.find(p => p.name === name)?.value !== undefined;

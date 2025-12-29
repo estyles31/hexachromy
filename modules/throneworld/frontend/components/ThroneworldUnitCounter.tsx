@@ -37,12 +37,12 @@ export default function UnitCounter({
   const cargoFont = size * 0.22;
 
   // Visual indicators for moved/used units
-  const isCommandBunker = unitId === "C" || unitId === "qC";
+  const isCommandBunker = unitId === "C";   //todo: maybe change to check "Command" value
   const showMovedIndicator = hasMoved && !isCommandBunker;
   const showUsedIndicator = hasMoved && isCommandBunker;
 
   // Cargo style
-  let cargoFill = cargo && cargo > 0 ? "#c0f9d8ff" : "#df71acff";
+  let cargoFill = cargo && cargo > 0 ? "#abebc6ff" : "#ea95c2ff";
   if (cargo === 0 || cargo === null) cargoFill = "transparent";
 
   // Highlight/selection styling
@@ -176,7 +176,7 @@ export default function UnitCounter({
             cy={size * 0.78 + 3}
             r={cargoRadius}
             fill={cargoFill}
-            stroke="white"
+            stroke="#fff"
             strokeWidth={1.3}
           />
           <text
@@ -185,7 +185,7 @@ export default function UnitCounter({
             fontSize={cargoFont}
             textAnchor="middle"
             dominantBaseline="middle"
-            fill="white"
+            fill="#000"
             fontWeight="bold"
           >
             {cargo > 0 ? `+${cargo}` : cargo}

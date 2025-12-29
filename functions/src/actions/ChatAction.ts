@@ -1,3 +1,4 @@
+// /functions/src/actions/ChatAction.ts
 import { GameAction, ActionResponse } from "../../../shared/models/GameAction";
 import type { GameState } from "../../../shared/models/GameState";
 import { writeChatMessage } from "../services/ChatHistoryService";
@@ -9,13 +10,12 @@ export class ChatAction extends GameAction {
     super({
       type: "chat",
       undoable: false,
-      params: [
-        {
-          name: "message",
-          type: "text",
-          message: "Enter chat message",
-        },
-      ],
+      params: [{
+        name: "message",
+        type: "text",
+        message: "Enter chat message",
+        // No populateChoices - text params don't have choices
+      }],
     });
   }
 
@@ -26,10 +26,6 @@ export class ChatAction extends GameAction {
     await writeChatMessage(state.gameId, playerId, text);
 
     return { action: this, success: true, message: "chat_sent" };
-  }
-
-  getParamChoices(): [] {
-    return [];
   }
 }
 

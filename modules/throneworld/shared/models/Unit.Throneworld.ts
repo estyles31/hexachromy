@@ -1,16 +1,16 @@
 // /modules/throneworld/shared/models/Unit.Throneworld.ts
-import type { UnitId } from "./UnitTypes.ThroneWorld";
+import type { UnitTypeId } from "./UnitTypes.ThroneWorld";
 
 let unitIdCounter = 0;
 
 export interface ThroneworldUnit {
   id: string;
-  unitTypeId: UnitId;
+  unitTypeId: UnitTypeId;
   hasMoved: boolean;
   owner?: string;
 }
 
-export function buildUnit(unitTypeId:UnitId, owner?:string) : ThroneworldUnit {
+export function buildUnit(unitTypeId:UnitTypeId, owner?:string) : ThroneworldUnit {
     return {
         id: generateUnitId(),
         unitTypeId,

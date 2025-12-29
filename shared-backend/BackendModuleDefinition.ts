@@ -28,8 +28,9 @@ export interface IPhaseManager {
     result: ActionResponse
   ): Promise<ActionResponse>;
 
-  getLegalActions?(
-    playerId: string
+  getLegalActions(
+    playerId: string,
+    filledParams?: Record<string, string>
   ): Promise<LegalActionsResponse>;
 
   createAction(type: string): Promise<GameAction | null>;

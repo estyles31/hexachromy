@@ -1,7 +1,7 @@
 // /modules/throneworld/frontend/components/HexUnitsLayer.tsx
 import type { JSX } from "react/jsx-runtime";
 import type { ThroneworldUnit } from "../../shared/models/Unit.Throneworld";
-import { UNITS, type UnitId } from "../../shared/models/UnitTypes.ThroneWorld";
+import { UNITS, type UnitTypeId } from "../../shared/models/UnitTypes.ThroneWorld";
 import type { RenderableSystem } from "../models/ThroneworldBoardView";
 import UnitCounter from "./ThroneworldUnitCounter";
 import type { Fleet } from "../../shared/models/Fleets.Throneworld";
@@ -9,7 +9,7 @@ import { useCallback } from "react";
 import { useSelection } from "../../../../shared-frontend/contexts/SelectionContext";
 
 interface UnitGroup {
-  unitTypeId: UnitId;
+  unitTypeId: UnitTypeId;
   hasMoved: boolean;
   units: ThroneworldUnit[];
   count: number;
@@ -87,11 +87,11 @@ function getGroundSlots(hexRadius: number, counterSize: number) {
 }
 
 function fleetStackOffset(stackIndex: number) {
-  return { x: stackIndex * 3, y: stackIndex * 3 };
+  return { x: stackIndex * 3, y: stackIndex * 6 };
 }
 
 function groundStackOffset(stackIndex: number) {
-  return { x: stackIndex * 3, y: -stackIndex * 3 };
+  return { x: stackIndex * 3, y: -stackIndex * 6 };
 }
 
 interface Props {
@@ -101,7 +101,6 @@ interface Props {
   hexRadius: number;
   playerColors: Record<string, string>;
   debugSlots?: boolean;
-  debugSelection?: boolean;
 }
 
 export default function HexUnitsLayer({
@@ -113,39 +112,29 @@ export default function HexUnitsLayer({
   debugSlots = false,
 }: Props) {
 
-  const {select, selectableGamePieces, selection} = useSelection();
+  const {select, selectableGamePieces, filledParams} = useSelection();
 
-  // Handle fleet click
-  const handleFleetClick = useCallback((fleetId: string, hexId: string) => {
+  // Handle fleet click - just pass the fleet ID
+  const handleFleetClick = useCallback((fleetId: string) => {
     if (selectableGamePieces.has(fleetId)) {
-      select({
-        type: "gamePiece",
-        subtype: "fleet",
-        id: fleetId,
-        metadata: { hexId },
-      });
+      select(fleetId);
     }
 
     if(process.env.DEBUG === "true") {
       console.log("Clicked fleet:", fleetId, "at hex:", hexId);
     }
-  }, [selectableGamePieces, select]);
+  }, [selectableGamePieces, select, hexId]);
 
-  // Handle unit click (including command bunkers)
-  const handleUnitClick = useCallback((unitId: string, hexId: string) => {
+  // Handle unit click - just pass the unit ID
+  const handleUnitClick = useCallback((unitId: string) => {
     if (selectableGamePieces.has(unitId)) {
-      select({
-        type: "gamePiece",
-        subtype: "unit",
-        id: unitId,
-        metadata: { hexId },
-      });
+      select(unitId);
     }
 
     if(process.env.DEBUG === "true") {
       console.log("Clicked unit:", unitId, "at hex:", hexId);
     }
-  }, [selectableGamePieces, select]);
+  }, [selectableGamePieces, select, hexId]);
 
   const counterSize = 32;
   const ownerId = system.owner ?? null;
@@ -198,13 +187,12 @@ export default function HexUnitsLayer({
       const unitDef = UNITS[group.unitTypeId];
       if (!unitDef) return;
 
-      // Pick any unit from this group (they're fungible within the group)
       const representativeUnit = group.units[0];
       const unitId = representativeUnit.id;
 
-      // Check if any unit in this group is selectable
       const isSelectable = selectableGamePieces.has(unitId);
       const isClickable = isSelectable || process.env.DEBUG === "true";
+      const isSelected = Object.values(filledParams).includes(unitId);
 
       elements.push(
         <g
@@ -212,7 +200,7 @@ export default function HexUnitsLayer({
           transform={`translate(${slot.x + dx}, ${slot.y + dy})`}
           onClick={isClickable ? (e) => {
             e.stopPropagation();
-            handleUnitClick(unitId, hexId);
+            handleUnitClick(unitId);
           } : undefined}
           style={{ cursor: isSelectable ? "pointer" : undefined }}
         >
@@ -223,7 +211,7 @@ export default function HexUnitsLayer({
             hasMoved={group.hasMoved}
             playerColor={group.playerColor}
             highlighted={isSelectable}
-            selected={selection.items.some(i => i.type === "gamePiece" && i.subtype === "unit" && i.id === unitId)}
+            selected={isSelected}
           />
         </g>
       );
@@ -242,11 +230,12 @@ export default function HexUnitsLayer({
 
       const firstSpaceUnit = fleet.spaceUnits?.[0];
       if (!firstSpaceUnit) return;
-      const unitDef = UNITS[firstSpaceUnit.unitTypeId as UnitId];
+      const unitDef = UNITS[firstSpaceUnit.unitTypeId as UnitTypeId];
       if (!unitDef) return;
 
       const isSelectable = selectableGamePieces.has(fleet.id);
       const isClickable = isSelectable || process.env.DEBUG === "true";
+      const isSelected = Object.values(filledParams).includes(fleet.id);
 
       elements.push(
         <g
@@ -254,7 +243,7 @@ export default function HexUnitsLayer({
           transform={`translate(${slot.x + dx}, ${slot.y + dy})`}
           onClick={isClickable ? (e) => {
             e.stopPropagation();
-            handleFleetClick(fleet.id, hexId);
+            handleFleetClick(fleet.id);
           } : undefined}
           style={{ cursor: isSelectable ? "pointer" : undefined }}
         >
@@ -265,7 +254,7 @@ export default function HexUnitsLayer({
             hasMoved={false}
             playerColor={fleet.playerColor}
             highlighted={isSelectable}
-            selected={selection.items.some(i => i.type === "gamePiece" && i.subtype === "fleet" && i.id === fleet.id)}
+            selected={isSelected}
           />
         </g>
       );
@@ -303,4 +292,3 @@ export default function HexUnitsLayer({
     </g>
   );
 }
-

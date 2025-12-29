@@ -2,10 +2,10 @@
 import type { ColumnId, WorldType } from "./BoardLayout.ThroneWorld";
 import { createFleet, type Fleet } from "./Fleets.Throneworld";
 import type { ThroneworldUnit } from "./Unit.Throneworld";
-import type { UnitId } from "./UnitTypes.ThroneWorld";
+import type { UnitTypeId } from "./UnitTypes.ThroneWorld";
 import { UNITS } from "./UnitTypes.ThroneWorld";
 
-export type UnitCountMap = Partial<Record<UnitId, number>>;
+export type UnitCountMap = Partial<Record<UnitTypeId, number>>;
 
 export interface ThroneworldSystemDetails {
   dev: number;

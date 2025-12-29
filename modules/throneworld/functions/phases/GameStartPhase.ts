@@ -1,4 +1,3 @@
-// /modules/throneworld/functions/phases/GameStartPhase.ts
 import { Phase, PhaseContext } from "../../../../shared-backend/Phase";
 import type { LegalActionsResponse } from "../../../../shared/models/ApiContexts";
 import type { ThroneworldGameState } from "../../shared/models/GameState.Throneworld";
@@ -6,6 +5,7 @@ import { ChooseRaceAction } from "../actions/ChooseRaceAction";
 import { ChooseHomeworldAction } from "../actions/ChooseHomeworldAction";
 import { ActionResponse, SystemAction } from "../../../../shared/models/GameAction";
 import { shuffle } from "../../../../shared/utils/RandomUtils";
+import { getProductionForPlayer } from "../../shared/models/Production.ThroneWorld";
 
 export class GameStartPhase extends Phase {
   readonly name = "GameStart";
@@ -59,8 +59,9 @@ export class GameStartPhase extends Phase {
       return this.playerHasHomeworld(state, playerId);
     });
 
-    // If everyone has everything, skip directly to Outreach
+    // If everyone has everything, award starting production and skip to Outreach
     if (nowAllHaveRaces && nowAllHaveHomeworlds) {
+      this.awardStartingProduction(state);
       result.phaseTransition = { nextPhase: "Outreach", transitionType: "nextPhase" };
     } else {
       // Set current player to first who needs setup
@@ -69,6 +70,13 @@ export class GameStartPhase extends Phase {
     }
     
     return result;
+  }
+
+  private awardStartingProduction(state: ThroneworldGameState): void {
+    for (const playerId of Object.keys(state.players)) {
+      const production = getProductionForPlayer(state, playerId);
+      state.players[playerId].resources += production;
+    }
   }
 
   protected async getPhaseSpecificActions(
@@ -129,8 +137,9 @@ export class GameStartPhase extends Phase {
       next = this.findNextUnfinishedPlayer(state);
     }
 
-    // No more players need setup - advance to Outreach
+    // No more players need setup - award starting production and advance to Outreach
     state.state.currentPlayers = undefined;
+    this.awardStartingProduction(state);
     result.phaseTransition = {
       nextPhase: "Outreach",
       transitionType: "nextPhase",

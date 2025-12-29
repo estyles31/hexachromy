@@ -3,21 +3,28 @@ import { useSelection } from "../../../../shared-frontend/contexts/SelectionCont
 import "./MessagePanel.css";
 
 export default function MessagePanel() {
-  const { selection, legalActions, resolvedActions } = useSelection();
+  const { filledParams, legalActions } = useSelection();
 
   const backendMessage = legalActions?.message ?? null;
 
-  // Collect warnings from all resolved actions (if any)
+  // Find complete actions (all params filled)
+  const completeActions = legalActions.actions.filter(action =>
+    action.params.every(p => p.optional || p.value !== undefined)
+  );
+
+  // Collect warnings from all complete actions
   const warnings: string[] = [];
-  for (const action of resolvedActions) {
+  for (const action of completeActions) {
     const ws = action.finalize?.warnings;
     if (ws && ws.length) {
       warnings.push(...ws);
     }
   }
 
+  const hasSelection = Object.keys(filledParams).length > 0;
+
   // If literally nothing useful to say, hide panel
-  if (!backendMessage && warnings.length === 0 && selection.items.length === 0) {
+  if (!backendMessage && warnings.length === 0 && !hasSelection) {
     return null;
   }
 

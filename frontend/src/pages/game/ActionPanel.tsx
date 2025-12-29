@@ -1,76 +1,80 @@
-// /frontend/src/components/ActionPanel.tsx
+// /frontend/src/pages/game/ActionPanel.tsx
 import "./ActionPanel.css";
 import { useSelection } from "../../../../shared-frontend/contexts/SelectionContext";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import type { ActionFinalize } from "../../../../shared/models/GameAction";
 import { authFetch } from "../../auth/authFetch";
 import { useAuth } from "../../auth/useAuth";
 import { useGameStateContext } from "../../../../shared-frontend/contexts/GameStateContext";
+import { getFrontendModule } from "../../modules/getFrontendModule";
 
 /**
  * Displays:
  *  - Guidance messages for incomplete actions
- *  - All resolved (finalizable) actions
- *  - Auto-executes single trivial resolved actions
+ *  - Finalization buttons for complete actions
+ *  - Auto-executes single trivial complete actions
  *  - Allows canceling current selection
  */
 export default function ActionPanel() {
   const {
-    resolvedActions,
     legalActions,
+    filledParams,
+    select,
     executeAction,
-    candidateActions,
     cancelAction,
-    selection,
   } = useSelection();
 
   const user = useAuth();
   const gameState = useGameStateContext();
   const gameId = gameState.gameId;
+  
+  const module = getFrontendModule(gameState.gameType);
 
-  const [finalizeInfo, setFinalizeInfo] =
-    useState<Record<string, ActionFinalize>>({});
+  const [finalizeInfo, setFinalizeInfo] = useState<Record<string, ActionFinalize>>({});
 
-  const hasResolved = resolvedActions.length > 0;
-  const hasSelection = selection.items.length > 0;
+  // Memoize to prevent infinite loop in useEffect
+  const completeActions = useMemo(() => 
+    legalActions.actions.filter(action => 
+      action.params.every(p => p.optional || p.value !== undefined)
+    ),
+    [legalActions.actions]
+  );
+
+  const hasCompleteActions = completeActions.length > 0;
+  const hasSelection = Object.keys(filledParams).length > 0;
 
   // ────────────────────────────────────────────────
   // Action guidance messages (next required params)
   // ────────────────────────────────────────────────
-  // note - these are intentionally not memoized, because that keeps them from updating
-  // I am fine with these being re-rendered on any state change (because most will intentionally require a re-render)
-  const actionMessages = (candidateActions ?? legalActions.actions)
+  const actionMessages = legalActions.actions
     .map(action => {
-      const nextParam = action.params.find(p => p.value == null);
+      const nextParam = action.params.find(p => !p.optional && (p.value === undefined || p.value === null));
       return nextParam?.message;
     })
     .filter((m): m is string => Boolean(m));
-  const showMessages = actionMessages.length > 0 && !hasResolved;
+
+  const showMessages = actionMessages.length > 0 && !hasCompleteActions;
 
   // ────────────────────────────────────────────────
-  // Load finalize info for resolved actions
+  // Load finalize info for complete actions
   // ────────────────────────────────────────────────
   useEffect(() => {
     let cancelled = false;
 
     async function loadFinalizeInfo() {
-      if (!user || resolvedActions.length === 0) {
+      if (!user || completeActions.length === 0) {
         setFinalizeInfo({});
         return;
       }
 
       const info: Record<string, ActionFinalize> = {};
 
-      for (const action of resolvedActions) {
-        const res = await authFetch(
-          user,
-          `/api/games/${gameId}/finalize-info`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ action }),
-          }
-        );
+      for (const action of completeActions) {
+        const res = await authFetch(user, `/api/games/${gameId}/finalize-info`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action }),
+        });
 
         if (!res.ok) continue;
         info[action.type] = await res.json();
@@ -83,53 +87,84 @@ export default function ActionPanel() {
 
     loadFinalizeInfo();
     return () => { cancelled = true; };
-  }, [user, gameId, resolvedActions]);
+  }, [user, gameId, completeActions]);
 
   // ────────────────────────────────────────────────
   // AUTO EXECUTION:
-  // exactly one resolved action + no finalize label
+  // exactly one complete action + no finalize label
   // ────────────────────────────────────────────────
   useEffect(() => {
-    if (resolvedActions.length !== 1) return;
+    if (completeActions.length !== 1) return;
 
-    const action = resolvedActions[0];
+    const action = completeActions[0];
     const fin = finalizeInfo[action.type];
 
     if (fin && !fin.label) {
       executeAction(action);
     }
-  }, [resolvedActions, finalizeInfo, executeAction]);
+  }, [completeActions, finalizeInfo, executeAction]);
 
   // ────────────────────────────────────────────────
   // RENDER
   // ────────────────────────────────────────────────
   return (
-    <div className={`action-panel ${!hasResolved && !hasSelection ? "empty" : ""}`}>
+    <div className={`action-panel ${!hasCompleteActions && !hasSelection ? "empty" : ""}`}>
 
       {/* Guidance messages */}
       {showMessages && (
         <div className="action-panel__messages">
           {actionMessages.map((m, i) => (
-            <div key={i} className="action-message">
-              {m}
-            </div>
+            <div key={i} className="action-message">{m}</div>
           ))}
         </div>
       )}
 
-      {/* No actions at all */}
-      {!showMessages && legalActions.actions.length === 0 && (
-        <div className="action-message">
-          No actions available
+      {/* Choice buttons for incomplete actions */}
+      {legalActions.actions.some(action => 
+        action.params.some(p => (p.value === undefined || p.value === null) && p.choices?.length)
+      ) && (
+        <div className="action-panel__buttons">
+          {legalActions.actions.map(action => {
+            const nextParam = action.params.find(p => (p.type !== "boardSpace") && (p.type !== "gamePiece") 
+                                                  && (p.value === undefined || p.value === null));
+            if (!nextParam?.choices || nextParam.choices.length === 0) return null;
+
+            // Render choice buttons
+            return nextParam.choices.map(choice => {
+              // Check for custom renderer based on param subtype
+              const CustomRenderer = nextParam.subtype && module?.choiceRenderers?.[nextParam.subtype];
+              
+              if (CustomRenderer) {
+                return <CustomRenderer key={choice.id} choice={choice} onClick={() => select(choice.id)} />;
+              }
+
+              // Default text button
+              return (
+                <button
+                  key={choice.id}
+                  className="action-panel__button action-panel__button--choice"
+                  onClick={() => select(choice.id)}
+                >
+                  {choice.label || choice.id}
+                  {!!choice.metadata?.cost && ` (${choice.metadata.cost})`}
+                </button>
+              );
+            });
+          }).flat()}
         </div>
       )}
 
+      {/* No actions at all */}
+      {!showMessages && !hasCompleteActions && legalActions.actions.length === 0 && (
+        <div className="action-message">No actions available</div>
+      )}
+
       {/* Finalization buttons */}
-      {hasResolved && (
+      {hasCompleteActions && (
         <>
           <div className="action-panel__header">Confirm Action</div>
           <div className="action-panel__buttons">
-            {resolvedActions.map(action => {
+            {completeActions.map(action => {
               const fin = finalizeInfo[action.type];
 
               return (
@@ -138,7 +173,7 @@ export default function ActionPanel() {
                   className="action-panel__button action-panel__button--primary"
                   onClick={() => executeAction(action)}
                 >
-                  {fin?.label ?? action.type}
+                  {fin?.label || action.type}
                 </button>
               );
             })}
@@ -146,14 +181,14 @@ export default function ActionPanel() {
         </>
       )}
 
-      {/* Cancel selection */}
-      {hasSelection && (
-        <div className="action-panel__cancel">
+      {/* Cancel button when selection in progress */}
+      {hasSelection && !hasCompleteActions && (
+        <div className="action-panel__buttons">
           <button
-            className="action-panel__button action-panel__button--cancel"
+            className="action-panel__button action-panel__button--secondary"
             onClick={cancelAction}
           >
-            Cancel Selection
+            Cancel
           </button>
         </div>
       )}

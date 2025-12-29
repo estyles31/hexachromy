@@ -1,11 +1,11 @@
 // /modules/throneworld/functions/actions/ActionHelpers.ts
-import { GameObject } from "../../../../shared/models/ActionParams";
 import { getHexesWithinRange, hexGraphDistance } from "../../shared/models/BoardLayout.ThroneWorld";
 import { Fleet } from "../../shared/models/Fleets.Throneworld";
 import { ThroneworldGameState } from "../../shared/models/GameState.Throneworld";
 import { ThroneworldUnit } from "../../shared/models/Unit.Throneworld";
 import { UNITS } from "../../shared/models/UnitTypes.ThroneWorld";
 import type { PhaseContext } from "../../../../shared-backend/Phase";
+import type { LegalChoice } from "../../../../shared/models/GameAction";
 
 // ============================================================================
 // Unit and Fleet Lookups
@@ -108,11 +108,14 @@ export function IsInCommRange(
 // Available Actions Queries
 // ============================================================================
 
+/**
+ * Get available command bunkers as LegalChoice[]
+ */
 export function getAvailableBunkers(
   state: ThroneworldGameState,
   playerId: string
-): GameObject[] {
-  const result: GameObject[] = [];
+): LegalChoice[] {
+  const result: LegalChoice[] = [];
 
   for (const [hexId, system] of Object.entries(state.state.systems)) {
     const units = system.unitsOnPlanet[playerId];
@@ -125,9 +128,7 @@ export function getAvailableBunkers(
 
       result.push({
         id: u.id,
-        type: "gamePiece",
-        subtype: "unit",
-        metadata: { hexId }
+        displayHint: { pieceId: u.id, hexId }
       });
     }
   }

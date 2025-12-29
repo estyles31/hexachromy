@@ -2,8 +2,8 @@
   "B": {
     "id": "B",
     "Name": "Buralti",
-    "CannotBuild": "H",
-    "CanBuild": "bH",
+    "CannotBuild": ["H"],
+    "CanBuild": ["bH"],
     "StartingTech": {
       "Ground": 2,
       "Space": 1,
@@ -17,8 +17,8 @@
   "P": {
     "id": "P",
     "Name": "Pasha",
-    "CannotBuild": "F",
-    "CanBuild": "pF",
+    "CannotBuild": ["F"],
+    "CanBuild": ["pF"],
     "StartingTech": {
       "Ground": 1,
       "Space": 2,
@@ -32,8 +32,6 @@
   "Q": {
     "id": "Q",
     "Name": "Q'teni",
-    "CannotBuild": "C",
-    "CanBuild": "qC",
     "StartingTech": {
       "Ground": 1,
       "Space": 1,
@@ -42,13 +40,16 @@
     },
     "TechBonus": {
       "Comm": 1
+    },
+    "BuildDiscount": {
+      "C": 5
     }
   },
   "T": {
     "id": "T",
     "Name": "Trill",
-    "CannotBuild": "L",
-    "CanBuild": "tL",
+    "CannotBuild": ["L"],
+    "CanBuild": ["tL"],
     "StartingTech": {
       "Ground": 1,
       "Space": 1,

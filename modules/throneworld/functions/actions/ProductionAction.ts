@@ -1,0 +1,128 @@
+// /modules/throneworld/functions/actions/ProductionAction.ts
+import { GameAction, ActionResponse, ActionFinalize } from "../../../../shared/models/GameAction";
+import { GameState } from "../../../../shared/models/GameState";
+import { ThroneworldGameState } from "../../shared/models/GameState.Throneworld";
+import { registerAction } from "../../../../shared-backend/ActionRegistry";
+import { UNITS } from "../../shared/models/UnitTypes.ThroneWorld";
+import { buildUnit } from "../../shared/models/Unit.Throneworld";
+import { addUnitToSystem } from "../../shared/models/Systems.ThroneWorld";
+import type { UnitTypeId } from "../../shared/models/UnitTypes.ThroneWorld";
+import { Factions } from "../../shared/models/Factions.ThroneWorld";
+import type { ThroneworldUnitType } from "../../shared/models/UnitType.ThroneWorld";
+
+interface ProductionMetadata {
+  cost?: number;
+}
+
+function getBuildableUnits(factionId?: string, maxCost?: number): ThroneworldUnitType[] {
+  const faction = factionId ? Factions[factionId] : undefined;
+  if (!faction) return [];
+  
+  return Object.values(UNITS).filter(unitDef => {
+    if (unitDef.Restricted && !faction.CanBuild?.includes(unitDef.id)) return false;
+    if (faction.CannotBuild?.includes(unitDef.id)) return false;
+    if (maxCost !== undefined) {
+      const cost = getUnitCost(unitDef.id, factionId);
+      if (cost > maxCost) return false;
+    }
+    return true;
+  });
+}
+
+function getUnitCost(unitTypeId: UnitTypeId, factionId?: string): number {
+  const baseCost = UNITS[unitTypeId]?.Cost ?? 0;
+  const faction = factionId ? Factions[factionId] : undefined;
+  const discount = faction?.BuildDiscount?.[unitTypeId] ?? 0;
+  return Math.max(0, baseCost - discount);
+}
+
+export class ProductionAction extends GameAction<ProductionMetadata> {
+  constructor() {
+    super({
+      type: "production",
+      undoable: true,
+      params: [
+        {
+          name: "hexId",
+          type: "boardSpace",
+          subtype: "hex",
+          message: "Select planet to build at",
+          populateChoices: (state: GameState, playerId: string) => {
+            const tw = state as ThroneworldGameState;
+            const ownedPlanets: string[] = [];
+            for (const [hexId, system] of Object.entries(tw.state.systems)) {
+              if (system.details?.owner === playerId) ownedPlanets.push(hexId);
+            }
+            return ownedPlanets.map(hexId => ({ id: hexId, displayHint: { hexId } }));
+          }
+        },
+        {
+          name: "unitTypeId",
+          type: "choice",
+          subtype: "unitType",
+          dependsOn: "hexId",
+          message: "Select unit to build",
+          populateChoices: (state: GameState, playerId: string) => {
+            const tw = state as ThroneworldGameState;
+            const player = tw.players[playerId];
+            const buildableUnits = getBuildableUnits(player.race, player.resources);
+            
+            return buildableUnits.map(unitDef => ({
+              id: unitDef.id,
+              label: unitDef.Name,
+              metadata: {
+                symbol: unitDef.Symbol,
+                cost: getUnitCost(unitDef.id, player.race),
+                unitType: unitDef.Type
+              }
+            }));
+          }
+        }
+      ],
+      finalize: { mode: "confirm", label: "Build Unit" }
+    });
+  }
+
+  getFinalizeInfo(state: GameState, playerId: string): ActionFinalize {
+    const tw = state as ThroneworldGameState;
+    const unitTypeId = this.getStringParam("unitTypeId");
+    if (!unitTypeId) return this.finalize ?? { mode: "confirm", label: "Build" };
+    const player = tw.players[playerId];
+    const cost = getUnitCost(unitTypeId as UnitTypeId, player.race);
+    const unitDef = UNITS[unitTypeId as UnitTypeId];
+    return { mode: "confirm", label: `Build ${unitDef?.Name} (${cost} resources)` };
+  }
+
+  async execute(state: GameState, playerId: string, pendingProduction?: ProductionAction[]): Promise<ActionResponse> {
+    if (!this.allParamsComplete()) return { action: this, success: false, error: "Missing parameters" };
+    const tw = state as ThroneworldGameState;
+    const player = tw.players[playerId];
+    const hexId = this.getStringParam("hexId")!;
+    const unitTypeId = this.getStringParam("unitTypeId")! as UnitTypeId;
+    const system = tw.state.systems[hexId];
+    if (!system) return { action: this, success: false, error: "Invalid hex" };
+    if (system.details?.owner !== playerId) return { action: this, success: false, error: "You don't own this planet" };
+    const unitDef = UNITS[unitTypeId];
+    if (!unitDef) return { action: this, success: false, error: "Invalid unit type" };
+    const buildable = getBuildableUnits(player.race);
+    if (!buildable.some(u => u.id === unitTypeId)) return { action: this, success: false, error: `Cannot build ${unitDef.Name}` };
+    const cost = getUnitCost(unitTypeId, player.race);
+    const pending = pendingProduction ?? [];
+    const alreadySpentAtPlanet = pending.filter(p => p.getStringParam("hexId") === hexId).reduce((sum, action) => {
+      const uId = action.getStringParam("unitTypeId") as UnitTypeId;
+      return sum + getUnitCost(uId, player.race);
+    }, 0);
+    const isHomeworld = system.worldType === "Homeworld";
+    const planetLimit = isHomeworld ? undefined : system.details?.dev ?? 0;
+    const remainingAtPlanet = planetLimit === undefined ? Infinity : planetLimit - alreadySpentAtPlanet;
+    if (cost > remainingAtPlanet) return { action: this, success: false, error: "Exceeds planet production limit" };
+    if (cost > player.resources) return { action: this, success: false, error: "Insufficient resources" };
+    player.resources -= cost;
+    const unit = buildUnit(unitTypeId, playerId);
+    addUnitToSystem(system, unit);
+    this.metadata.cost = cost;
+    return { action: this, success: true, message: `Built ${unitDef.Name} at ${hexId} for ${cost} resources`, undoable: true };
+  }
+}
+
+registerAction("production", ProductionAction);

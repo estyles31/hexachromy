@@ -20,7 +20,7 @@ export default function ThroneworldBoard({
   onInspect,
 }: Props) {
   const gameState = useGameStateContext() as ThroneworldGameState;
-  const { selection, select, selectableBoardSpaces } = useSelection();
+  const { filledParams, select, selectableBoardSpaces } = useSelection();
 
   const playerColors = useMemo(
     () => Object.fromEntries(
@@ -38,34 +38,26 @@ export default function ThroneworldBoard({
     [gameState, boardGeometry, playerColors]
   );
 
-  // Handle hex click
+  // Handle hex click - just pass the hexId
   const handleHexClick = useCallback((hexId: string) => {
     if (selectableBoardSpaces.has(hexId)) {
-      select({
-        type: "boardSpace",
-        subtype: "hex",
-        id: hexId,
-      });
+      select(hexId);
     } 
   }, [selectableBoardSpaces, select]);
-
-  // Handle click on empty space
-  // const handleBackgroundClick = useCallback(() => {
-  //   clearSelection();
-  // }, [clearSelection]);
 
   // Get currently selected hex IDs for highlighting
   const selectedHexIds = useMemo(() => {
     const hexes = new Set<string>();
-    for (const item of selection.items) {
-      if (item.type === "boardSpace" && item.subtype === "hex") {
-        hexes.add(item.id);
-      } else if (item.metadata?.hexId) {
-        hexes.add(item.metadata.hexId as string);
+    
+    // Check if any filled param value is a hex ID that exists on the board
+    for (const value of Object.values(filledParams)) {
+      if (boardGeometry.hexes[value]) {
+        hexes.add(value);
       }
     }
+    
     return hexes;
-  }, [selection.items]);
+  }, [filledParams, boardGeometry.hexes]);
 
   return (
     <>
