@@ -1,23 +1,13 @@
 // /frontend/src/components/ActionHistory.tsx
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAuth } from "../../auth/useAuth";
 import { authFetch } from "../../auth/authFetch";
 import "./ActionHistory.css";
 import { useGameStateContext } from "../../../../shared-frontend/contexts/GameStateContext";
+import type { ActionHistoryEntry } from "../../../../shared/models/ActionHistoryEntry";
+import { collection, limit, onSnapshot, orderBy, query } from "firebase/firestore";
+import { firestore } from "../../../../shared-frontend/firebase";
 
-interface ActionHistoryEntry {
-  actionId: string;
-  sequence: number;
-  timestamp: number;
-  playerId: string;
-  action: {
-    type: string;
-    message?: string;
-    [key: string]: unknown;
-  };
-  undone?: boolean;
-  resultingPhase: string;
-}
 
 interface ChatEntry {
   playerId: string;
@@ -44,6 +34,7 @@ export default function ActionHistory() {
   const [showChat, setShowChat] = useState(true);
 
   const [chat, setChat] = useState<ChatEntry[]>([]);
+  const chatInputRef = useRef<HTMLInputElement>(null);
 
   const feed: FeedEntry[] = [
     ...(showActions ? actions.map((a) : FeedEntry => ({ kind: "action", ...a })) : []),
@@ -54,23 +45,18 @@ export default function ActionHistory() {
 
 
   useEffect(() => {
-    if (!user || !showChat) return;
+    if (!showChat) return;
 
-    const loadChat = async () => {
-      try {
-        const response = await authFetch(user, `/api/games/${gameId}/chat?limit=200`);
+    const chatRef = collection(firestore, `games/${gameId}/chat`);
+    const q = query(chatRef, orderBy("timestamp", "desc"), limit(200));
 
-        if (response.ok) {
-          const data = await response.json();
-          setChat(data.messages || []);
-        }
-      } catch (error) {
-        console.error("Error loading chat history:", error);
-      }
-    };
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const messages = snapshot.docs.map(doc => doc.data() as ChatEntry);
+      setChat(messages);
+    });
 
-    loadChat();
-  }, [gameId, user, showChat, gameState.version]);
+    return () => unsubscribe();
+  }, [gameId, showChat]);
 
   // Load action history
   useEffect(() => {
@@ -121,7 +107,9 @@ export default function ActionHistory() {
         body: JSON.stringify({
           action: {
             type: "chat",
-            message: chatMessage.trim(),
+            params: [
+              { name: "message", value: chatMessage.trim() }
+            ],
             undoable: true,
             expectedVersion: gameState.version,
           },
@@ -143,7 +131,10 @@ export default function ActionHistory() {
       alert("Failed to send message");
     } finally {
       setSending(false);
+      chatInputRef.current?.focus();
     }
+
+    
   };
 
   const handleUndo = async () => {
@@ -185,11 +176,11 @@ export default function ActionHistory() {
   const formatAction = (entry: ActionHistoryEntry): string => {
     const playerName = gameState.players[entry.playerId]?.displayName || "Unknown";
 
-    if (entry.action.type === "chat") {
-      return `${playerName}: ${entry.action.message}`;
+    if (entry.actionType === "chat") {
+      return `${playerName}: ${entry.message}`;
     }
 
-    return `${playerName} performed ${entry.action.type}`;
+    return `<${playerName}> ${entry.message}`;
   };
 
   if (!isExpanded) {
@@ -208,40 +199,30 @@ export default function ActionHistory() {
   return (
     <div className="action-history">
       <div className="action-history-header">
-        <h3>Action History</h3>
-        <button
-          className="collapse-button"
-          onClick={() => setIsExpanded(false)}
-        >
-          ×
-        </button>
-        <div className="display-toggle-bar">
-        <label>
-          <input
-            type="checkbox"
-            checked={showActions}
-            onChange={() => setShowActions(!showActions)}
-          />
-          Show Actions
-        </label>
-
-        <label>
-          <input
-            type="checkbox"
-            checked={showChat}
-            onChange={() => setShowChat(!showChat)}
-          />
-          Show Chat
-        </label>
-      </div>
+        <div>Action History</div>
+        <div className="action-history-right">
+          <div className="display-toggle-bar">
+            <label>
+              <input type="checkbox" checked={showActions} onChange={() => setShowActions(!showActions)} />
+              Show Actions
+            </label>
+            <label>
+              <input type="checkbox" checked={showChat} onChange={() => setShowChat(!showChat)} />
+              Show Chat
+            </label>
+          </div>
+          <button className="collapse-button" onClick={() => setIsExpanded(false)}>
+            ×
+          </button>
+        </div>
       </div>
 
-      <div className="chat-input">
+      <div className="chat-input" ref={chatInputRef}>
         <input
           type="text"
           value={chatMessage}
           onChange={(e) => setChatMessage(e.target.value)}
-          onKeyPress={(e) => e.key === "Enter" && handleSendChat()}
+          onKeyDown={(e) => e.key === "Enter" && handleSendChat()}
           placeholder="Type message..."
           disabled={sending}
           maxLength={500}

@@ -17,23 +17,22 @@ export class ChooseHomeworldAction extends GameAction {
         name: "hexId",
         type: "boardSpace",
         subtype: "hex",
-        message: "Select homeworld hex"
+        message: "Select homeworld hex",
+        populateChoices: (state: GameState, _playerId: string) => {
+          const tw = state as ThroneworldGameState;
+          const available: string[] = [];
+          for (const [hexId, system] of Object.entries(tw.state.systems)) {
+            if (system.worldType === "Homeworld" && !system.details?.owner) {
+              available.push(hexId);
+            }
+          }
+          return available.map(h => ({
+            id: h,
+            displayHint: { hexId: h }
+          }));
+        }
       }]
     });
-  }
-
-  populateChoicesForParam(state: GameState, playerId: string, paramName: string): void {
-    const param = this.params.find(p => p.name === paramName);
-    if (!param) return;
-
-    if (paramName === "hexId") {
-      const tw = state as ThroneworldGameState;
-      const available = this.getAvailableHomeworlds(tw);
-      param.choices = available.map(h => ({
-        id: h,
-        displayHint: { hexId: h }
-      }));
-    }
   }
 
   async execute(state: GameState, playerId: string): Promise<ActionResponse> {
@@ -51,16 +50,6 @@ export class ChooseHomeworldAction extends GameAction {
     this.assignHomeworld(tw, playerId, hexId);
 
     return { action: this, success: true, message: `Homeworld ${hexId} claimed` };
-  }
-
-  private getAvailableHomeworlds(state: ThroneworldGameState): string[] {
-    const available: string[] = [];
-    for (const [hexId, system] of Object.entries(state.state.systems)) {
-      if (system.worldType === "Homeworld" && !system.details?.owner) {
-        available.push(hexId);
-      }
-    }
-    return available;
   }
 
   private assignHomeworld(state: ThroneworldGameState, playerId: string, hexId: string): void {

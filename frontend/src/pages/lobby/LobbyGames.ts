@@ -2,12 +2,12 @@
 import { useEffect, useState } from "react";
 import { authFetch } from "../../auth/authFetch";
 import { useAuth } from "../../auth/useAuth";
-import type { GameSummary } from "../../../../shared/models/GameSummary";
+import type { EnrichedGameSummary } from "../../../../shared/models/GameSummary";
 
 export function useLobbyGames() {
   const user = useAuth();
 
-  const [games, setGames] = useState<GameSummary[]>([]);
+  const [games, setGames] = useState<EnrichedGameSummary[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -26,7 +26,7 @@ export function useLobbyGames() {
           throw new Error(`Failed to load games (${res.status})`);
         }
 
-        const data = (await res.json()) as GameSummary[];
+        const data = (await res.json()) as EnrichedGameSummary[];
         if (!cancelled) {
           setGames(data);
         }

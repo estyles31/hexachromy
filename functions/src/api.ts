@@ -5,6 +5,7 @@ import { authMiddleware } from "./auth";
 import { gameDefinitionsRouter } from "./routes/gameDefinitions";
 import { gamesRouter } from "./routes/games";
 import { profilesRouter } from "./routes/profiles";
+import { chatRouter } from "./routes/chatRouter";
 
 const app = express();
 
@@ -28,6 +29,7 @@ app.use(authMiddleware);
 app.use("/api/game-definitions", gameDefinitionsRouter);
 app.use("/api/games", gamesRouter);
 app.use("/api/profiles", profilesRouter);
+app.use("/api/chat", chatRouter)
 
 // 404 handler
 app.use((req, res) => {

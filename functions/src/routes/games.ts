@@ -3,9 +3,9 @@ import { Router } from "express";
 import type { Request, Response } from "express";
 import { randomUUID } from "crypto";
 import { db, dbAdapter } from "../services/database.js";
-import { buildPlayerSummaries } from "../services/profiles.js";
+// import { buildPlayerSummaries } from "../services/profiles.js";
 import { backendModules } from "../../../shared-backend/backend.js";
-import type { GameSummary } from "../../../shared/models/GameSummary.js";
+import type { EnrichedGameSummary } from "../../../shared/models/GameSummary.js";
 import type { AuthenticatedRequest } from "../auth.js";
 import { gameActionsRouter } from "./gameActions.js";
 
@@ -121,26 +121,27 @@ gamesRouter.post("/", async (req: Request, res: Response) => {
     await dbAdapter.setDocument(`games/${gameId}`, state);
 
     // Count filled slots for summary
-    const filledSlots = playerSlots.filter((s: any) => s.type !== "open");
+    // const filledSlots = playerSlots.filter((s: any) => s.type !== "open");
 
-    // Build game summary for listing
-    const summary: GameSummary = {
-      id: gameId,
-      name: (state as any).name || name?.trim() || `Game ${gameId}`,
-      gameType: gameType,
-      players: buildPlayerSummaries({ 
-        players: filledSlots.map((slot: any) => ({
-          uid: slot.type === "human" ? slot.uid : slot.botId,
-          displayName: slot.displayName,
-          status: slot.type === "bot" ? "dummy" : "joined",
-          race: (state as any).players?.[slot.uid || slot.botId]?.race,
-        }))
-      }),
-      status: (state as any).status || "waiting",
-      options: (state as any).options || undefined,
-    };
+    // not used currently - built dynamically
+    // // Build game summary for listing
+    // const summary: GameSummary = {
+    //   id: gameId,
+    //   name: (state as any).name || name?.trim() || `Game ${gameId}`,
+    //   gameType: gameType,
+    //   players: buildPlayerSummaries({ 
+    //     players: filledSlots.map((slot: any) => ({
+    //       uid: slot.type === "human" ? slot.uid : slot.botId,
+    //       displayName: slot.displayName,
+    //       status: slot.type === "bot" ? "dummy" : "joined",
+    //       race: (state as any).players?.[slot.uid || slot.botId]?.race,
+    //     }))
+    //   }),
+    //   status: (state as any).status || "waiting",
+    //   options: (state as any).options || undefined,
+    // };
 
-    await dbAdapter.setDocument(`gameSummaries/${gameId}`, summary);
+    // await dbAdapter.setDocument(`gameSummaries/${gameId}`, summary);
 
     res.json({ gameId });
   } catch (err) {
@@ -152,11 +153,49 @@ gamesRouter.post("/", async (req: Request, res: Response) => {
   }
 });
 
-// GET /games - List all games
+// GET /games - List all games with current state info
 gamesRouter.get("/", async (req: Request, res: Response) => {
   try {
-    const snap = await db.collection("gameSummaries").get();
-    const games = snap.docs.map(d => d.data() as GameSummary);
+    const userId = (req as AuthenticatedRequest).user.uid;
+    
+    // Load all game states (not summaries)
+    const snap = await db.collection("games").get();
+    
+    const games: EnrichedGameSummary[] = snap.docs.map(doc => {
+      const state = doc.data();
+      const gameId = doc.id;
+      
+      // Build player list
+      const players = Object.entries(state.players || {}).map(([playerId, player]: [string, any]) => ({
+        id: playerId,
+        name: player.displayName || playerId,
+        status: player.status || "joined",
+        race: player.race,
+      }));
+      
+      // Check if current user is in currentPlayers
+      const currentPlayers = (state.state?.currentPlayers || []) as string[];
+      const isUserTurn = currentPlayers.includes(userId);
+      
+      return {
+        id: gameId,
+        name: state.name || `Game ${gameId}`,
+        gameType: state.gameType,
+        players,
+        status: state.status || "in-progress",
+        options: state.options,
+        currentPhase: state.state?.currentPhase,
+        currentPlayers: currentPlayers.map((pid: string) => 
+          state.players[pid]?.displayName || pid
+        ),
+        lastUpdated: state.lastUpdated || 0,
+        isUserTurn,
+      };
+    });
+    
+    // Sort by last updated (most recent first)
+    games.sort((a, b) => b.lastUpdated - a.lastUpdated);
+    
     res.json(games);
   } catch (err) {
     console.error("Error listing games:", err);

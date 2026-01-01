@@ -9,7 +9,7 @@ import { Phase } from "./Phase";
 export class BasePhaseManager implements IPhaseManager {
   protected state?: GameState;
   protected gameId!: string;
-  protected db!: GameDatabaseAdapter;
+  db!: GameDatabaseAdapter;
   public phases: Record<string, new () => Phase>;
 
   constructor(gameId: string, db: GameDatabaseAdapter, phases?: Record<string, new () => Phase>) {
@@ -76,6 +76,14 @@ export class BasePhaseManager implements IPhaseManager {
     for (const action of actions) {
       action.populateParamChoices(state, playerId);
     }
+
+    // Filter out actions that have no valid choices
+    actions = actions.filter(action => {
+      if (action.params.every(p =>  p.optional || p.value !== undefined))
+        return true;
+      
+      return(action.params.some(p =>  p.choices && p.choices.length > 0));
+    });
 
     if (process.env.DEBUG === "true") {
       console.log(`Legal actions for player ${playerId} in phase ${phase.name}:`,

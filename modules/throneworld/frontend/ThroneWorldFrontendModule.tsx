@@ -8,14 +8,14 @@ import { computeBoardGeometry, type ThroneworldBoardGeometry } from "../shared/m
 import type { FrontendModuleDefinition } from "../../../shared-frontend/FrontendModuleDefinition";
 import type InspectContext from "../../../shared/models/InspectContext";
 import type { GameState } from "../../../shared/models/GameState";
-import type HoveredSystemInfo from "./models/HoveredSystemInfo";
+import type { HoveredInfo } from "./models/HoveredInfo";
 import type { VictoryPoints } from "../../../shared-frontend/FrontendModuleDefinition";
 import { ThroneworldGameDefinition } from "../shared/models/GameDefinition.Throneworld";
 import type { BoardGeometry } from "../../../shared/models/BoardGeometry";
 import ThroneworldBoard from "./components/ThroneworldBoard";
 import ThroneworldUnitCounterButton from "./components/ThroneworldUnitCounterButton";
 
-export const ThroneworldFrontendModule: FrontendModuleDefinition<ThroneworldState, HoveredSystemInfo> = {
+export const ThroneworldFrontendModule: FrontendModuleDefinition<ThroneworldState, HoveredInfo> = {
   getBoardGeometry: (gameState: ThroneworldGameState) => {
     const geometry = computeBoardGeometry(String(gameState.options.scenario));
     return geometry;
@@ -33,7 +33,7 @@ export const ThroneworldFrontendModule: FrontendModuleDefinition<ThroneworldStat
 
 function MainBoardComponent(params: {
   boardGeometry?: BoardGeometry;
-  onInspect?: (context: InspectContext<HoveredSystemInfo> | null) => void;
+  onInspect?: (context: InspectContext<HoveredInfo> | null) => void;
 }) {
   const geometry = params.boardGeometry as ThroneworldBoardGeometry;
 

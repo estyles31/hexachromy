@@ -4,10 +4,11 @@ import type { Request, Response } from "express";
 import type { AuthenticatedRequest } from "../auth.js";
 import { getBackendModule } from "../../../shared-backend/backend.js";
 import { dbAdapter } from "../services/database.js";
-import { baseActionHandler } from "../actions/ActionHandler.js";
+import { ActionHandler } from "../actions/ActionHandler.js";
 import { BasePhaseManager } from "../../../shared-backend/BasePhaseManager.js";
 import { IPhaseManager } from "../../../shared-backend/BackendModuleDefinition.js";
 import { GameAction } from "../../../shared/models/GameAction.js";
+import { listRegisteredActions } from "../../../shared-backend/ActionRegistry.js";
 
 export const gameActionsRouter = Router();
 
@@ -53,11 +54,13 @@ gameActionsRouter.post("/:gameId/action", async (req: Request, res: Response) =>
     const action = await createAction(phaseManager, req.body.action);
 
     if (!action || typeof action !== "object") {
-      res.status(400).json({ error: "Invalid action" });
+      res.status(400).json({ 
+        error: "Invalid action", detail: JSON.stringify(req.body), 
+        registry: listRegisteredActions().join(", ") });
       return;
     }
 
-    const response = await baseActionHandler(
+    const response = await ActionHandler(
       { gameId, playerId: userId, action, db: dbAdapter },
       phaseManager
     );

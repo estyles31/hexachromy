@@ -1,27 +1,20 @@
 // /modules/throneworld/frontend/components/ThroneworldSystemLayer.tsx
-import { useState } from "react";
-import type { ThroneworldBoardView, RenderableSystem } from "../models/ThroneworldBoardView";
+import type { ThroneworldBoardView } from "../models/ThroneworldBoardView";
 import type InspectContext from "../../../../shared/models/InspectContext";
-import type HoveredSystemInfo from "../models/HoveredSystemInfo";
+import type { HoveredInfo } from "../models/HoveredInfo";
 import { SystemMarker } from "./SystemMarker";
 import PlanetArc from "./PlanetArc";
-import HexUnitsLayer from "./HexUnitsLayer";
 import { DEFAULT_SIZE as sysMarkerSize } from "./SystemMarker";
 
 interface Props {
   boardView: ThroneworldBoardView;
-  onInspect?: (ctx: InspectContext<HoveredSystemInfo> | null) => void;
-}
-
-interface HoverPreview {
-  system: RenderableSystem;
+  onInspect?: (ctx: InspectContext<HoveredInfo> | null) => void;
 }
 
 export default function ThroneworldSystemLayer({
   boardView,
   onInspect
 }: Props) {
-  const [hoverPreview, setHoverPreview] = useState<HoverPreview | null>(null);
 
   return (
     <>
@@ -46,14 +39,14 @@ export default function ThroneworldSystemLayer({
               />
             )}
 
-            {/* Units layer */}
-            <HexUnitsLayer
+            {/* Units layer - moved to its own sibling layer */}
+            {/* <HexUnitsLayer
               hexId={hexId}
               hexCenter={{ x, y }}
               hexRadius={hexRadius}
               system={sys}
               playerColors={sys.playerColors}
-            />
+            /> */}
 
             {/* System marker */}
             <g transform={`translate(${markerX}, ${markerY})`}>
@@ -66,11 +59,11 @@ export default function ThroneworldSystemLayer({
                 hideUnits={marker.hideUnits}
                 onHover={(hovering) => {
                   if (hovering) {
-                    setHoverPreview({ system: sys });
                     onInspect?.({
                       kind: "system",
                       id: hexId,
                       data: {
+                        kind: "system",
                         hexId,
                         worldType,
                         details: hover.system,
@@ -78,7 +71,6 @@ export default function ThroneworldSystemLayer({
                       },
                     });
                   } else {
-                    setHoverPreview(null);
                     onInspect?.(null);
                   }
                 }}
@@ -87,24 +79,6 @@ export default function ThroneworldSystemLayer({
           </g>
         );
       })}
-
-      {/* Hover preview overlay */}
-      {hoverPreview && (
-        <g
-          pointerEvents="none"
-          transform={`translate(${hoverPreview.system.position.x - 70},
-                               ${hoverPreview.system.position.y - 70})`}
-        >
-          <SystemMarker
-            system={hoverPreview.system.hover.system}
-            worldType={hoverPreview.system.worldType}
-            revealed={hoverPreview.system.hover.revealed}
-            size={80}
-            ownerColor={hoverPreview.system.marker.ownerColor}
-            hideUnits={hoverPreview.system.marker.hideUnits}
-          />
-        </g>
-      )}
     </>
   );
 }

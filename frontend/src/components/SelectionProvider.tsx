@@ -67,12 +67,26 @@ export function SelectionProvider({ children }: { children: React.ReactNode }) {
     setSelectableGamePieces(gamePieces);
   }, []);
 
-  // Initial fetch on mount and when version changes
+  // Reload on version change - preserve filledParams if still valid
   useEffect(() => {
-    setFilledParams({});
-    fetchLegalActions();
-  }, [fetchLegalActions, version]);
-
+    const hasFilledParams = Object.keys(filledParams).length > 0;
+    
+    if (hasFilledParams) {
+      // User has work in progress - reload with their filledParams
+      fetchLegalActions(filledParams).then(() => {
+        // If no actions came back, the params are invalid - clear and reload
+        if (legalActions.actions.length === 0) {
+          setFilledParams({});
+          fetchLegalActions();
+        }
+      });
+    } else {
+      // No work in progress, just reload fresh
+      setFilledParams({});
+      fetchLegalActions();
+    }
+  }, [version]);
+  
   // User selects something (hex, piece, or choice button)
   const select = useCallback(async (choiceId: string) => {
     // Find which param this choice belongs to

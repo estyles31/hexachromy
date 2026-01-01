@@ -1,4 +1,4 @@
-import type { GameSummary } from "../../../../shared/models/GameSummary";
+import type { EnrichedGameSummary } from "../../../../shared/models/GameSummary";
 import "./GameList.css";
 
 export function GameList({
@@ -7,7 +7,7 @@ export function GameList({
   error,
   onSelect,
 }: {
-  games: GameSummary[];
+  games: EnrichedGameSummary[];
   loading: boolean;
   error: string | null;
   onSelect: (gameId: string) => void;
@@ -33,15 +33,30 @@ export function GameList({
       {games.map(game => (
         <li
           key={game.id}
-          className="game-list-item"
+          className={`game-list-item ${game.isUserTurn ? 'your-turn' : ''}`}
           onClick={() => onSelect(game.id)}
         >
-          <strong>{game.name}</strong>
-          <div className="meta">
-            {game.gameType} — {game.status}
+          <div className="game-header">
+            <strong>{game.name}</strong>
+            {game.isUserTurn && <span className="turn-indicator">⚡ Your turn</span>}
           </div>
+          
+          <div className="game-meta">
+            <span className="game-type">{game.gameType}</span>
+            {game.currentPhase && (
+              <span className="current-phase">• {game.currentPhase}</span>
+            )}
+            <span className="status">• {game.status}</span>
+          </div>
+          
+          {game.currentPlayers && game.currentPlayers.length > 0 && (
+            <div className="current-players">
+              Waiting on: {game.currentPlayers.join(", ")}
+            </div>
+          )}
+          
           <div className="players">
-            {game.players.map(p => p.name ?? p.id).join(", ")}
+            Players: {game.players.map(p => p.name).join(", ")}
           </div>
         </li>
       ))}

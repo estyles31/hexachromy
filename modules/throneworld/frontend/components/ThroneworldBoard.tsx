@@ -6,14 +6,17 @@ import { buildThroneworldBoardView } from "../models/ThroneworldBoardView";
 import type { ThroneworldGameState } from "../../shared/models/GameState.Throneworld";
 import { type ThroneworldBoardGeometry, getHexagonPoints } from "../../shared/models/BoardGeometry.ThroneWorld";
 import type InspectContext from "../../../../shared/models/InspectContext";
-import type HoveredSystemInfo from "../models/HoveredSystemInfo";
+import type { HoveredInfo } from "../models/HoveredInfo";
 import { useSelection } from "../../../../shared-frontend/contexts/SelectionContext";
 import { useGameStateContext } from "../../../../shared-frontend/contexts/GameStateContext";
+import UnitCountersLayer from "./UnitCountersLayer";
 
 interface Props {
   boardGeometry: ThroneworldBoardGeometry;
-  onInspect?: (context: InspectContext<HoveredSystemInfo> | null) => void;
+  onInspect?: (context: InspectContext<HoveredInfo> | null) => void;
 }
+
+export const neutralColor = "#7f4800";
 
 export default function ThroneworldBoard({
   boardGeometry,
@@ -22,10 +25,12 @@ export default function ThroneworldBoard({
   const gameState = useGameStateContext() as ThroneworldGameState;
   const { filledParams, select, selectableBoardSpaces } = useSelection();
 
-  const playerColors = useMemo(
-    () => Object.fromEntries(
-      Object.entries(gameState.players).map(([uid, player]) => [uid, player.color])
-    ),
+ const playerColors = useMemo(
+    () => {
+      const colors = Object.fromEntries(Object.entries(gameState.players).map(([uid, player]) => [uid, player.color]));
+      colors["neutral"] = neutralColor;
+      return colors;
+    },
     [gameState.players]
   );
 
@@ -115,10 +120,8 @@ export default function ThroneworldBoard({
         </g>
       )}
 
-      <ThroneworldSystemLayer
-        boardView={boardView}
-        onInspect={onInspect}
-      />
+      <ThroneworldSystemLayer boardView={boardView} onInspect={onInspect} />
+      <UnitCountersLayer boardView={boardView} onInspect={onInspect}/>
     </>
   );
 }

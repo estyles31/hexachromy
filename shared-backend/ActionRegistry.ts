@@ -1,4 +1,4 @@
-// /shared/models/ActionRegistry.ts
+// /shared-backend/ActionRegistry.ts
 
 import { GameAction } from "../shared/models/GameAction";
 

@@ -11,6 +11,7 @@
   padding: 12px;
   color: #eee;
   min-width: 220px;
+  pointer-events: none; /* Don't capture mouse events - allows hovering items behind it */
 }
 
 /* Section blocks */
@@ -27,7 +28,6 @@
   letter-spacing: 0.05em;
   text-transform: uppercase;
   color: #bdbdbd;
-  margin-bottom: 4px;
 }
 
 /* Subtitles */
@@ -42,4 +42,94 @@
   font-size: 1rem;
   font-weight: 600;
   color: #e0e0e0;
+}
+
+/* Compact metadata line */
+.throneworld-info .info-meta {
+  font-size: 0.8rem;
+  color: #999;
+  margin-bottom: 2px;
+}
+
+/* Unit grid for fleet contents */
+.throneworld-info .unit-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+/* Individual unit item in grid */
+.throneworld-info .unit-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 80px;
+}
+
+/* Unit name above counter */
+.throneworld-info .unit-name {
+  font-size: 0.75rem;
+  color: #aaa;
+  margin-bottom: 2px;
+  text-align: center;
+}
+
+.throneworld-info .unit-name.compact {
+  font-size: 0.7rem;
+  text-align: center;
+  white-space: normal; /* Allow multi-line */
+  word-wrap: break-word;
+}
+
+/* Stats grid - base (always 2-column) */
+.throneworld-info .stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  font-size: 0.85rem;
+}
+
+/* Stats grid - compact (same 2 columns, just smaller) */
+.throneworld-info .stats-grid.compact {
+  font-size: 0.65rem;
+  color: #888;
+  margin-top: 2px;
+  gap: 2px;
+}
+
+/* Abilities inline in unit stats */
+.throneworld-info .abilities {
+  font-size: 0.65rem;
+  color: #6c9bd1;
+  font-style: italic;
+  text-align: center;
+  white-space: normal; /* Allow multi-line */
+  word-wrap: break-word;
+}
+
+/* Abilities list for single unit view */
+.throneworld-info .abilities-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 6px;
+  grid-column: 1 / -1; /* Span both columns */
+  white-space: normal; /* Allow multi-line */
+  word-wrap: break-word;
+}
+
+.throneworld-info .ability-tag {
+  background: #2a3f5f;
+  color: #6c9bd1;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 0.7rem;
+}
+
+/* Centered content */
+.throneworld-info .centered {
+  display: flex;
+  justify-content: center;
+  margin-top: 4px;
 }

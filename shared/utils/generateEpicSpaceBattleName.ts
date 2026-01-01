@@ -1,4 +1,4 @@
-import { TemplatedNameGenerator, randomFrom, randomColor, randomAnimal, randomRomanNumneral, type NameTemplate } from "../models/templatedNameGenerator";
+import { TemplatedNameGenerator, randomFrom, randomColor, randomAnimal, randomRomanNumneral, type NameTemplate, randomNonsenseWord } from "./templatedNameGenerator";
 
 /* ---------------------------------------------
  * Word pools
@@ -72,7 +72,7 @@ const EPIC_NAMES = [
   "Kepler",
   "Kobayashi",
   "Kronos",
-  "Jupiter",
+  "Juno",
   "Nocturne",
   "Nova",
   "Nyx",
@@ -84,9 +84,11 @@ const EPIC_NAMES = [
   "Seraph",
   "Solara",
   "Somnambulus",
+  "Starpoint",
   "Triton",
   "Umbra",
   "Valis",
+  "Vallhalla",
   "Vega",
   "Vortex",
   "Zenith",
@@ -94,6 +96,7 @@ const EPIC_NAMES = [
 
 const EPIC_ADJECTIVES = [
   "Ashen",
+  "Atrophied",
   "Broken",
   "Burning",
   "Celestial",
@@ -104,6 +107,7 @@ const EPIC_ADJECTIVES = [
   "Eternal",
   "Exalted",
   "Fallen",
+  "First",
   "Forgotten",
   "Fractured",
   "Galactic",
@@ -115,11 +119,14 @@ const EPIC_ADJECTIVES = [
   "Ironic",
   "Last",
   "Obsidian",
+  "Oppulent",
   "Penultimate",
   "Radiant",
   "Resplendent",
+  "Second",
   "Shattered",
   "Silent",
+  "Third",
   "Third-to-Last",
   "Vermillion",
   "Voided",
@@ -131,12 +138,13 @@ const EPIC_ADJECTIVES = [
  * Generator
  * --------------------------------------------- */
 
-const ofNameSuffix = { base: "of {EpicName}", suffix: [ { base: "" }, { base: "{Roman}"}] };
+const ε: NameTemplate = { base: "" };
+const ofNameSuffix = { base: "of {EpicName}", suffix: [ ε, { base: "{Roman}", weight: 3}] };
 
 const epicTemplate: NameTemplate = {
   base: "{EpicName} {EpicNoun}",
   suffix: [
-    { base: "", weight: 2 },
+    { ...ε, weight: 2 },
     { base: "{Roman}"},
     ofNameSuffix,
   ]
@@ -145,7 +153,7 @@ const epicTemplate: NameTemplate = {
 const epicAdjTemplate: NameTemplate = {
   base: "{EpicAdjective} {EpicNoun}",
   suffix: [
-    { base: "", weight: 2 },
+    { ...ε, weight: 2 },
     { base: "{Roman}"},
     ofNameSuffix,
   ]
@@ -154,7 +162,7 @@ const epicAdjTemplate: NameTemplate = {
 const colorTemplate: NameTemplate = {
   base: "{Color} {EpicNoun}",
   suffix: [
-    { base: "" },
+    ε,
     ofNameSuffix,
   ]
 }
@@ -162,7 +170,7 @@ const colorTemplate: NameTemplate = {
 const animalTemplate: NameTemplate = {
   base: "{Color} {Animal}",
   suffix: [
-    { base: "" },
+   ε,
     { base: "{EpicNoun}"},
     ofNameSuffix,
   ]
@@ -171,18 +179,38 @@ const animalTemplate: NameTemplate = {
 const epicAnimalTemplate: NameTemplate = {
   base: "{EpicAdjective} {Animal}",
   suffix: [
-    { base: "" },
+    ε,
     { base: "{EpicNoun}"},
     ofNameSuffix,
   ]
 }
 
+const nonSenseChain: NameTemplate = { 
+  base: "{Nonsense}",
+  suffix: [
+    { ...ofNameSuffix, weight: 3 },
+  ]
+}
+
+nonSenseChain.suffix!.push(nonSenseChain);
+
+const nonsenseTemplate: NameTemplate = {
+  base: "{Nonsense}",
+  suffix: [
+    nonSenseChain,
+    { base: "{EpicNoun}", suffix: [ε, ofNameSuffix] },
+    { base: "{Animal}", suffix: [ε, ofNameSuffix] },
+  ]
+}
+
 
 const TEMPLATES: NameTemplate[] = [
-    epicTemplate,
-    epicAdjTemplate,
-    { base: "The", suffix: [epicTemplate, epicAdjTemplate, colorTemplate], weight: 2 },
-    { base: "The", suffix: [animalTemplate, epicAnimalTemplate] },
+  { ...epicTemplate, weight: 2 },
+  { ...epicAdjTemplate, weight: 2},
+  { base: "The", suffix: [epicTemplate, epicAdjTemplate, colorTemplate] },
+  { base: "The", suffix: [animalTemplate, epicAnimalTemplate]},
+  { base: "The", suffix: [nonsenseTemplate]},
+  { base: "{EpicNoun} on {EpicName}", suffix: [{ base: "" }, { base: "{Roman}", weight: 3 },] }
 ];
 
 /* ---------------------------------------------
@@ -200,6 +228,7 @@ export class EpicSpaceBattleNameGenerator
     EpicAdjective: () => randomFrom(EPIC_ADJECTIVES),
     EpicNoun: () => randomFrom(EPIC_NOUNS),
     EpicName: () => randomFrom(EPIC_NAMES),
+    Nonsense: randomNonsenseWord,
     Roman:randomRomanNumneral,
   };
 }

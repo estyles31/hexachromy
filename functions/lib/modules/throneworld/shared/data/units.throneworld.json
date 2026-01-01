@@ -5,7 +5,8 @@
         "Symbol": "🏳️",
         "Type": "Space",
         "Cost": 1,
-        "Explore": true
+        "Explore": true,
+        "NonCombat": true
     },
     "B": {
         "id": "B",
@@ -162,6 +163,18 @@
         "HP": 1,
         "Cargo": -1,
         "DropAttack": true,
+        "Restricted": true
+    },
+    "fleet": {
+        "id": "fleet",
+        "Name": "Fleet",
+        "Symbol": "✨",
+        "Type": "Space",
+        "Cost": 0,
+        "Attack": 0,
+        "Defense": 0,
+        "HP": 1,
+        "Cargo": 0,
         "Restricted": true
     }
 }

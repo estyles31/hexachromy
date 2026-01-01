@@ -135,7 +135,7 @@ export default function ActionPanel() {
               const CustomRenderer = nextParam.subtype && module?.choiceRenderers?.[nextParam.subtype];
               
               if (CustomRenderer) {
-                return <CustomRenderer key={choice.id} choice={choice} onClick={() => select(choice.id)} />;
+                return <CustomRenderer key={choice.id} playerId={user?.uid} choice={choice} onClick={() => select(choice.id)} />;
               }
 
               // Default text button

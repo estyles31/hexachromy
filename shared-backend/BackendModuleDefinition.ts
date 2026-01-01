@@ -33,6 +33,7 @@ export interface IPhaseManager {
     filledParams?: Record<string, string>
   ): Promise<LegalActionsResponse>;
 
+  postCommitAction?(): Promise<void>;
   createAction(type: string): Promise<GameAction | null>;
 }
 

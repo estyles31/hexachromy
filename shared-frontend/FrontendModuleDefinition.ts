@@ -9,6 +9,7 @@ export type VictoryPoints = Record<string, number>;
 
 export interface ChoiceRendererProps {
   choice: LegalChoice;
+  playerId?: string;
   onClick: () => void;
 }
 

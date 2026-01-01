@@ -39,7 +39,7 @@ export default function GamePage({ gameState }: { gameState: GameState<unknown> 
                 onInspect={setInspected}
               />
               {/* Action panel */}
-              <div className="action-panel-overlay ui-overlay">
+              <div className="action-panel-overlay">
                 <ActionPanel />
               </div>
 
@@ -99,7 +99,7 @@ export default function GamePage({ gameState }: { gameState: GameState<unknown> 
                 onStart={() => console.log("drag start")}
                 onDrag={() => console.log("dragging")}
                 onStop={() => console.log("stop drag")}>
-              <div ref={historyRef} className="action-history-container ui-overlay"
+              <div ref={historyRef} className="action-history-container"
               onMouseDownCapture={() => console.log("mousedown on history (capture)")}>
                 <ActionHistory />
               </div>

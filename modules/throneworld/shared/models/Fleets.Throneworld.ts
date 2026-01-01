@@ -54,3 +54,8 @@ export function addUnitToFleet(fleet: Fleet, unit: ThroneworldUnit): Fleet {
     }
     return fleet;
 }
+
+export function fleetHasMoved(fleet: Fleet) {
+    return fleet.groundUnits.some(g => g.hasMoved)
+        || fleet.spaceUnits.some(s => s.hasMoved);
+}

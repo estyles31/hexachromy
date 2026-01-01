@@ -4,7 +4,7 @@ import { getRecentChatMessages, getChatMessagesBefore } from "../services/ChatHi
 
 export const chatRouter = Router();
 
-chatRouter.get("/:gameId/chat", async (req, res) => {
+chatRouter.get("/:gameId", async (req, res) => {
   try {
     const { gameId } = req.params;
     const limit = Number(req.query.limit) || 50;

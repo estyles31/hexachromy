@@ -172,7 +172,7 @@ function buildRenderableSystem(
         hover: {
             allowed: canHoverReveal,
             system: resolvedDetails,
-            revealed: isRevealed || hasPrivateView,
+            revealed: isRevealed,
         },
 
         fleets: publicSystem.fleetsInSpace,

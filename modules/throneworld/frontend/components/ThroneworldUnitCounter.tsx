@@ -1,5 +1,5 @@
 // /modules/throneworld/frontend/components/ThroneworldUnitCounter.tsx
-import type { ThroneworldUnitType } from "../../shared/models/UnitType.ThroneWorld";
+import type { ThroneworldUnitType } from "../../shared/models/UnitTypes.ThroneWorld";
 
 interface UnitCounterProps {
   unit: ThroneworldUnitType;
@@ -23,26 +23,18 @@ export default function UnitCounter({
   const { id: unitId, Symbol: glyph, Type, Cargo: cargo = null } = unit;
 
   const isSpace = Type === "Space";
-  const domainColor = isSpace ? "#3f89ffff" : "#ff9a5bff"; // blue/orange ring
+  const domainColor = isSpace ? "#6ca2faff" : "#ff8940ff"; // blue/orange ring
 
   const borderWidth = 2;
 
   // Sizing
   const fontSizeSymbol = size * 0.55;
-  const fontSizeId = size * 0.24;
-  const badgeRadius = size * 0.2;
-  const badgeFont = size * 0.22;
-
-  const cargoRadius = size * 0.22;
-  const cargoFont = size * 0.22;
-
-  // Visual indicators for moved/used units
-  const isCommandBunker = unitId === "C";   //todo: maybe change to check "Command" value
-  const showMovedIndicator = hasMoved && !isCommandBunker;
-  const showUsedIndicator = hasMoved && isCommandBunker;
+  const fontSizeId = size * 0.26;
+  const badgeRadius = size * 0.15;
+  const badgeFont = size * 0.24;
 
   // Cargo style
-  let cargoFill = cargo && cargo > 0 ? "#abebc6ff" : "#ea95c2ff";
+  let cargoFill = cargo && cargo > 0 ? "#abebc6ff" : "#ffbdcfff";
   if (cargo === 0 || cargo === null) cargoFill = "transparent";
 
   // Highlight/selection styling
@@ -93,12 +85,12 @@ export default function UnitCounter({
         fill={playerColor}
         stroke="#000"
         strokeWidth={borderWidth}
-        opacity={showMovedIndicator ? 0.65 : 1.0}
+        opacity={hasMoved ? 0.65 : 1.0}
       />
 
-      {/* Diagonal "moved" stripe */}
-      {showMovedIndicator && (
-        <line
+      {/* Diagonal "moved" X */}
+      {hasMoved && (
+        <><line
           x1={3}
           y1={3}
           x2={size + 3}
@@ -107,6 +99,15 @@ export default function UnitCounter({
           strokeWidth={3}
           opacity={0.4}
         />
+        <line
+          x1={3}
+          y1={size + 3}
+          x2={size + 3}
+          y2={3}
+          stroke="#000"
+          strokeWidth={3}
+          opacity={0.4}
+        /></>
       )}
 
       {/* UNIT SYMBOL (center) */}
@@ -117,46 +118,50 @@ export default function UnitCounter({
         textAnchor="middle"
         dominantBaseline="middle"
         fill="white"
-        opacity={showMovedIndicator ? 0.75 : 1.0}
+        opacity={hasMoved ? 0.75 : 1.0}
       >
         {glyph}
       </text>
 
       {/* UNIT ID with DOMAIN RING */}
-      <circle
-        cx={size * 0.2 + 3}
-        cy={size * 0.22 + 3}
-        r={size * 0.16}
-        fill={domainColor}
-        stroke={domainColor}
-        strokeWidth={2}
-      />
-      <text
-        x={size * 0.2 + 3}
-        y={size * 0.22 + 3}
-        fontSize={fontSizeId}
-        textAnchor="middle"
-        dominantBaseline="middle"
-        fill="#000"
-        fontWeight="bold"
-      >
-        {unitId}
-      </text>
+      {unitId !== "fleet" && (
+        <>
+          <circle
+            cx={badgeRadius * 1.1 + 3}
+            cy={badgeRadius * 1.1 + 3}
+            r={badgeRadius}
+            fill={domainColor}
+            stroke={domainColor}
+            strokeWidth={2}
+          />
+          <text
+            x={badgeRadius * 1.1 + 3}
+            y={badgeRadius * 1.1 + 3}
+            fontSize={fontSizeId}
+            textAnchor="middle"
+            dominantBaseline="middle"
+            fill="#000"
+            fontWeight="bold"
+          >
+            {unitId}
+          </text>
+        </>
+      )}
 
       {/* QUANTITY BADGE (lower-left) */}
       {quantity > 1 && (
         <>
           <circle
-            cx={size * 0.22 + 3}
-            cy={size * 0.78 + 3}
+            cx={badgeRadius * 1.1 + 3}
+            cy={size - (badgeRadius * 1.1) + 3}
             r={badgeRadius}
             fill={domainColor}
             stroke="#fff"
             strokeWidth={1}
           />
           <text
-            x={size * 0.22 + 3}
-            y={size * 0.78 + 4}
+            x={badgeRadius * 1.1 + 3}
+            y={size - (badgeRadius * 1.1) + 4}
             fontSize={badgeFont}
             textAnchor="middle"
             dominantBaseline="middle"
@@ -172,17 +177,17 @@ export default function UnitCounter({
       {cargo !== null && cargo !== 0 && (
         <>
           <circle
-            cx={size * 0.78 + 3}
-            cy={size * 0.78 + 3}
-            r={cargoRadius}
+            cx={size - (badgeRadius * 1.1)  + 3}
+            cy={size - (badgeRadius * 1.1)  + 3}
+            r={badgeRadius}
             fill={cargoFill}
             stroke="#fff"
             strokeWidth={1.3}
           />
           <text
-            x={size * 0.78 + 3}
-            y={size * 0.78 + 4}
-            fontSize={cargoFont}
+            x={size - (badgeRadius * 1.1)  + 3}
+            y={size - (badgeRadius * 1.1)  + 4}
+            fontSize={badgeFont}
             textAnchor="middle"
             dominantBaseline="middle"
             fill="#000"
@@ -191,18 +196,6 @@ export default function UnitCounter({
             {cargo > 0 ? `+${cargo}` : cargo}
           </text>
         </>
-      )}
-
-      {/* Used indicator for command bunkers */}
-      {showUsedIndicator && (
-        <circle
-          cx={size * 0.85 + 3}
-          cy={size * 0.18 + 3}
-          r={size * 0.12}
-          fill="red"
-          stroke="black"
-          strokeWidth={1}
-        />
       )}
 
       {/* SVG filter for glow effect */}

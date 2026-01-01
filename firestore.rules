@@ -28,6 +28,10 @@ service cloud.firestore {
     	allow read: if isSignedIn();
     }
 
+    match /games/{gameId}/chat/{messageId} {
+      allow read: if isSignedIn();
+    }
+
     //----------------------------------------------------------------------
     // Deny everything else
     //----------------------------------------------------------------------
