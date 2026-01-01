@@ -34,7 +34,6 @@ export async function authMiddleware(
       uid: decoded.uid,
       displayName: decoded.name ?? decoded.email,
       email: decoded.email,
-      photoURL: decoded.picture,
     });
     
     (req as AuthenticatedRequest).user = decoded;

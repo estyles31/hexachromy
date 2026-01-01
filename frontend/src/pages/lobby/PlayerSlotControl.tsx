@@ -16,7 +16,6 @@ export default function PlayerSlotControl({ slot, slotIndex, isCurrentUser, onCh
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<PlayerPublicProfile[]>([]);
   const [searching, setSearching] = useState(false);
-  const [botDifficulty, setBotDifficulty] = useState<"easy" | "medium" | "hard">("medium");
   
   const user = useAuth();
 
@@ -60,7 +59,6 @@ export default function PlayerSlotControl({ slot, slotIndex, isCurrentUser, onCh
         slotIndex,
         botId: `bot-${crypto.randomUUID()}`,
         displayName: `Bot ${slotIndex + 1}`,
-        difficulty: botDifficulty,
       });
     } else if (newType === "human") {
       // Keep current human slot or create empty one
@@ -88,17 +86,6 @@ export default function PlayerSlotControl({ slot, slotIndex, isCurrentUser, onCh
     });
     setSearchQuery("");
     setSearchResults([]);
-  };
-
-  // Handle bot difficulty change
-  const handleBotDifficultyChange = (difficulty: "easy" | "medium" | "hard") => {
-    setBotDifficulty(difficulty);
-    if (slot.type === "bot") {
-      onChange({
-        ...slot,
-        difficulty,
-      });
-    }
   };
 
   if (isCurrentUser) {
@@ -139,8 +126,8 @@ export default function PlayerSlotControl({ slot, slotIndex, isCurrentUser, onCh
               {searchResults.map(profile => (
                 <li key={profile.uid} onClick={() => handlePlayerSelect(profile)}>
                   {profile.displayName}
-                  {profile.photoURL && (
-                    <img src={profile.photoURL} alt="" className="player-avatar" />
+                  {profile.avatarUrl && (
+                    <img src={profile.avatarUrl} alt="" className="player-avatar" />
                   )}
                 </li>
               ))}
@@ -152,23 +139,6 @@ export default function PlayerSlotControl({ slot, slotIndex, isCurrentUser, onCh
               Selected: <strong>{slot.displayName}</strong>
             </div>
           )}
-        </div>
-      )}
-
-      {/* hidding this for now because we don't have bots, much less bot difficulty */}
-      {slotType === "bot" && false && (
-        <div className="bot-options">
-          <label>
-            Difficulty
-            <select
-              value={botDifficulty}
-              onChange={e => handleBotDifficultyChange(e.target.value as "easy" | "medium" | "hard")}
-            >
-              <option value="easy">Easy</option>
-              <option value="medium">Medium</option>
-              <option value="hard">Hard</option>
-            </select>
-          </label>
         </div>
       )}
 

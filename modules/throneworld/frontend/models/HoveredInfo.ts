@@ -9,6 +9,7 @@ export interface HoveredSystemInfo {
   hexId: string;
   worldType?: string;
   revealed: boolean;
+  canPeek: boolean;
   details?: ThroneworldSystemDetails;
 }
 

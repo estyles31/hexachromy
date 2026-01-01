@@ -1,5 +1,4 @@
 // /frontend/src/components/SelectionProvider.tsx
-// Refactored: Direct filledParams, no wrapper types
 
 import React, { useCallback, useEffect, useState } from "react";
 import { SelectionContext } from "../../../shared-frontend/contexts/SelectionContext";
@@ -21,37 +20,13 @@ export function SelectionProvider({ children }: { children: React.ReactNode }) {
 
   const { executeAction: sendAction } = useActionExecutor();
 
-  // Fetch legal actions from backend
-  const fetchLegalActions = useCallback(async (params?: Record<string, string>) => {
-    if (!user) return;
-
-    try {
-      const res = await authFetch(user, `/api/games/${gameId}/legal-actions`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ filledParams: params || {} })
-      });
-
-      if (!res.ok) {
-        console.error("fetchLegalActions failed");
-        return;
-      }
-
-      const response: LegalActionsResponse = await res.json();
-      setLegalActions(response);
-      buildHighlights(response.actions);
-    } catch (e) {
-      console.error("fetchLegalActions failed:", e);
-    }
-  }, [user, gameId]);
-
   // Build highlight sets from actions with populated choices
   const buildHighlights = useCallback((actions: GameAction[]) => {
     const boardSpaces = new Set<string>();
     const gamePieces = new Set<string>();
 
     for (const action of actions) {
-      const nextParam = action.params.find(p => !p.optional && (p.value === undefined || p.value === null));
+      const nextParam = action.params.find((p) => !p.optional && (p.value === undefined || p.value === null));
       if (!nextParam?.choices) continue;
 
       for (const choice of nextParam.choices) {
@@ -67,12 +42,40 @@ export function SelectionProvider({ children }: { children: React.ReactNode }) {
     setSelectableGamePieces(gamePieces);
   }, []);
 
+  // Fetch legal actions from backend
+  const fetchLegalActions = useCallback(
+    async (params?: Record<string, string>) => {
+      if (!user) return;
+
+      try {
+        const res = await authFetch(user, `/api/games/${gameId}/legal-actions`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ filledParams: params || {} }),
+        });
+
+        if (!res.ok) {
+          console.error("fetchLegalActions failed");
+          return;
+        }
+
+        const response: LegalActionsResponse = await res.json();
+        setLegalActions(response);
+        buildHighlights(response.actions);
+      } catch (e) {
+        console.error("fetchLegalActions failed:", e);
+      }
+    },
+    [user, gameId, buildHighlights]
+  );
+
   // Reload on version change - preserve filledParams if still valid
   useEffect(() => {
     const hasFilledParams = Object.keys(filledParams).length > 0;
-    
+
     if (hasFilledParams) {
       // User has work in progress - reload with their filledParams
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       fetchLegalActions(filledParams).then(() => {
         // If no actions came back, the params are invalid - clear and reload
         if (legalActions.actions.length === 0) {
@@ -85,28 +88,29 @@ export function SelectionProvider({ children }: { children: React.ReactNode }) {
       setFilledParams({});
       fetchLegalActions();
     }
-  }, [version]);
-  
+  }, [version, fetchLegalActions]);
+
   // User selects something (hex, piece, or choice button)
-  const select = useCallback(async (choiceId: string) => {
-    // Find which param this choice belongs to
-    const activeParam = legalActions.actions
-      .flatMap(a => a.params)
-      .find(p => p.choices?.some(c => c.id === choiceId));
+  const select = useCallback(
+    async (choiceId: string) => {
+      // Find which param this choice belongs to
+      const activeParam = legalActions.actions.flatMap((a) => a.params).find((p) => p.choices?.some((c) => c.id === choiceId));
 
-    if (!activeParam) {
-      console.error("No active param found for choice:", choiceId);
-      return;
-    }
+      if (!activeParam) {
+        console.error("No active param found for choice:", choiceId);
+        return;
+      }
 
-    const newFilledParams = {
-      ...filledParams,
-      [activeParam.name]: choiceId
-    };
+      const newFilledParams = {
+        ...filledParams,
+        [activeParam.name]: choiceId,
+      };
 
-    setFilledParams(newFilledParams);
-    await fetchLegalActions(newFilledParams);
-  }, [legalActions.actions, filledParams, fetchLegalActions]);
+      setFilledParams(newFilledParams);
+      await fetchLegalActions(newFilledParams);
+    },
+    [legalActions.actions, filledParams, fetchLegalActions]
+  );
 
   // Cancel current selection chain
   const cancelAction = useCallback(() => {
@@ -115,11 +119,14 @@ export function SelectionProvider({ children }: { children: React.ReactNode }) {
   }, [fetchLegalActions]);
 
   // Execute a complete action
-  const executeAction = useCallback((action: GameAction) => {
-    sendAction(action);
-    setFilledParams({});
-    fetchLegalActions();
-  }, [sendAction, fetchLegalActions]);
+  const executeAction = useCallback(
+    (action: GameAction) => {
+      sendAction(action);
+      setFilledParams({});
+      fetchLegalActions();
+    },
+    [sendAction, fetchLegalActions]
+  );
 
   return (
     <SelectionContext.Provider

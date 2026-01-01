@@ -49,8 +49,9 @@ export abstract class Phase {
   }
 
   /** Validate and execute an action */
-  async executeAction(ctx: PhaseContext, playerId: string, action: GameAction): Promise<ActionResponse> {
-    return this.executePhaseAction(ctx, playerId, action);
+  async executeAction(ctx: PhaseContext,action: GameAction,  playerId: string): Promise<ActionResponse> {
+    // Default implementation - just execute the action normally
+    return action.execute(ctx.gameState, playerId);
   }
 
   createAction(type: string): GameAction | null {
@@ -88,17 +89,6 @@ export abstract class Phase {
     }
 
     return { success: true };
-  }
-
-  /**
-   * Execute phase-specific actions (override in subclasses)
-   */
-  protected async executePhaseAction(_ctx: PhaseContext, _playerId: string, action: GameAction): Promise<ActionResponse> {
-    return {
-      action,
-      success: false,
-      error: `${this.name} actions not yet implemented`,
-    };
   }
 
   /**

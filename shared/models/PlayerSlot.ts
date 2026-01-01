@@ -19,7 +19,7 @@ export interface BotPlayerSlot extends PlayerSlotBase {
   type: "bot";
   botId: string;  // Generated ID for the bot
   displayName: string;
-  difficulty?: "easy" | "medium" | "hard";
+  difficulty?: "easy" | "medium" | "hard";  //not used
 }
 
 export interface OpenPlayerSlot extends PlayerSlotBase {

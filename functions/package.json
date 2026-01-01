@@ -19,15 +19,19 @@
     "dotenv": "^17.2.3",
     "firebase-admin": "^13.6.0",
     "firebase-functions": "^7.0.1",
-    "jsondiffpatch": "^0.7.3"
+    "jsondiffpatch": "^0.7.3",
+    "md5": "^2.3.0"
   },
   "devDependencies": {
+    "@types/md5": "^2.3.6",
     "@typescript-eslint/eslint-plugin": "^5.12.0",
     "@typescript-eslint/parser": "^5.12.0",
     "eslint": "^8.9.0",
     "eslint-config-google": "^0.14.0",
+    "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-import": "^2.25.4",
     "firebase-functions-test": "^3.4.1",
+    "prettier": "^3.7.4",
     "typescript": "^5.7.3"
   },
   "private": true

@@ -151,16 +151,16 @@ export async function revealSystemToPlayer(
 ): Promise<void> {
   const state = ctx.gameState as ThroneworldGameState;
   const system = state.state.systems[hexId];
-  
+
   // state playerViews should contain the neutral player view on the server side
   const details = state.playerViews?.["neutral"]?.systems[hexId];
 
-  if(!details)
+  if (!details)
     throw new Error(`System details for hex ${hexId} not found in state.`);
-    
+
   // Only reveal if player has scanned it
   if (!system.scannedBy?.includes(playerId)) return;
-  
+
   await ctx.db.updateDocument(
     `games/${state.gameId}/playerViews/${playerId}`,
     {
@@ -179,15 +179,50 @@ export function canFleetScan(
 ): boolean {
   const system = state.state.systems[hexId];
   if (!system) return false;
-  
+
   const playerFleets = system.fleetsInSpace[playerId];
   if (!playerFleets || playerFleets.length === 0) return false;
-  
+
   // Check if any fleet has a survey team (Explore unit)
   for (const fleet of playerFleets) {
     const hasSurvey = fleet.spaceUnits.some(u => UNITS[u.unitTypeId]?.Explore);
     if (hasSurvey) return true;
   }
-  
+
   return false;
+}
+
+/** clear hasMoved for all non-command units called after Outreach and each player's turn in Expansion */
+export function clearMovedUnits({ playerId, state }: { playerId?: string, state: ThroneworldGameState }) {
+  for (const system of Object.values(state.state.systems)) {
+    for (const units of Object.values(system.unitsOnPlanet)) {
+      units.forEach(u => {
+        if ((!playerId || u.owner == playerId) && !(UNITS[u.unitTypeId]?.Command)) {
+          u.hasMoved = false;
+        }
+      });
+    }
+    for (const fleets of Object.values(system.fleetsInSpace)) {
+      fleets.forEach(f => {
+        if (!playerId || f.owner == playerId) {
+          f.spaceUnits.forEach(u => u.hasMoved = false);
+          f.groundUnits.forEach(u => u.hasMoved = false);
+        }
+      });
+    }
+  }
+}
+
+/* ready all command bunkers, called during EndPhase */
+export function readyAllBunkers({ playerId, state }: { playerId?: string, state: ThroneworldGameState }) {
+  //ready all command bunkers
+  for (const system of Object.values(state.state.systems)) {
+    for (const units of Object.values(system.unitsOnPlanet)) {
+      units.forEach(u => {
+        if ((!playerId || u.owner == playerId) && UNITS[u.unitTypeId]?.Command == true) {
+          u.hasMoved = false;
+        }
+      });
+    }
+  }
 }

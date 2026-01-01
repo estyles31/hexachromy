@@ -36,7 +36,7 @@
     "../shared-frontend/*",
     "../shared-frontend/**/*",
     "../modules/*",
-    "../modules/**/*",  
+    "../modules/**/*", "../shared/utils/gravatar.ts",  
   ],
   "exclude": [
     "../functions/**/*",

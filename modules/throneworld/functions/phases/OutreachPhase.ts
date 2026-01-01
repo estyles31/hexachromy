@@ -4,7 +4,7 @@ import type { LegalActionsResponse } from "../../../../shared/models/ApiContexts
 import type { ActionResponse } from "../../../../shared/models/GameAction";
 import { JumpAction } from "../actions/JumpAction";
 import { PassAction } from "../actions/PassAction";
-import { revealSystemToPlayer } from "../actions/ActionHelpers";
+import { clearMovedUnits, readyAllBunkers, revealSystemToPlayer } from "../actions/ActionHelpers";
 import { resolveHexCombat } from "../actions/CombatHelpers";
 import type { ThroneworldGameState } from "../../shared/models/GameState.Throneworld";
 import { UNITS } from "../../shared/models/UnitTypes.ThroneWorld";
@@ -44,13 +44,13 @@ export class OutreachPhase extends Phase {
   private hasPlayerCompletedPhase(state: ThroneworldGameState, playerId: string): boolean {
     const jumpCount = this.countPlayerJumps(state, playerId);
     const productionDone = this.hasProductionComplete(state, playerId);
-    
+
     return jumpCount >= 2 && productionDone;
   }
 
   private countPlayerJumps(state: ThroneworldGameState, playerId: string): number {
     let usedBunkers = 0;
-    
+
     for (const system of Object.values(state.state.systems)) {
       const playerUnits = system.unitsOnPlanet[playerId];
       if (!playerUnits) continue;
@@ -61,7 +61,7 @@ export class OutreachPhase extends Phase {
         }
       }
     }
-    
+
     return usedBunkers;
   }
 
@@ -70,7 +70,7 @@ export class OutreachPhase extends Phase {
     playerId: string
   ): Promise<LegalActionsResponse> {
     const state = ctx.gameState as ThroneworldGameState;
-    
+
     const jumpCount = this.countPlayerJumps(state, playerId);
     const jumpsRemaining = 2 - jumpCount;
 
@@ -84,12 +84,21 @@ export class OutreachPhase extends Phase {
 
     // Jumps complete - allow production or pass
     const productionDone = this.hasProductionComplete(state, playerId);
-    
+
     if (!productionDone) {
+      const prodAction = new ProductionAction();
+      const hexParam = prodAction.params.find(p => p.name == "hexId");
+      const choices = hexParam?.populateChoices?.(state, playerId);
+
+      //in Outreach, you can only produce at your homeworld
+      if(choices?.length === 1) {
+        prodAction.setParamValue("hexId", choices[0].id);
+      }
+
       return {
         actions: [
-          new ProductionAction(),
-          new PassAction()
+          prodAction,
+          new PassAction("Pass (End Production)", "Passed Production"),
         ],
         message: "Outreach phase - Homeworld production (or pass)"
       };
@@ -123,9 +132,13 @@ export class OutreachPhase extends Phase {
 
     // If no one can act, advance to next phase
     if (!state.state.currentPlayers) {
-      // Clear phase metadata when transitioning
+      // Clear phase metadata
       state.state.phaseMetadata = {};
-      
+
+      // ready all units
+      clearMovedUnits({ state });
+      readyAllBunkers({ state });
+
       result.phaseTransition = {
         nextPhase: "Expansion",
         transitionType: "nextPhase"
@@ -142,12 +155,12 @@ export class OutreachPhase extends Phase {
   ): Promise<void> {
     const action = result.action as JumpAction;
     const targetHexId = action.metadata.targetHexId;
-    
+
     if (!targetHexId) return;
-    
+
     // Check for combat - can't actually happen during Outreach, but leave it here so we remember to do this in Expansion phase
     await resolveHexCombat(ctx, playerId, targetHexId);
-    
+
     // After combat, reveal if scanned (survey team must have survived)
     if (action.metadata.didScan) {
       await revealSystemToPlayer(ctx, playerId, targetHexId);

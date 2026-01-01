@@ -198,7 +198,7 @@
 }
 
 .display-toggle-bar {
-  font-size: smaller;
+  font-size: small;
   display: flex;
   flex-direction: column;
   padding: 4px 12px;

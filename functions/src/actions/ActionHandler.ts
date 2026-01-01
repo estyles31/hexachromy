@@ -133,7 +133,13 @@ export async function handleNormalAction(
     return { ...legality, action };
   }
 
-  const result = await instance.execute(state, playerId);
+  const phase = await modulePhaseManager.getCurrentPhase();
+  const result = await phase.executeAction(
+    { gameState: state, db: dbAdapter },
+    instance,
+    playerId
+  );
+
   if (!result.success) {
     return result;
   }

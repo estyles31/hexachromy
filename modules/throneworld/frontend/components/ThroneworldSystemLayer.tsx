@@ -68,6 +68,7 @@ export default function ThroneworldSystemLayer({
                         worldType,
                         details: hover.system,
                         revealed: hover.revealed,
+                        canPeek: hover.allowed,
                       },
                     });
                   } else {

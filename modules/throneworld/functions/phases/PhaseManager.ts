@@ -77,6 +77,7 @@ export class ThroneworldPhaseManager extends BasePhaseManager {
     
     try {
       // Keep executing bots until none are left in currentPlayers
+      // eslint-disable-next-line no-constant-condition
       while (true) {
         const state = await this.reloadGameState();
         const currentPlayers = state.state.currentPlayers || [];

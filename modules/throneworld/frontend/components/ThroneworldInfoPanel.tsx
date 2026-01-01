@@ -233,7 +233,7 @@ function SystemInfo({ data, gameState }: { data: Extract<HoveredInfo, { kind: "s
         <div className="centered">
           <SystemMarker
             system={systemDetails || { dev: 0, spaceTech: 0, groundTech: 0, spaceUnits: {}, groundUnits: {} }}
-            worldType={systemData.worldType} revealed={!!systemDetails}
+            worldType={systemData.worldType} revealed={data.canPeek}
             size={64} ownerColor={ownerColor} />
         </div>
       </div>
