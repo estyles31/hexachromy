@@ -11,13 +11,9 @@ import { computeStateDiff, diffToFirestoreUpdates, StateDiff } from "../../../sh
 import { GameDatabaseAdapter } from "../../../shared/models/GameDatabaseAdapter";
 import { ActionHistoryEntry } from "../../../shared/models/ActionHistoryEntry";
 
-void ChatAction;  //need to reference this or the compiler tree-shakes it away
+void ChatAction; //need to reference this or the compiler tree-shakes it away
 
-export async function ActionHandler(
-  ctx: ActionContext,
-  modulePhaseManager: IPhaseManager
-): Promise<ActionResponse> {
-
+export async function ActionHandler(ctx: ActionContext, modulePhaseManager: IPhaseManager): Promise<ActionResponse> {
   const { gameId, playerId, action } = ctx;
   let result;
 
@@ -25,26 +21,28 @@ export async function ActionHandler(
   if (action.type === "chat") {
     const instance = getActionFromJson(action) as ChatAction;
     result = await instance.execute({ gameId } as any, playerId);
-  }
-  else {
+  } else {
     result = await handleNormalAction(ctx, modulePhaseManager);
   }
 
   if (modulePhaseManager.postCommitAction) {
-    modulePhaseManager.postCommitAction()
-      .catch((err: Error) => {
-        console.error("Post commit execution failed: ", err);
-      });
+    modulePhaseManager.postCommitAction().catch((err: Error) => {
+      console.error("Post commit execution failed: ", err);
+    });
   }
 
   return { ...result };
 }
 
-export async function applyStateChangesToDatabase(
-  gameId: string,
-  expectedVersion: number,
-  newState: GameState
-): Promise<StateDiff> {
+export async function applyStateChangesToDatabase({
+  gameId,
+  expectedVersion,
+  newState,
+}: {
+  gameId: string;
+  expectedVersion?: number;
+  newState: GameState;
+}): Promise<StateDiff> {
   const gameRef = db.doc(`games/${gameId}`);
 
   let diff: StateDiff;
@@ -56,8 +54,8 @@ export async function applyStateChangesToDatabase(
     const currentState = snap.data()! as GameState;
 
     // Optimistic concurrency check
-    if (currentState.version !== expectedVersion) {
-      throw new Error("stale_state");
+    if (expectedVersion && currentState.version !== expectedVersion) {
+      throw new Error("stale_state", { cause: `expected { expectedVersion } but got { currentState.version }` });
     }
 
     // Compute diff from current DB state to new state
@@ -79,9 +77,8 @@ export async function appendActionHistory(
   playerId: string,
   actionJson: GameAction,
   diffs: StateDiff,
-  result?: ActionResponse,
+  result?: ActionResponse
 ) {
-
   const seq = game.actionSequence;
   const entryId = randomUUID();
 
@@ -99,13 +96,10 @@ export async function appendActionHistory(
     resultingPhase: game.state.currentPhase,
   };
 
-  await db.setDocument(
-    `games/${game.gameId}/actionLog/${seq}`,
-    entry
-  );
+  await db.setDocument(`games/${game.gameId}/actionLog/${seq}`, entry);
 
   await db.updateDocument(`games/${game.gameId}`, {
-    actionSequence: seq + 1
+    actionSequence: seq + 1,
   });
 }
 
@@ -120,8 +114,11 @@ export async function handleNormalAction(
   }
 
   // version check - optimistic concurrency
-  if (action.expectedVersion !== undefined &&
-    action.expectedVersion !== state.version) {
+  if (
+    action.requireConcurrency !== false &&
+    action.expectedVersion !== undefined &&
+    action.expectedVersion !== state.version
+  ) {
     return { action, success: false, error: "stale_state" };
   }
 
@@ -134,11 +131,7 @@ export async function handleNormalAction(
   }
 
   const phase = await modulePhaseManager.getCurrentPhase();
-  const result = await phase.executeAction(
-    { gameState: state, db: dbAdapter },
-    instance,
-    playerId
-  );
+  const result = await phase.executeAction({ gameState: state, db: dbAdapter }, instance, playerId);
 
   if (!result.success) {
     return result;
@@ -147,9 +140,12 @@ export async function handleNormalAction(
   await modulePhaseManager.postExecuteAction(playerId, result);
 
   // DB write + history write
-  const diff = await applyStateChangesToDatabase(gameId, state.version, state);
+  const diff = await applyStateChangesToDatabase({
+    gameId,
+    expectedVersion: action.requireConcurrency ? state.version : undefined,
+    newState: state,
+  });
   await appendActionHistory(dbAdapter, state, playerId, action, diff, result);
 
   return result;
 }
-

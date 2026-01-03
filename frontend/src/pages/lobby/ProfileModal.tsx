@@ -6,6 +6,7 @@ import { updateProfile } from "firebase/auth";
 import type { AvatarSource } from "../../../../shared/models/PlayerProfile";
 import { Avatar } from "../../../../shared-frontend/components/Avatar";
 import { getGravatarUrl } from "../../../../shared/utils/gravatar";
+import "./ProfileModal.css";
 
 interface Props {
   user: User;
@@ -142,7 +143,7 @@ export default function ProfileModal({ user, onClose }: Props) {
             <div>
               <div style={{ display: "flex" }}>
                 {email}
-                <label style={{ marginRight: "5px" }}>
+                <label style={{ marginLeft: "10px" }}>
                   <input type="checkbox" checked={hideEmail} onChange={(e) => setHideEmail(e.target.checked)} />
                   Hide my email address
                 </label>
@@ -150,7 +151,7 @@ export default function ProfileModal({ user, onClose }: Props) {
               <span className="hint">
                 Hiding your email address makes it harder to invite you to games
                 <br />
-                (but maybe you want that).
+                (but maybe you want that)
               </span>
             </div>
 
@@ -198,7 +199,7 @@ export default function ProfileModal({ user, onClose }: Props) {
                   <span>{idx + 1}.</span>
                   <input type="color" value={color} onChange={(e) => updateColor(idx, e.target.value)} />
                   <span>{color}</span>
-                  <button type="button" onClick={() => removeColor(idx)}>
+                  <button className="remove-button" type="button" onClick={() => removeColor(idx)}>
                     Remove
                   </button>
                 </div>

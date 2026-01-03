@@ -1,25 +1,25 @@
 // /modules/throneworld/functions/phases/ExpansionPhase.ts
-import { Phase, PhaseContext } from "../../../../shared-backend/Phase";
+import { Phase } from "../../../../shared-backend/Phase";
+import { PhaseContext } from "../../../../shared/models/PhaseContext";
 import type { LegalActionsResponse } from "../../../../shared/models/ApiContexts";
-import { GameAction, ActionResponse } from "../../../../shared/models/GameAction";
+import { ActionResponse } from "../../../../shared/models/GameAction";
 import type { ThroneworldGameState } from "../../shared/models/GameState.Throneworld";
 import { JumpAction } from "../actions/JumpAction";
 import { ScanAction } from "../actions/ScanAction";
 import { PassAction } from "../actions/PassAction";
 import { TransferAction } from "../actions/TransferAction";
-import { revealSystemToPlayer } from "../actions/ActionHelpers";
-import { resolveHexCombat } from "../actions/CombatHelpers";
+import { getActionFromJson } from "../../../../shared-backend/ActionRegistry";
+
+interface PendingConsequence {
+  playerId: string;
+  actionData: any; // Serialized action as plain JSON
+}
 
 interface ExpansionPhaseMetadata extends Record<string, unknown> {
   currentPlayerIndex: number;
-  pendingActions: Array<{
-    playerId: string;
-    actionType: string;
-    actionData: any; // Serialized action state
-  }>;
+  pendingConsequences: PendingConsequence[];
   playerChoices: Record<string, "transfer" | "scan_jump">;
   actionsUsed: Record<string, number>;
-  executingPendingActions?: boolean;
 }
 
 export class ExpansionPhase extends Phase {
@@ -31,9 +31,9 @@ export class ExpansionPhase extends Phase {
     // Initialize metadata
     const metadata: ExpansionPhaseMetadata = {
       currentPlayerIndex: 0,
-      pendingActions: [],
+      pendingConsequences: [],
       playerChoices: {},
-      actionsUsed: {}
+      actionsUsed: {},
     };
 
     state.state.phaseMetadata = metadata;
@@ -43,9 +43,9 @@ export class ExpansionPhase extends Phase {
     state.state.currentPlayers = [firstPlayer];
 
     return {
-      action: new PassAction(), // Dummy action for phase start
+      action: new PassAction(),
       success: true,
-      message: "Expansion phase started"
+      message: "Expansion phase started",
     };
   }
 
@@ -56,9 +56,9 @@ export class ExpansionPhase extends Phase {
     if (!state.state.phaseMetadata) {
       const metadata: ExpansionPhaseMetadata = {
         currentPlayerIndex: 0,
-        pendingActions: [],
+        pendingConsequences: [],
         playerChoices: {},
-        actionsUsed: {}
+        actionsUsed: {},
       };
 
       state.state.phaseMetadata = metadata;
@@ -69,32 +69,8 @@ export class ExpansionPhase extends Phase {
     }
   }
 
-  async executeAction(ctx: PhaseContext, action: GameAction, playerId: string): Promise<ActionResponse> {
-    const state = ctx.gameState as ThroneworldGameState;
-    const metadata = this.getMetadata(state);
-
-    // Defer Scan/Jump actions unless we're executing pending actions
-    if ((action.type === "scan" || action.type === "jump") && !metadata.executingPendingActions) {
-      // Validate that params are complete
-      if (!action.allParamsComplete()) {
-        return { action, success: false, error: "missing_parameters" };
-      }
-
-      // Store minimal metadata - the full action will be stored in pendingActions
-      if (action.type === "jump") {
-        const jumpAction = action as JumpAction;
-        jumpAction.metadata.targetHexId = jumpAction.getStringParam("targetHexId");
-      } else if (action.type === "scan") {
-        const scanAction = action as ScanAction;
-        scanAction.metadata.targetHexId = scanAction.getStringParam("targetHexId");
-      }
-
-      return { action, success: true, message: "Queued for execution", undoable: false };
-    }
-
-    // Normal execution for all other actions (including deferred execution of pending)
-    return action.execute(state, playerId);
-  }
+  // REMOVED executeAction override - let actions execute normally
+  // Movement happens immediately, consequences deferred in onActionCompleted
 
   private getMetadata(state: ThroneworldGameState): ExpansionPhaseMetadata {
     return state.state.phaseMetadata as ExpansionPhaseMetadata;
@@ -118,10 +94,7 @@ export class ExpansionPhase extends Phase {
     }
   }
 
-  protected async getPhaseSpecificActions(
-    ctx: PhaseContext,
-    playerId: string
-  ): Promise<LegalActionsResponse> {
+  protected async getPhaseSpecificActions(ctx: PhaseContext, playerId: string): Promise<LegalActionsResponse> {
     const state = ctx.gameState as ThroneworldGameState;
     const metadata = this.getMetadata(state);
     const currentPlayer = this.getCurrentPlayer(state);
@@ -130,7 +103,7 @@ export class ExpansionPhase extends Phase {
     if (playerId !== currentPlayer) {
       return {
         actions: [],
-        message: "Waiting for your turn"
+        message: "Waiting for your turn",
       };
     }
 
@@ -143,9 +116,13 @@ export class ExpansionPhase extends Phase {
           new TransferAction(),
           new ScanAction(),
           new JumpAction(),
-          new PassAction("Pass (End Movement)"),
+          new PassAction({
+            label: "Pass Movement",
+            confirmLabel: "Pass without moving anything?",
+            historyMessage: "Passed Movement",
+          }),
         ],
-        message: "Expansion phase - Transfer OR up to 3 Scan/Jump actions"
+        message: "Expansion phase - Transfer OR up to 3 Scan/Jump actions",
       };
     }
 
@@ -155,8 +132,14 @@ export class ExpansionPhase extends Phase {
 
       if (actionsUsed >= 3) {
         return {
-          actions: [new PassAction("Pass (End Movement)")],
-          message: "All 3 actions used - Pass to execute"
+          actions: [
+            new PassAction({
+              label: "Pass (End Movement)",
+              confirmLabel: "End Movement",
+              historyMessage: "Completed Movement",
+            }),
+          ],
+          message: "All 3 actions used - Pass to execute",
         };
       }
 
@@ -164,21 +147,24 @@ export class ExpansionPhase extends Phase {
         actions: [
           new ScanAction(),
           new JumpAction(),
-          new PassAction("Pass (End Movement)")
+          new PassAction({
+            label: "Pass (End Movement)",
+            confirmLabel: "End Movement",
+            historyMessage: "Completed Movement",
+          }),
         ],
-        message: `Expansion phase - ${3 - actionsUsed} action${3 - actionsUsed === 1 ? '' : 's'} remaining (or Pass to execute)`
+        message: `Expansion phase - ${3 - actionsUsed} action${3 - actionsUsed === 1 ? "" : "s"} remaining (or Pass to execute)`,
       };
     }
 
     // Player chose Transfer - shouldn't get here as they advance immediately
     return {
       actions: [],
-      message: "Waiting for other players"
+      message: "Waiting for other players",
     };
   }
 
-  async onActionCompleted(ctx: PhaseContext, playerId: string, result: ActionResponse)
-    : Promise<ActionResponse> {
+  async onActionCompleted(ctx: PhaseContext, playerId: string, result: ActionResponse): Promise<ActionResponse> {
     const state = ctx.gameState as ThroneworldGameState;
     const metadata = this.getMetadata(state);
 
@@ -186,21 +172,18 @@ export class ExpansionPhase extends Phase {
       // Transfer executes immediately, move to next player
       metadata.playerChoices[playerId] = "transfer";
       this.moveToNextPlayer(state);
-
     } else if (result.action.type === "scan" || result.action.type === "jump") {
-      // Queue action for deferred execution
+      // Action already executed (movement happened)
+      // Serialize action to plain JSON for Firestore storage
       metadata.playerChoices[playerId] = "scan_jump";
       metadata.actionsUsed[playerId] = (metadata.actionsUsed[playerId] || 0) + 1;
 
-      metadata.pendingActions.push({
+      metadata.pendingConsequences.push({
         playerId,
-        actionType: result.action.type,
-        actionData: result.action // Store the entire action
+        actionData: JSON.parse(JSON.stringify(result.action)), // Serialize to plain JSON
       });
-
     } else if (result.action.type === "pass") {
-      // Execute all pending actions for this player
-      await this.executePendingActions(ctx, playerId);
+      await this.executePendingConsequences(ctx, playerId);
       this.moveToNextPlayer(state);
     }
 
@@ -210,54 +193,29 @@ export class ExpansionPhase extends Phase {
       state.state.phaseMetadata = {};
       result.phaseTransition = {
         nextPhase: "Empire",
-        transitionType: "nextPhase"
+        transitionType: "nextPhase",
       };
     }
 
     return result;
   }
 
-  private async executePendingActions(ctx: PhaseContext, playerId: string): Promise<void> {
+  private async executePendingConsequences(ctx: PhaseContext, playerId: string): Promise<void> {
     const state = ctx.gameState as ThroneworldGameState;
     const metadata = this.getMetadata(state);
 
-    const playerActions = metadata.pendingActions.filter(pa => pa.playerId === playerId);
+    const playerConsequences = metadata.pendingConsequences.filter((pc) => pc.playerId === playerId);
 
-    // Set flag to allow actual execution
-    metadata.executingPendingActions = true;
+    // Execute consequences in order
+    for (const pending of playerConsequences) {
+      // Reconstruct action from plain JSON
+      const action = getActionFromJson(pending.actionData);
 
-    try {
-      for (const pending of playerActions) {
-        const action = pending.actionData as GameAction;
-
-        if (action.type === "jump") {
-          const jumpAction = action as JumpAction;
-          const targetHexId = jumpAction.metadata.targetHexId;
-
-          if (targetHexId) {
-            // Resolve combat first
-            await resolveHexCombat(ctx, playerId, targetHexId);
-
-            // Then reveal if scanned (survey team must survive)
-            if (jumpAction.metadata.didScan) {
-              await revealSystemToPlayer(ctx, playerId, targetHexId);
-            }
-          }
-        } else if (action.type === "scan") {
-          const scanAction = action as ScanAction;
-          const targetHexId = scanAction.metadata.targetHexId;
-
-          if (targetHexId) {
-            await revealSystemToPlayer(ctx, playerId, targetHexId);
-          }
-        }
-      }
-    } finally {
-      // Always clear flag, even if execution fails
-      metadata.executingPendingActions = false;
+      // Let the action handle its own consequences
+      await action.executeConsequences(ctx, playerId);
     }
 
-    // Remove executed actions from pending queue
-    metadata.pendingActions = metadata.pendingActions.filter(pa => pa.playerId !== playerId);
+    // Remove executed consequences
+    metadata.pendingConsequences = metadata.pendingConsequences.filter((pc) => pc.playerId !== playerId);
   }
 }

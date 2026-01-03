@@ -1,5 +1,6 @@
 // /shared/models/GameAction.ts
 import type { GameState } from "./GameState";
+import type { PhaseContext } from "./PhaseContext";
 
 /** Base parameter types that the framework understands */
 export type ParamType = "boardSpace" | "gamePiece" | "choice" | "number" | "text";
@@ -53,21 +54,28 @@ export interface ActionFinalize {
 export interface IAction<T = Record<string, unknown>> {
   readonly type: string;
   undoable: boolean;
+  requireConcurrency?: boolean;
   expectedVersion?: number;
   metadata: Partial<T>;
+  executeConsequences?(ctx: PhaseContext, playerId: string): Promise<void>;
 }
 
-export class SystemAction<T = Record<string, unknown>> implements IAction<T> {
-  type = "system";
+export abstract class SystemAction<T = Record<string, unknown>> implements IAction<T> {
+  readonly type: string;
   undoable = false;
   expectedVersion?: number | undefined;
   metadata: Partial<T> = {};
+
+  constructor(type: string) {
+    this.type = type;
+  }
 }
 
 export abstract class GameAction<T = Record<string, unknown>> implements IAction<T> {
   readonly type: string;
   undoable: boolean;
   expectedVersion?: number;
+  requireConcurrency?: boolean;
   undoAction?: GameAction;
   params: ActionParam<any>[] = [];
   finalize?: ActionFinalize;
@@ -76,6 +84,7 @@ export abstract class GameAction<T = Record<string, unknown>> implements IAction
   constructor(init: {
     type: string;
     undoable: boolean;
+    requireConcurrency?: boolean;
     params?: ActionParam<unknown>[];
     finalize?: ActionFinalize;
   }) {
@@ -83,9 +92,15 @@ export abstract class GameAction<T = Record<string, unknown>> implements IAction
     this.undoable = init.undoable;
     this.params = init.params ?? [];
     this.finalize = init.finalize;
+    this.requireConcurrency = init.requireConcurrency;
   }
 
   abstract execute(state: GameState, playerId: string): Promise<ActionResponse>;
+
+  executeConsequences(_ctx: PhaseContext, _playerId: string): Promise<void> {
+    //does nothing, should be overriden by subclasses
+    return Promise.resolve();
+  }
 
   /**
    * Populate choices for all unfilled params whose dependencies are met.
@@ -95,15 +110,15 @@ export abstract class GameAction<T = Record<string, unknown>> implements IAction
     for (const param of this.params) {
       // Skip if already filled
       if (param.value !== undefined && param.value !== null) continue;
-      
+
       // Skip if depends on unfilled param
       if (param.dependsOn) {
-        const dependency = this.params.find(p => p.name === param.dependsOn);
+        const dependency = this.params.find((p) => p.name === param.dependsOn);
         if (!dependency || dependency.value === undefined || dependency.value === null) {
           continue;
         }
       }
-      
+
       // Populate choices if function provided
       if (param.populateChoices) {
         param.choices = param.populateChoices(state, playerId);
@@ -112,15 +127,15 @@ export abstract class GameAction<T = Record<string, unknown>> implements IAction
   }
 
   isParamComplete(name: string): boolean {
-    return this.params.find(p => p.name === name)?.value !== undefined;
+    return this.params.find((p) => p.name === name)?.value !== undefined;
   }
 
   allParamsComplete(): boolean {
-    return this.params.every(p => p.optional === false || p.value !== undefined);
+    return this.params.every((p) => p.optional === false || p.value !== undefined);
   }
 
   setParamValue(name: string, val: string) {
-    const param = this.params.find(p => p.name === name);
+    const param = this.params.find((p) => p.name === name);
     if (!param) throw new Error(`Unknown param: ${name}`);
     param.value = val;
   }
@@ -130,7 +145,7 @@ export abstract class GameAction<T = Record<string, unknown>> implements IAction
   }
 
   getParamValue(name: string) {
-    return this.params.find(p => p.name === name)?.value;
+    return this.params.find((p) => p.name === name)?.value;
   }
 
   getStringParam(name: string) {
@@ -139,6 +154,6 @@ export abstract class GameAction<T = Record<string, unknown>> implements IAction
   }
 
   get paramMap() {
-    return Object.fromEntries(this.params.map(p => [p.name, p.value]));
+    return Object.fromEntries(this.params.map((p) => [p.name, p.value]));
   }
 }

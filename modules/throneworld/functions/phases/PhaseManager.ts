@@ -13,11 +13,11 @@ import { BaseBot } from "../bots/BaseBot";
 import { ActionResponse } from "../../../../shared/models/GameAction";
 
 const PHASE_MAP: Record<string, new () => Phase> = {
-  "GameStart": GameStartPhase,
-  "Outreach": OutreachPhase,
-  "Expansion": ExpansionPhase,
-  "Empire": EmpirePhase,
-  "End": EndPhase,
+  GameStart: GameStartPhase,
+  Outreach: OutreachPhase,
+  Expansion: ExpansionPhase,
+  Empire: EmpirePhase,
+  End: EndPhase,
 };
 
 export class ThroneworldPhaseManager extends BasePhaseManager {
@@ -39,11 +39,9 @@ export class ThroneworldPhaseManager extends BasePhaseManager {
   }
 
   async reloadGameState(): Promise<GameState> {
-    const state = await this.db.getDocument(`games/${this.gameId}`) as ThroneworldGameState;
+    const state = (await this.db.getDocument(`games/${this.gameId}`)) as ThroneworldGameState;
 
-    const neutralView = await this.db.getDocument(
-      `games/${this.gameId}/playerViews/neutral`
-    );
+    const neutralView = await this.db.getDocument(`games/${this.gameId}/playerViews/neutral`);
 
     if (!state.playerViews) state.playerViews = {};
     state.playerViews["neutral"] = neutralView as ThroneworldPlayerView;
@@ -51,17 +49,9 @@ export class ThroneworldPhaseManager extends BasePhaseManager {
     return state;
   }
 
-  /**
-   * Override to add bot execution after actions and phase transitions
-   * NOTE: Do NOT call executeBotTurns here - it must be called AFTER
-   * the database transaction completes to avoid stale state conflicts
-   */
   async postExecuteAction(playerId: string, result: ActionResponse): Promise<ActionResponse> {
     // Let base handle phase logic
     const updatedResult = await super.postExecuteAction(playerId, result);
-    
-    // Bot execution happens externally after DB transaction
-    
     return updatedResult;
   }
 
@@ -72,23 +62,23 @@ export class ThroneworldPhaseManager extends BasePhaseManager {
   async postCommitAction(): Promise<void> {
     // Prevent recursive/concurrent execution
     if (this.executingBotTurns) return;
-    
+
     this.executingBotTurns = true;
-    
+
     try {
       // Keep executing bots until none are left in currentPlayers
       // eslint-disable-next-line no-constant-condition
       while (true) {
         const state = await this.reloadGameState();
         const currentPlayers = state.state.currentPlayers || [];
-        
+
         // Find first bot in currentPlayers
-        const botId = currentPlayers.find(p => p.startsWith("bot-"));
-        
+        const botId = currentPlayers.find((p) => p.startsWith("bot-"));
+
         if (!botId) break; // No more bots
 
         console.log(`Executing bot turn for ${botId}`);
-        
+
         try {
           await this.bot.takeTurn(botId, this);
         } catch (err) {

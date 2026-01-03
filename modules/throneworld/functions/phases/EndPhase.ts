@@ -1,12 +1,13 @@
 // /modules/throneworld/functions/phases/EndPhase.ts
-import { Phase, PhaseContext } from "../../../../shared-backend/Phase";
+import { Phase } from "../../../../shared-backend/Phase";
+import { PhaseContext } from "../../../../shared/models/PhaseContext";
 import type { LegalActionsResponse } from "../../../../shared/models/ApiContexts";
 import { GameAction, ActionResponse } from "../../../../shared/models/GameAction";
 
 export class EndPhase extends Phase {
   readonly name = "End";
 
-  async getLegalActions(ctx: PhaseContext, playerId: string): Promise<LegalActionsResponse> {
+  async getLegalActions(_ctx: PhaseContext, _playerId: string): Promise<LegalActionsResponse> {
     return {
       actions: [],
       message: "End phase - Ready Command Bunkers and determine player order",

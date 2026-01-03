@@ -90,24 +90,10 @@ export default function UnitCounter({
 
       {/* Diagonal "moved" X */}
       {hasMoved && (
-        <><line
-          x1={3}
-          y1={3}
-          x2={size + 3}
-          y2={size + 3}
-          stroke="#000"
-          strokeWidth={3}
-          opacity={0.4}
-        />
-        <line
-          x1={3}
-          y1={size + 3}
-          x2={size + 3}
-          y2={3}
-          stroke="#000"
-          strokeWidth={3}
-          opacity={0.4}
-        /></>
+        <>
+          <line x1={3} y1={3} x2={size + 3} y2={size + 3} stroke="#000" strokeWidth={3} opacity={0.4} />
+          <line x1={3} y1={size + 3} x2={size + 3} y2={3} stroke="#000" strokeWidth={3} opacity={0.4} />
+        </>
       )}
 
       {/* UNIT SYMBOL (center) */}
@@ -153,7 +139,7 @@ export default function UnitCounter({
         <>
           <circle
             cx={badgeRadius * 1.1 + 3}
-            cy={size - (badgeRadius * 1.1) + 3}
+            cy={size - badgeRadius * 1.1 + 3}
             r={badgeRadius}
             fill={domainColor}
             stroke="#fff"
@@ -161,7 +147,7 @@ export default function UnitCounter({
           />
           <text
             x={badgeRadius * 1.1 + 3}
-            y={size - (badgeRadius * 1.1) + 4}
+            y={size - badgeRadius * 1.1 + 4}
             fontSize={badgeFont}
             textAnchor="middle"
             dominantBaseline="middle"
@@ -177,23 +163,23 @@ export default function UnitCounter({
       {cargo !== null && cargo !== 0 && (
         <>
           <circle
-            cx={size - (badgeRadius * 1.1)  + 3}
-            cy={size - (badgeRadius * 1.1)  + 3}
+            cx={size - badgeRadius * 1.1 + 3}
+            cy={size - badgeRadius * 1.1 + 3}
             r={badgeRadius}
             fill={cargoFill}
             stroke="#fff"
             strokeWidth={1.3}
           />
           <text
-            x={size - (badgeRadius * 1.1)  + 3}
-            y={size - (badgeRadius * 1.1)  + 4}
+            x={size - badgeRadius * 1.1 + 3}
+            y={size - badgeRadius * 1.1 + 4}
             fontSize={badgeFont}
             textAnchor="middle"
             dominantBaseline="middle"
             fill="#000"
             fontWeight="bold"
           >
-            {cargo > 0 ? `+${cargo}` : cargo}
+            {cargo > 0 ? `+${cargo * quantity}` : cargo * quantity}
           </text>
         </>
       )}

@@ -1,11 +1,10 @@
 // /frontend/src/hooks/useGameState.ts
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { auth, firestore } from "../firebase";
 import { doc, onSnapshot } from "firebase/firestore";
 import { authFetch } from "../../frontend/src/auth/authFetch";
 import type { GameState } from "../../shared/models/GameState";
-
 
 interface HookState<T> {
   state: T | null;
@@ -13,91 +12,65 @@ interface HookState<T> {
   error: Error | null;
 }
 
-export interface BaseGameState {
-  gameType: string;
-  [key: string]: unknown;
-}
 export function useGameState<T extends GameState<unknown>>(gameId: string): HookState<T> {
   const [state, setState] = useState<T | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const [user] = useAuthState(auth);
 
-  const baseRef = useRef<any>(null);
-  const viewRef = useRef<any>(null);
-  const apiLoadedRef = useRef(false);
+  const debug = process.env.DEBUG === "true";
 
-  // 1. API load (canonical full state)
+  // Initial API load
   useEffect(() => {
     if (!gameId || !user) return;
 
     setLoading(true);
-    apiLoadedRef.current = false;
 
-    (async () => {
-      try {
-        const response = await authFetch(user, `/api/games/${gameId}`);
-        if (!response.ok) throw new Error(await response.text());
-
-        const fullState = await response.json();
+    authFetch(user, `/api/games/${gameId}`)
+      .then((res) => {
+        if (!res.ok) throw new Error(res.statusText);
+        return res.json();
+      })
+      .then((fullState) => {
         setState(fullState);
-
-        // Set these so future patches know the current values
-        baseRef.current = fullState;
-        viewRef.current = {};
-
-        apiLoadedRef.current = true;
         setLoading(false);
-      } catch (err) {
-        setError(err as Error);
+        if (debug) console.log("[useGameState] API loaded");
+      })
+      .catch((err) => {
+        setError(err);
         setLoading(false);
-      }
-    })();
+      });
   }, [gameId, user?.uid]);
 
-  // 2. Firestore listeners (patches only)
+  // Firestore live updates
   useEffect(() => {
     if (!gameId || !user) return;
 
-    const gameDocRef = doc(firestore, `games/${gameId}`);
-    const viewDocRef = doc(firestore, `games/${gameId}/playerViews/${user.uid}`);
+    let baseState: any = null;
+    let playerView: any = null;
 
-    const applyPatch = () => {
-      if (!apiLoadedRef.current) return;
+    const update = () => {
+      if (!baseState) return;
 
       setState({
-        ...baseRef.current,
-        ...(viewRef.current ?? {}),
+        ...baseState,
+        playerViews: {
+          ...(baseState.playerViews ?? {}),
+          ...(playerView ? { [user.uid]: playerView } : {}),
+        },
       });
     };
 
-    const unsubGame = onSnapshot(gameDocRef, (snap) => {
-      if (snap.exists()) {
-        baseRef.current = {
-          ...baseRef.current,
-          ...snap.data(), // patch only base fields
-        };
-        applyPatch();
-      }
-    },
-      (err) => {
-        // Permission denied? Normal. Just ignore player view.
-        console.warn("PlayerView snapshot error:", err);
+    const unsubGame = onSnapshot(doc(firestore, `games/${gameId}`), (snap) => {
+      if (!snap.exists()) return;
+      baseState = snap.data();
+      update();
+    });
 
-        // Ensure view remains an empty object, NOT undefined.
-        viewRef.current = {};
-
-        applyPatch(); // still merge base state
-      });
-
-    const unsubView = onSnapshot(viewDocRef, (snap) => {
-      if (snap.exists()) {
-        viewRef.current = {
-          ...viewRef.current,
-          ...snap.data(), // patch only view fields
-        };
-        applyPatch();
-      }
+    const unsubView = onSnapshot(doc(firestore, `games/${gameId}/playerViews/${user.uid}`), (snap) => {
+      playerView = snap.exists() ? snap.data() : null;
+      if (debug) console.log("[useGameState] playerView updated");
+      update();
     });
 
     return () => {

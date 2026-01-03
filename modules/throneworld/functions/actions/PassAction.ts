@@ -3,15 +3,38 @@ import { ActionResponse, GameAction } from "../../../../shared/models/GameAction
 import type { GameState } from "../../../../shared/models/GameState";
 import { registerAction } from "../../../../shared-backend/ActionRegistry";
 
+interface PassActionOptions {
+  label?: string;
+  confirmLabel?: string;
+  historyMessage?: string;
+  requireConfirm?: boolean;
+  requireConcurrency?: boolean;
+}
+
 export class PassAction extends GameAction {
   protected message: string;
 
-  constructor(label = "Pass", historyMessage = "Passed") {
+  constructor(options?: PassActionOptions) {
+    const {
+      label = "Pass",
+      confirmLabel = "Pass",
+      historyMessage = "Passed",
+      requireConfirm = true,
+      requireConcurrency = false,
+    } = options ?? {};
+
     super({
       type: "pass",
       undoable: false,
-      params: [],
-      finalize: { mode: "confirm", label: label }
+      requireConcurrency: requireConcurrency,
+      params: [
+        {
+          name: "passing",
+          type: "choice",
+          choices: [{ id: "pass", label: label }],
+        },
+      ],
+      finalize: { mode: requireConfirm ? "confirm" : "auto", label: confirmLabel },
     });
 
     this.message = historyMessage;

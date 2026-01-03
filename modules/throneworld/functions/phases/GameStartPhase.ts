@@ -1,4 +1,5 @@
-import { Phase, PhaseContext } from "../../../../shared-backend/Phase";
+import { Phase } from "../../../../shared-backend/Phase";
+import { PhaseContext } from "../../../../shared/models/PhaseContext";
 import type { LegalActionsResponse } from "../../../../shared/models/ApiContexts";
 import type { ThroneworldGameState } from "../../shared/models/GameState.Throneworld";
 import { ChooseRaceAction } from "../actions/ChooseRaceAction";
@@ -30,9 +31,9 @@ export class GameStartPhase extends Phase {
     const homeworldMode = (state.options.homeworldAssignment as string) || "random";
 
     // Random assignments (only if not already done)
-    const allPlayersHaveRaces = Object.values(state.players).every(p => p.race);
-    const allPlayersHaveHomeworlds = Object.values(state.players).every(p => {
-      const playerId = Object.keys(state.players).find(id => state.players[id] === p)!;
+    const allPlayersHaveRaces = Object.values(state.players).every((p) => p.race);
+    const allPlayersHaveHomeworlds = Object.values(state.players).every((p) => {
+      const playerId = Object.keys(state.players).find((id) => state.players[id] === p)!;
       return this.playerHasHomeworld(state, playerId);
     });
 
@@ -43,19 +44,26 @@ export class GameStartPhase extends Phase {
       ChooseHomeworldAction.assignRandomly(state);
     }
 
+    class GameStartAction extends SystemAction {
+      constructor() {
+        super("gameStart");
+      }
+    }
+
     const result: ActionResponse = {
-      action: new SystemAction(),
+      action: new GameStartAction(),
       success: true,
-      message: "Game started." 
-        + (raceMode === "random" ? " Races assigned randomly." : "") 
-        + (homeworldMode === "random" ? " Homeworlds assigned randomly." : ""),
+      message:
+        "Game started." +
+        (raceMode === "random" ? " Races assigned randomly." : "") +
+        (homeworldMode === "random" ? " Homeworlds assigned randomly." : ""),
       undoable: false,
     };
 
     // Check again after potential assignments
-    const nowAllHaveRaces = Object.values(state.players).every(p => p.race);
-    const nowAllHaveHomeworlds = Object.values(state.players).every(p => {
-      const playerId = Object.keys(state.players).find(id => state.players[id] === p)!;
+    const nowAllHaveRaces = Object.values(state.players).every((p) => p.race);
+    const nowAllHaveHomeworlds = Object.values(state.players).every((p) => {
+      const playerId = Object.keys(state.players).find((id) => state.players[id] === p)!;
       return this.playerHasHomeworld(state, playerId);
     });
 
@@ -68,7 +76,7 @@ export class GameStartPhase extends Phase {
       const nextPlayer = this.findNextUnfinishedPlayer(state);
       state.state.currentPlayers = nextPlayer ? [nextPlayer] : undefined;
     }
-    
+
     return result;
   }
 
@@ -79,10 +87,7 @@ export class GameStartPhase extends Phase {
     }
   }
 
-  protected async getPhaseSpecificActions(
-    ctx: PhaseContext,
-    playerId: string
-  ): Promise<LegalActionsResponse> {
+  protected async getPhaseSpecificActions(ctx: PhaseContext, playerId: string): Promise<LegalActionsResponse> {
     const state = ctx.gameState as ThroneworldGameState;
     const player = state.players[playerId];
 
@@ -97,7 +102,7 @@ export class GameStartPhase extends Phase {
     if (raceMode !== "random" && !player.race) {
       return {
         actions: [new ChooseRaceAction()],
-        message: "Choose your race"
+        message: "Choose your race",
       };
     }
 
@@ -105,18 +110,14 @@ export class GameStartPhase extends Phase {
     if (homeworldMode !== "random" && !this.playerHasHomeworld(state, playerId)) {
       return {
         actions: [new ChooseHomeworldAction()],
-        message: "Choose your homeworld"
+        message: "Choose your homeworld",
       };
     }
 
     return { actions: [], message: "Waiting for other players..." };
   }
 
-  async onActionCompleted(
-    ctx: PhaseContext,
-    playerId: string,
-    result: ActionResponse
-  ): Promise<ActionResponse> {
+  async onActionCompleted(ctx: PhaseContext, playerId: string, result: ActionResponse): Promise<ActionResponse> {
     if (!result.success) return result;
 
     const state = ctx.gameState as ThroneworldGameState;
@@ -169,9 +170,7 @@ export class GameStartPhase extends Phase {
     return false;
   }
 
-  private findNextUnfinishedPlayer(
-    state: ThroneworldGameState,
-  ): string | null {
+  private findNextUnfinishedPlayer(state: ThroneworldGameState): string | null {
     const raceMode = state.options.raceAssignment || "random";
     const homeworldMode = state.options.homeworldAssignment || "random";
 

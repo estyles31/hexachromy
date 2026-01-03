@@ -1,9 +1,7 @@
-// /frontend/src/components/SelectionProvider.tsx
-
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { SelectionContext } from "../../../shared-frontend/contexts/SelectionContext";
 import { useGameStateContext } from "../../../shared-frontend/contexts/GameStateContext";
-import type { GameAction } from "../../../shared/models/GameAction";
+import type { ActionFinalize, GameAction } from "../../../shared/models/GameAction";
 import type { LegalActionsResponse } from "../../../shared/models/ApiContexts";
 import { authFetch } from "../auth/authFetch";
 import { useAuth } from "../auth/useAuth";
@@ -12,27 +10,53 @@ import { useActionExecutor } from "../hooks/useActionExecutor";
 export function SelectionProvider({ children }: { children: React.ReactNode }) {
   const user = useAuth();
   const { gameId, version } = useGameStateContext();
+  const actionExecutor = useActionExecutor();
 
   const [legalActions, setLegalActions] = useState<LegalActionsResponse>({ actions: [] });
+  const [finalizeInfo, setFinalizeInfo] = useState<Record<string, ActionFinalize>>({});
   const [filledParams, setFilledParams] = useState<Record<string, string>>({});
   const [selectableBoardSpaces, setSelectableBoardSpaces] = useState<Set<string>>(new Set());
   const [selectableGamePieces, setSelectableGamePieces] = useState<Set<string>>(new Set());
 
-  const { executeAction: sendAction } = useActionExecutor();
+  const [isLoading, setIsLoading] = useState(true);
+  const [showLoadingOverlay, setShowLoadingOverlay] = useState(false);
 
-  // Build highlight sets from actions with populated choices
+  const updateDepth = useRef(0);
+  const fetchIdRef = useRef(0);
+
+  /* ---------------- transaction helpers ---------------- */
+
+  const beginUpdate = (fromUser: boolean) => {
+    updateDepth.current++;
+    if (updateDepth.current === 1) {
+      setIsLoading(true);
+      if (fromUser) setShowLoadingOverlay(true);
+    }
+  };
+
+  const endUpdate = () => {
+    updateDepth.current--;
+    if (updateDepth.current === 0) {
+      setIsLoading(false);
+      setShowLoadingOverlay(false);
+    }
+  };
+
+  /* ---------------- highlight helpers ---------------- */
+
   const buildHighlights = useCallback((actions: GameAction[]) => {
     const boardSpaces = new Set<string>();
     const gamePieces = new Set<string>();
 
     for (const action of actions) {
-      const nextParam = action.params.find((p) => !p.optional && (p.value === undefined || p.value === null));
+      const nextParam = action.params.find((p) => !p.optional && p.value == null);
       if (!nextParam?.choices) continue;
 
       for (const choice of nextParam.choices) {
         if (nextParam.type === "boardSpace" && choice.displayHint?.hexId) {
           boardSpaces.add(choice.displayHint.hexId);
-        } else if (nextParam.type === "gamePiece" && choice.displayHint?.pieceId) {
+        }
+        if (nextParam.type === "gamePiece" && choice.displayHint?.pieceId) {
           gamePieces.add(choice.displayHint.pieceId);
         }
       }
@@ -42,99 +66,130 @@ export function SelectionProvider({ children }: { children: React.ReactNode }) {
     setSelectableGamePieces(gamePieces);
   }, []);
 
-  // Fetch legal actions from backend
+  /* ---------------- backend fetch ---------------- */
+
   const fetchLegalActions = useCallback(
-    async (params?: Record<string, string>) => {
-      if (!user) return;
+    async (params?: Record<string, string>): Promise<LegalActionsResponse> => {
+      if (!user) return { actions: [] };
 
-      try {
-        const res = await authFetch(user, `/api/games/${gameId}/legal-actions`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ filledParams: params || {} }),
-        });
+      const fetchId = ++fetchIdRef.current;
 
-        if (!res.ok) {
-          console.error("fetchLegalActions failed");
-          return;
-        }
+      const res = await authFetch(user, `/api/games/${gameId}/legal-actions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ filledParams: params || {} }),
+      });
 
-        const response: LegalActionsResponse = await res.json();
-        setLegalActions(response);
-        buildHighlights(response.actions);
-      } catch (e) {
-        console.error("fetchLegalActions failed:", e);
-      }
+      if (!res.ok) return { actions: [] };
+
+      const response: LegalActionsResponse = await res.json();
+      if (fetchId !== fetchIdRef.current) return response;
+
+      setLegalActions(response);
+      buildHighlights(response.actions);
+      return response;
     },
     [user, gameId, buildHighlights]
   );
 
-  // Reload on version change - preserve filledParams if still valid
-  useEffect(() => {
-    const hasFilledParams = Object.keys(filledParams).length > 0;
-
-    if (hasFilledParams) {
-      // User has work in progress - reload with their filledParams
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      fetchLegalActions(filledParams).then(() => {
-        // If no actions came back, the params are invalid - clear and reload
-        if (legalActions.actions.length === 0) {
-          setFilledParams({});
-          fetchLegalActions();
-        }
-      });
-    } else {
-      // No work in progress, just reload fresh
-      setFilledParams({});
-      fetchLegalActions();
-    }
-  }, [version, fetchLegalActions]);
-
-  // User selects something (hex, piece, or choice button)
-  const select = useCallback(
-    async (choiceId: string) => {
-      // Find which param this choice belongs to
-      const activeParam = legalActions.actions.flatMap((a) => a.params).find((p) => p.choices?.some((c) => c.id === choiceId));
-
-      if (!activeParam) {
-        console.error("No active param found for choice:", choiceId);
+  const fetchFinalizeInfo = useCallback(
+    async (actions: GameAction[]) => {
+      if (!user || actions.length === 0) {
+        setFinalizeInfo({});
         return;
       }
 
-      const newFilledParams = {
-        ...filledParams,
-        [activeParam.name]: choiceId,
-      };
-
-      setFilledParams(newFilledParams);
-      await fetchLegalActions(newFilledParams);
+      const info: Record<string, ActionFinalize> = {};
+      for (const action of actions) {
+        const res = await authFetch(user, `/api/games/${gameId}/finalize-info`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action }),
+        });
+        if (res.ok) {
+          info[action.type] = await res.json();
+        }
+      }
+      setFinalizeInfo(info);
     },
-    [legalActions.actions, filledParams, fetchLegalActions]
+    [user, gameId]
   );
 
-  // Cancel current selection chain
+  /* ---------------- external updates ---------------- */
+
+  useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      beginUpdate(false);
+      try {
+        const params = Object.keys(filledParams).length ? filledParams : undefined;
+        const response = await fetchLegalActions(params);
+        if (!cancelled && params && response.actions.length === 0) {
+          setFilledParams({});
+          await fetchLegalActions();
+        }
+      } finally {
+        if (!cancelled) endUpdate();
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [version, fetchLegalActions]);
+
+  /* ---------------- user interaction (ONE TRANSACTION) ---------------- */
+
+  const select = useCallback(
+    async (choiceId: string) => {
+      beginUpdate(true);
+
+      try {
+        const activeParam = legalActions.actions
+          .flatMap((a) => a.params)
+          .find((p) => p.choices?.some((c) => c.id === choiceId));
+
+        if (!activeParam) return;
+
+        const newFilledParams = { ...filledParams, [activeParam.name]: choiceId };
+        setFilledParams(newFilledParams);
+
+        const response = await fetchLegalActions(newFilledParams);
+        await fetchFinalizeInfo(response.actions.filter((a) => a.params.every((p) => p.optional || p.value != null)));
+      } finally {
+        endUpdate();
+      }
+    },
+    [legalActions.actions, filledParams, fetchLegalActions, fetchFinalizeInfo]
+  );
+
   const cancelAction = useCallback(() => {
+    beginUpdate(true);
     setFilledParams({});
-    fetchLegalActions();
+    fetchLegalActions().finally(endUpdate);
   }, [fetchLegalActions]);
 
-  // Execute a complete action
   const executeAction = useCallback(
     (action: GameAction) => {
-      sendAction(action);
+      beginUpdate(true);
+      actionExecutor.executeAction(action);
       setFilledParams({});
-      fetchLegalActions();
+      fetchLegalActions().finally(endUpdate);
     },
-    [sendAction, fetchLegalActions]
+    [actionExecutor, fetchLegalActions]
   );
 
   return (
     <SelectionContext.Provider
       value={{
         legalActions,
+        finalizeInfo,
         filledParams,
         selectableBoardSpaces,
         selectableGamePieces,
+        isLoading,
+        showLoadingOverlay,
         select,
         cancelAction,
         executeAction,

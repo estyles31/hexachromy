@@ -6,7 +6,18 @@ import { UNITS } from "../../shared/models/UnitTypes.ThroneWorld";
 import { getHexesWithinRange } from "../../shared/models/BoardLayout.ThroneWorld";
 import { registerAction } from "../../../../shared-backend/ActionRegistry";
 import { getCargo, type Fleet } from "../../shared/models/Fleets.Throneworld";
-import { findUnit, findFleet, IsInCommRange, getAvailableBunkers } from "./ActionHelpers";
+import {
+  findUnit,
+  findFleet,
+  IsInCommRange,
+  getAvailableBunkers,
+  revealSystemToPlayer,
+  getSystemDetails,
+} from "./ActionHelpers";
+import { PhaseContext } from "../../../../shared/models/PhaseContext";
+import { buildUnit } from "../../shared/models/Unit.Throneworld";
+import type { UnitTypeId } from "../../shared/models/UnitTypes.ThroneWorld";
+import type { ThroneworldUnit } from "../../shared/models/Unit.Throneworld";
 
 interface JumpMetadata {
   targetHexId?: string;
@@ -17,16 +28,22 @@ interface JumpMetadata {
 }
 
 function fleetIsJumpable(fleet: Fleet): boolean {
-  const hasStatic = [...fleet.spaceUnits, ...fleet.groundUnits].some(u => UNITS[u.unitTypeId]?.Static);
-  const hasMoved = [...fleet.spaceUnits, ...fleet.groundUnits].some(u => u.hasMoved);
+  const hasStatic = [...fleet.spaceUnits, ...fleet.groundUnits].some((u) => UNITS[u.unitTypeId]?.Static);
+  const hasMoved = [...fleet.spaceUnits, ...fleet.groundUnits].some((u) => u.hasMoved);
   return !hasStatic && !hasMoved;
 }
 
+interface JumpActionOptions {
+  requireConcurrency?: boolean;
+}
+
 export class JumpAction extends GameAction<JumpMetadata> {
-  constructor() {
+  constructor(options?: JumpActionOptions) {
+    const { requireConcurrency } = options ?? {};
     super({
       type: "jump",
       undoable: true,
+      requireConcurrency: requireConcurrency,
       params: [
         {
           name: "bunkerUnitId",
@@ -36,7 +53,7 @@ export class JumpAction extends GameAction<JumpMetadata> {
           populateChoices: (state: GameState, playerId: string) => {
             const tw = state as ThroneworldGameState;
             return getAvailableBunkers(tw, playerId);
-          }
+          },
         },
         {
           name: "fleetId",
@@ -46,7 +63,7 @@ export class JumpAction extends GameAction<JumpMetadata> {
           message: "Select a Fleet to Jump",
           populateChoices: (state: GameState, playerId: string) => {
             const tw = state as ThroneworldGameState;
-            const bunkerUnitId = this.params.find(p => p.name === "bunkerUnitId")?.value;
+            const bunkerUnitId = this.params.find((p) => p.name === "bunkerUnitId")?.value;
             if (!bunkerUnitId) return [];
 
             const bunkerInfo = findUnit(tw, playerId, bunkerUnitId as string, true);
@@ -55,7 +72,10 @@ export class JumpAction extends GameAction<JumpMetadata> {
             const { hexId: bunkerHexId } = bunkerInfo;
             const player = tw.players[playerId];
             const commRange = player.tech.Comm || 0;
-            const scenario = typeof tw.options.scenario === "string" && tw.options.scenario.trim().length > 0 ? tw.options.scenario : "6p";
+            const scenario =
+              typeof tw.options.scenario === "string" && tw.options.scenario.trim().length > 0
+                ? tw.options.scenario
+                : "6p";
             const inRangeHexes = getHexesWithinRange(bunkerHexId, commRange, scenario);
 
             const fleets: Array<{ id: string; hexId: string }> = [];
@@ -68,11 +88,11 @@ export class JumpAction extends GameAction<JumpMetadata> {
               }
             }
 
-            return fleets.map(f => ({
+            return fleets.map((f) => ({
               id: f.id,
-              displayHint: { pieceId: f.id, hexId: f.hexId }
+              displayHint: { pieceId: f.id, hexId: f.hexId },
             }));
-          }
+          },
         },
         {
           name: "targetHexId",
@@ -82,7 +102,7 @@ export class JumpAction extends GameAction<JumpMetadata> {
           message: "Select destination hex",
           populateChoices: (state: GameState, playerId: string) => {
             const tw = state as ThroneworldGameState;
-            const fleetId = this.params.find(p => p.name === "fleetId")?.value;
+            const fleetId = this.params.find((p) => p.name === "fleetId")?.value;
             if (!fleetId) return [];
 
             const player = tw.players[playerId];
@@ -91,8 +111,11 @@ export class JumpAction extends GameAction<JumpMetadata> {
             if (!fleetInfo) return [];
 
             const { fleet, hexId: fleetHexId } = fleetInfo;
-            const canExplore = fleet.spaceUnits.some(u => UNITS[u.unitTypeId]?.Explore);
-            const scenario = typeof tw.options.scenario === "string" && tw.options.scenario.trim().length > 0 ? tw.options.scenario : "6p";
+            const canExplore = fleet.spaceUnits.some((u) => UNITS[u.unitTypeId]?.Explore);
+            const scenario =
+              typeof tw.options.scenario === "string" && tw.options.scenario.trim().length > 0
+                ? tw.options.scenario
+                : "6p";
             const raw = getHexesWithinRange(fleetHexId, jumpRange, scenario);
 
             const choices: Array<{ id: string; willScan: boolean; willCombat: boolean }> = [];
@@ -104,19 +127,21 @@ export class JumpAction extends GameAction<JumpMetadata> {
               if (!alreadyScanned && !canExplore) continue;
 
               const willScan = !alreadyScanned && canExplore;
-              const willCombat = Object.entries(sys.fleetsInSpace).some(([owner, fl]) => owner !== playerId && fl.length > 0);
+              const willCombat = Object.entries(sys.fleetsInSpace).some(
+                ([owner, fl]) => owner !== playerId && fl.length > 0
+              );
               choices.push({ id: hexId, willScan, willCombat });
             }
 
-            return choices.map(c => ({
+            return choices.map((c) => ({
               id: c.id,
               displayHint: { hexId: c.id },
-              metadata: { willScan: c.willScan, willCombat: c.willCombat }
+              metadata: { willScan: c.willScan, willCombat: c.willCombat },
             }));
-          }
-        }
+          },
+        },
       ],
-      finalize: { mode: "confirm", label: "Jump" }
+      finalize: { mode: "confirm", label: "Jump" },
     });
   }
 
@@ -153,7 +178,7 @@ export class JumpAction extends GameAction<JumpMetadata> {
     const jumpReach = getHexesWithinRange(fleetHex, jump, scenario);
     if (!jumpReach.includes(targetHexId)) return { action: this, success: false, error: "target_out_of_jump_range" };
 
-    const canExplore = fleet.spaceUnits.every(u => UNITS[u.unitTypeId]?.Explore);
+    const canExplore = fleet.spaceUnits.every((u) => UNITS[u.unitTypeId]?.Explore);
     if (!targetSystem.scannedBy?.includes(playerId) && !canExplore)
       return { action: this, success: false, error: "Cannot jump to unscanned hex" };
 
@@ -161,29 +186,28 @@ export class JumpAction extends GameAction<JumpMetadata> {
 
     const alreadyScanned = targetSystem.scannedBy?.includes(playerId);
     const didScan = !alreadyScanned && canExplore;
-    const willCombat = Object.entries(targetSystem.fleetsInSpace).some(([owner, fl]) => owner !== playerId && fl.length > 0);
+    const willCombat = Object.entries(targetSystem.fleetsInSpace).some(
+      ([owner, fl]) => owner !== playerId && fl.length > 0
+    );
 
+    // Store metadata for phase to handle consequences
     this.metadata.targetHexId = targetHexId;
     this.metadata.didScan = didScan;
     this.metadata.willCombat = willCombat;
     this.metadata.commSupport = IsInCommRange(bunkerHexId, targetHexId, playerId, tw);
 
+    // Execute movement immediately
     bunkerUnit.hasMoved = true;
 
     const sourceFleets = tw.state.systems[fleetHex].fleetsInSpace[playerId];
-    const fleetIndex = sourceFleets.findIndex(f => f.id === fleetId);
+    const fleetIndex = sourceFleets.findIndex((f) => f.id === fleetId);
     if (fleetIndex !== -1) sourceFleets.splice(fleetIndex, 1);
 
-    fleet.spaceUnits.forEach(u => u.hasMoved = true);
-    fleet.groundUnits.forEach(u => u.hasMoved = true);
+    fleet.spaceUnits.forEach((u) => (u.hasMoved = true));
+    fleet.groundUnits.forEach((u) => (u.hasMoved = true));
 
     if (!targetSystem.fleetsInSpace[playerId]) targetSystem.fleetsInSpace[playerId] = [];
     targetSystem.fleetsInSpace[playerId].push(fleet);
-
-    if (didScan) {
-      if (!targetSystem.scannedBy) targetSystem.scannedBy = [];
-      targetSystem.scannedBy.push(playerId);
-    }
 
     return { action: this, success: true, message: `Fleet jumped from ${fleetHex} to ${targetHexId}`, undoable: true };
   }
@@ -204,13 +228,107 @@ export class JumpAction extends GameAction<JumpMetadata> {
 
     const { fleet } = fleetInfo;
     const alreadyScanned = target.scannedBy?.includes(playerId);
-    const hasExplore = fleet.spaceUnits.some(u => UNITS[u.unitTypeId]?.Explore);
+    const hasExplore = fleet.spaceUnits.some((u) => UNITS[u.unitTypeId]?.Explore);
     const willScan = !alreadyScanned && hasExplore;
     const willCombat = Object.entries(target.fleetsInSpace).some(([owner, fl]) => owner !== playerId && fl.length > 0);
 
     if (willCombat) return { mode: "confirm", label: "Jump (Combat)", warnings: ["This jump will initiate combat."] };
     if (willScan) return { mode: "confirm", label: "Jump & Scan" };
     return { mode: "confirm", label: "Jump" };
+  }
+
+  async executeConsequences(ctx: PhaseContext, playerId: string): Promise<void> {
+    const targetHexId = this.metadata.targetHexId;
+    if (!targetHexId) return;
+
+    const state = ctx.gameState as ThroneworldGameState;
+    const targetSystem = state.state.systems[targetHexId];
+    if (!targetSystem) return;
+
+    const jumpingFleet = targetSystem.fleetsInSpace[playerId]?.find((f) => f.spaceUnits.some((u) => u.hasMoved));
+    if (!jumpingFleet) return;
+
+    const hasExploreUnit = jumpingFleet.spaceUnits.some((u) => UNITS[u.unitTypeId]?.Explore);
+    const hasCombatUnits = jumpingFleet.spaceUnits.some((u) => !UNITS[u.unitTypeId]?.NonCombat);
+    const isUnrevealed = !targetSystem.revealed;
+
+    // Helper to scan the hex
+    const scanHex = async () => {
+      if (!targetSystem.scannedBy) targetSystem.scannedBy = [];
+      if (!targetSystem.scannedBy.includes(playerId)) {
+        targetSystem.scannedBy.push(playerId);
+        await revealSystemToPlayer(ctx, playerId, targetHexId);
+      }
+    };
+
+    // Helper to check if hex currently has enemy combat units
+    const hasEnemyCombatUnits = () => {
+      return Object.entries(targetSystem.fleetsInSpace).some(([owner, fleets]) => {
+        if (owner === playerId) return false;
+        return fleets.some((fleet) => fleet.spaceUnits.some((u) => !UNITS[u.unitTypeId]?.NonCombat));
+      });
+    };
+
+    // Step 1: Auto-scan undefended hex
+    const isUnscanned = !targetSystem.scannedBy?.includes(playerId);
+    if (isUnscanned && hasExploreUnit && !hasEnemyCombatUnits()) {
+      await scanHex();
+    }
+
+    // Step 2: Handle unrevealed systems
+    if (isUnrevealed) {
+      const systemDetails = await getSystemDetails(ctx, targetHexId);
+      const is0DevEmpty =
+        systemDetails.dev === 0 &&
+        Object.keys(systemDetails.groundUnits || {}).length === 0 &&
+        Object.keys(systemDetails.spaceUnits || {}).length === 0;
+
+      if (is0DevEmpty) {
+        // Auto-conquest: reveal and conquer
+        targetSystem.revealed = true;
+        targetSystem.details = systemDetails;
+        targetSystem.details.owner = playerId;
+        await revealSystemToPlayer(ctx, playerId, targetHexId);
+        // Note: Still continue to combat check in case something weird happened
+      } else if (hasCombatUnits) {
+        // Reveal defended system and spawn neutral units
+        targetSystem.revealed = true;
+        targetSystem.details = JSON.parse(JSON.stringify(systemDetails));
+
+        const neutralUnits: ThroneworldUnit[] = [];
+        for (const unitTypeId of Object.keys(systemDetails.groundUnits || {})) {
+          const count = systemDetails.groundUnits![unitTypeId] ?? 0;
+          for (let i = 0; i < count; i++) {
+            neutralUnits.push(buildUnit(unitTypeId as UnitTypeId, "neutral"));
+          }
+        }
+
+        if (neutralUnits.length > 0) {
+          if (!targetSystem.unitsOnPlanet.neutral) {
+            targetSystem.unitsOnPlanet.neutral = [];
+          }
+          targetSystem.unitsOnPlanet.neutral.push(...neutralUnits);
+        }
+
+        await revealSystemToPlayer(ctx, playerId, targetHexId);
+      }
+    }
+
+    // Step 3: Combat if multiple players present
+
+    // Step 4: Post-combat scan if explore unit survived and hex still unscanned
+    const stillUnscanned = !targetSystem.scannedBy?.includes(playerId);
+    if (stillUnscanned) {
+      const fleetAfterCombat = targetSystem.fleetsInSpace[playerId]?.find((f) => f.id === jumpingFleet.id);
+      const stillHasExplore = fleetAfterCombat?.spaceUnits.some((u) => UNITS[u.unitTypeId]?.Explore);
+
+      if (stillHasExplore) {
+        await scanHex();
+      }
+    }
+
+    // Step 5: Check for conquest (TODO - implement later)
+    // await checkForConquest(ctx, playerId, targetHexId);
   }
 }
 

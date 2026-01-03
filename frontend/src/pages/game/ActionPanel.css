@@ -15,6 +15,11 @@
   font-style: italic;
 }
 
+.action-panel__disabled {
+  pointer-events: none;
+  opacity: 0.65; /* optional but strongly recommended */
+}
+
 .action-message {
   margin-bottom: 12px;
   padding: 8px;
@@ -30,4 +35,63 @@
   border-radius: 4px;
   font-size: 13px;
   color: #ccc;
+}
+
+/* --------------------------------------------------
+   Buttons
+-------------------------------------------------- */
+
+.action-panel__buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.action-panel__button {
+  padding: 6px 10px;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  background: #3a3a3a;
+  color: #eee;
+  transition:
+    background 0.15s ease,
+    opacity 0.15s ease;
+}
+
+.action-panel__button:hover:not(:disabled) {
+  background: #4a4a4a;
+}
+
+.action-panel__button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* Choice buttons (neutral) */
+.action-panel__button--choice {
+  background: #3a3a3a;
+}
+
+/* Primary confirm button */
+.action-panel__button--primary {
+  background: #4c6ef5;
+  color: #fff;
+}
+
+.action-panel__button--primary:hover:not(:disabled) {
+  background: #5c7cfa;
+}
+
+/* Secondary (Cancel, etc.) */
+.action-panel__button--secondary {
+  background: #555;
+  color: #ddd;
+}
+
+.action-panel__button--secondary:hover:not(:disabled) {
+  background: #666;
 }

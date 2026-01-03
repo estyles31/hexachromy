@@ -10,8 +10,8 @@
   border-radius: 8px;
   padding: 12px;
   color: #eee;
-  min-width: 220px;
-  pointer-events: none; /* Don't capture mouse events - allows hovering items behind it */
+  min-width: 260px;
+  pointer-events: none;
 }
 
 /* Section blocks */
@@ -34,7 +34,7 @@
 .throneworld-info .info-subtitle {
   font-size: 0.8rem;
   color: #9e9e9e;
-  margin-bottom: 2px;
+  margin-bottom: 4px;
 }
 
 /* Values */
@@ -51,72 +51,199 @@
   margin-bottom: 2px;
 }
 
-/* Unit grid for fleet contents */
-.throneworld-info .unit-grid {
+/* Centered content */
+.throneworld-info .centered {
   display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
+  justify-content: center;
   margin-top: 4px;
 }
 
-/* Individual unit item in grid */
-.throneworld-info .unit-item {
+/* ============================================================
+ * Totals rows
+ * ============================================================ */
+
+.throneworld-info .totals-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  font-size: 0.8rem;
+  color: #d0d0d0;
+  align-items: baseline;
+  margin-top: 2px;
+}
+
+.throneworld-info .totals-section {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  max-width: 80px;
-}
-
-/* Unit name above counter */
-.throneworld-info .unit-name {
-  font-size: 0.75rem;
-  color: #aaa;
-  margin-bottom: 2px;
-  text-align: center;
-}
-
-.throneworld-info .unit-name.compact {
-  font-size: 0.7rem;
-  text-align: center;
-  white-space: normal; /* Allow multi-line */
-  word-wrap: break-word;
-}
-
-/* Stats grid - base (always 2-column) */
-.throneworld-info .stats-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 4px;
-  font-size: 0.85rem;
-}
-
-/* Stats grid - compact (same 2 columns, just smaller) */
-.throneworld-info .stats-grid.compact {
-  font-size: 0.65rem;
-  color: #888;
-  margin-top: 2px;
   gap: 2px;
 }
 
-/* Abilities inline in unit stats */
-.throneworld-info .abilities {
-  font-size: 0.65rem;
+.throneworld-info .totals-row.player {
+  margin-left: 1em;
+  opacity: 0.95;
+}
+
+.throneworld-info .totals-label {
+  color: #9e9e9e;
+  min-width: 4.5em;
+}
+
+.throneworld-info .cargo-row {
+  font-size: 0.85rem;
+  color: #d0d0d0;
+  margin-top: 4px;
+}
+
+/* ============================================================
+ * Units grid + tiles
+ * ============================================================ */
+
+.throneworld-info .unit-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.throneworld-info .unit-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 110px; /* stable footprint */
+  gap: 3px;
+}
+
+.throneworld-info .unit-label {
+  font-size: 0.75rem;
+  color: #aaa;
+  text-align: center;
+  line-height: 1.1;
+}
+
+.throneworld-info .unit-abilities {
+  font-size: 0.7rem;
   color: #6c9bd1;
   font-style: italic;
   text-align: center;
-  white-space: normal; /* Allow multi-line */
-  word-wrap: break-word;
+  white-space: normal;
 }
 
-/* Abilities list for single unit view */
+/* ============================================================
+ * UnitStatCounter (NO OVERLAP)
+ * - Grid layout: [left stats] [icon] [hp]
+ * - HP bottom-right
+ * ============================================================ */
+
+.throneworld-info .unit-stat-counter {
+  display: grid;
+  grid-template-columns: 3em auto;
+  align-items: end;
+  column-gap: 6px;
+}
+
+.throneworld-info .unit-stat-left {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 0.7rem;
+  color: #ddd;
+  text-align: right;
+  line-height: 1;
+  align-items: flex-end;
+}
+
+.throneworld-info .unit-stat-icon {
+  display: flex;
+  justify-content: center;
+}
+
+.throneworld-info .unit-stat-hp {
+  font-size: 0.8rem;
+  color: #ddd;
+  line-height: 1;
+}
+
+/* ============================================================
+ * Fleet header (icon + totals next to it)
+ * ============================================================ */
+
+.throneworld-info .fleet-header {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.throneworld-info .fleet-header-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* ============================================================
+ * System summary (marker + totals next to it)
+ * ============================================================ */
+
+.throneworld-info .system-summary {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.throneworld-info .system-totals {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0px;
+}
+
+.system-totals .info-subtitle {
+  margin-top: 6px;
+  margin-bottom: 0px;
+}
+
+.system-space-rows {
+  margin: 1px 0px 2px 12px;
+}
+
+/* ============================================================
+ * Fleets list in system
+ * ============================================================ */
+
+.throneworld-info .fleets-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.throneworld-info .fleet-preview-row {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.fleet-preview .unit-abilities {
+  font-size: 0.65rem;
+  opacity: 0.7;
+}
+
+/* ============================================================
+ * Unit detail stats (single unit hover panel)
+ * ============================================================ */
+
+.throneworld-info .unit-detail-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px 12px;
+  font-size: 0.9rem;
+  color: #ddd;
+  margin-top: 4px;
+}
+
 .throneworld-info .abilities-list {
   display: flex;
   flex-wrap: wrap;
   gap: 4px;
-  margin-top: 6px;
-  grid-column: 1 / -1; /* Span both columns */
-  white-space: normal; /* Allow multi-line */
-  word-wrap: break-word;
+  margin-top: 8px;
 }
 
 .throneworld-info .ability-tag {
@@ -124,12 +251,5 @@
   color: #6c9bd1;
   padding: 2px 6px;
   border-radius: 3px;
-  font-size: 0.7rem;
-}
-
-/* Centered content */
-.throneworld-info .centered {
-  display: flex;
-  justify-content: center;
-  margin-top: 4px;
+  font-size: 0.75rem;
 }

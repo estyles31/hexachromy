@@ -1,14 +1,8 @@
 // /shared-backend/Phase.ts
 import type { LegalActionsResponse } from "../shared/models/ApiContexts";
 import type { ActionResponse, GameAction } from "../shared/models/GameAction";
-import type { GameDatabaseAdapter } from "../shared/models/GameDatabaseAdapter";
-import type { GameState } from "../shared/models/GameState";
+import type { PhaseContext } from "../shared/models/PhaseContext";
 import { createAction } from "./ActionRegistry";
-
-export interface PhaseContext {
-  gameState: GameState;
-  db: GameDatabaseAdapter;
-}
 
 /** Base class for all game phases */
 export abstract class Phase {
@@ -41,7 +35,7 @@ export abstract class Phase {
   }
 
   /** Get phase-specific legal actions (override in subclasses) */
-  protected async getPhaseSpecificActions(ctx: PhaseContext, playerId: string): Promise<LegalActionsResponse> {
+  protected async getPhaseSpecificActions(_ctx: PhaseContext, _playerId: string): Promise<LegalActionsResponse> {
     return {
       actions: [],
       message: `${this.name} phase`,
@@ -49,7 +43,7 @@ export abstract class Phase {
   }
 
   /** Validate and execute an action */
-  async executeAction(ctx: PhaseContext,action: GameAction,  playerId: string): Promise<ActionResponse> {
+  async executeAction(ctx: PhaseContext, action: GameAction, playerId: string): Promise<ActionResponse> {
     // Default implementation - just execute the action normally
     return action.execute(ctx.gameState, playerId);
   }
@@ -70,11 +64,10 @@ export abstract class Phase {
     playerId: string,
     action: GameAction
   ): Promise<{ success: boolean; error?: string }> {
-
-    if(!this.isItMyTurn(ctx, playerId)) {
+    if (!this.isItMyTurn(ctx, playerId)) {
       return {
         success: false,
-        error: "it's not your turn"
+        error: "it's not your turn",
       };
     }
 
@@ -84,7 +77,7 @@ export abstract class Phase {
     if (!legal.actions.map((l) => l.type).includes(action.type)) {
       return {
         success: false,
-        error: `action not allowed in this phase: ${action.type}`
+        error: `action not allowed in this phase: ${action.type}`,
       };
     }
 

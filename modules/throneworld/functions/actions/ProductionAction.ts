@@ -16,25 +16,29 @@ interface ProductionMetadata {
 function getBuildableUnits(factionId?: string, maxCost?: number, fleetsInSpace?: Fleet[]): ThroneworldUnitType[] {
   const faction = factionId ? Factions[factionId] : undefined;
   if (!faction) return [];
-  
-  return Object.values(UNITS).filter(unitDef => {
+
+  if (process.env.DEBUG === "true") {
+    console.log("Getting buildable units.  Fleets:", JSON.stringify(fleetsInSpace));
+  }
+
+  return Object.values(UNITS).filter((unitDef) => {
     if (unitDef.Restricted && !faction.CanBuild?.includes(unitDef.id)) return false;
     if (faction.CannotBuild?.includes(unitDef.id)) return false;
     if (maxCost !== undefined) {
       const cost = getUnitCost(unitDef.id, factionId);
       if (cost > maxCost) return false;
     }
-    
+
     // Filter out fighters if no fleet has cargo capacity
     if (unitDef.Type === "Space" && (unitDef.Cargo ?? 0) < 0) {
       const fighterSize = Math.abs(unitDef.Cargo ?? 0);
-      const hasCapacity = fleetsInSpace?.some(fleet => {
+      const hasCapacity = fleetsInSpace?.some((fleet) => {
         const currentCargo = getCargo(fleet);
         return currentCargo >= fighterSize;
       });
       if (!hasCapacity) return false;
     }
-    
+
     return true;
   });
 }
@@ -49,36 +53,40 @@ function getUnitCost(unitTypeId: UnitTypeId, factionId?: string): number {
 function findFleetForUnit(fleetsInSpace: Fleet[], unitTypeId: UnitTypeId, playerId: string): Fleet | null {
   const unitDef = UNITS[unitTypeId];
   if (!unitDef || unitDef.Type !== "Space") return null;
-  
+
   // Shields and Survey Teams get their own fleet
   if (unitDef.Static || unitDef.Explore) {
     return null; // Create new fleet
   }
-  
+
   // Fighters need a fleet with cargo capacity
   if ((unitDef.Cargo ?? 0) < 0) {
     const fighterSize = Math.abs(unitDef.Cargo ?? 0);
-    return fleetsInSpace.find(fleet => 
-      fleet.owner === playerId && getCargo(fleet) >= fighterSize
-    ) ?? null;
+    return fleetsInSpace.find((fleet) => fleet.owner === playerId && getCargo(fleet) >= fighterSize) ?? null;
   }
-  
+
   // Other space units go into first available non-special fleet
-  return fleetsInSpace.find(fleet => {
-    if (fleet.owner !== playerId) return false;
-    // Avoid fleets with shields or survey teams
-    return !fleet.spaceUnits.some(u => {
-      const def = UNITS[u.unitTypeId];
-      return def.Static || def.Explore;
-    });
-  }) ?? null;
+  return (
+    fleetsInSpace.find((fleet) => {
+      if (fleet.owner !== playerId) return false;
+      // Avoid fleets with shields or survey teams
+      return !fleet.spaceUnits.some((u) => {
+        const def = UNITS[u.unitTypeId];
+        return def.Static || def.Explore;
+      });
+    }) ?? null
+  );
 }
 
+type ProductionActionOptions = { requireConcurrency?: boolean };
 export class ProductionAction extends GameAction<ProductionMetadata> {
-  constructor() {
+  constructor(options?: ProductionActionOptions) {
+    const { requireConcurrency = false } = options ?? {};
+
     super({
       type: "production",
       undoable: true,
+      requireConcurrency: requireConcurrency,
       params: [
         {
           name: "hexId",
@@ -91,8 +99,8 @@ export class ProductionAction extends GameAction<ProductionMetadata> {
             for (const [hexId, system] of Object.entries(tw.state.systems)) {
               if (system.details?.owner === playerId) ownedPlanets.push(hexId);
             }
-            return ownedPlanets.map(hexId => ({ id: hexId, displayHint: { hexId } }));
-          }
+            return ownedPlanets.map((hexId) => ({ id: hexId, displayHint: { hexId } }));
+          },
         },
         {
           name: "unitTypeId",
@@ -103,27 +111,26 @@ export class ProductionAction extends GameAction<ProductionMetadata> {
           populateChoices: (state: GameState, playerId: string) => {
             const tw = state as ThroneworldGameState;
             const player = tw.players[playerId];
-            
+
             // Get the hexId to check for available fleets
-            const action = (state as any).__currentAction as ProductionAction;
-            const hexId = action?.getStringParam("hexId");
+            const hexId = this.getStringParam("hexId");
             const fleetsInSpace = hexId ? tw.state.systems[hexId]?.fleetsInSpace[playerId] : undefined;
-            
+
             const buildableUnits = getBuildableUnits(player.race, player.resources, fleetsInSpace);
-            
-            return buildableUnits.map(unitDef => ({
+
+            return buildableUnits.map((unitDef) => ({
               id: unitDef.id,
               label: unitDef.Name,
               metadata: {
                 symbol: unitDef.Symbol,
                 cost: getUnitCost(unitDef.id, player.race),
-                unitType: unitDef.Type
-              }
+                unitType: unitDef.Type,
+              },
             }));
-          }
-        }
+          },
+        },
       ],
-      finalize: { mode: "confirm", label: "Build Unit" }
+      finalize: { mode: "confirm", label: "Build Unit" },
     });
   }
 
@@ -148,32 +155,35 @@ export class ProductionAction extends GameAction<ProductionMetadata> {
     if (system.details?.owner !== playerId) return { action: this, success: false, error: "You don't own this planet" };
     const unitDef = UNITS[unitTypeId];
     if (!unitDef) return { action: this, success: false, error: "Invalid unit type" };
-    
+
     const fleetsInSpace = system.fleetsInSpace[playerId] ?? [];
     const buildable = getBuildableUnits(player.race, undefined, fleetsInSpace);
-    if (!buildable.some(u => u.id === unitTypeId)) return { action: this, success: false, error: `Cannot build ${unitDef.Name}` };
-    
+    if (!buildable.some((u) => u.id === unitTypeId))
+      return { action: this, success: false, error: `Cannot build ${unitDef.Name}` };
+
     const cost = getUnitCost(unitTypeId, player.race);
     const pending = pendingProduction ?? [];
-    const alreadySpentAtPlanet = pending.filter(p => p.getStringParam("hexId") === hexId).reduce((sum, action) => {
-      const uId = action.getStringParam("unitTypeId") as UnitTypeId;
-      return sum + getUnitCost(uId, player.race);
-    }, 0);
+    const alreadySpentAtPlanet = pending
+      .filter((p) => p.getStringParam("hexId") === hexId)
+      .reduce((sum, action) => {
+        const uId = action.getStringParam("unitTypeId") as UnitTypeId;
+        return sum + getUnitCost(uId, player.race);
+      }, 0);
     const isHomeworld = system.worldType === "Homeworld";
-    const planetLimit = isHomeworld ? undefined : system.details?.dev ?? 0;
+    const planetLimit = isHomeworld ? undefined : (system.details?.dev ?? 0);
     const remainingAtPlanet = planetLimit === undefined ? Infinity : planetLimit - alreadySpentAtPlanet;
     if (cost > remainingAtPlanet) return { action: this, success: false, error: "Exceeds planet production limit" };
     if (cost > player.resources) return { action: this, success: false, error: "Insufficient resources" };
-    
+
     player.resources -= cost;
     const unit = buildUnit(unitTypeId, playerId);
-    
+
     // Handle space units with fleet placement logic
     if (unitDef.Type === "Space") {
       if (!system.fleetsInSpace[playerId]) system.fleetsInSpace[playerId] = [];
-      
+
       const targetFleet = findFleetForUnit(system.fleetsInSpace[playerId], unitTypeId, playerId);
-      
+
       if (targetFleet) {
         // Add to existing fleet
         addUnitToFleet(targetFleet, unit);
@@ -186,9 +196,14 @@ export class ProductionAction extends GameAction<ProductionMetadata> {
       // Ground units use existing addUnitToSystem
       addUnitToSystem(system, unit);
     }
-    
+
     this.metadata.cost = cost;
-    return { action: this, success: true, message: `Built ${unitDef.Name} at ${hexId} for ${cost} resources`, undoable: true };
+    return {
+      action: this,
+      success: true,
+      message: `Built ${unitDef.Name} at ${hexId} for ${cost} resources`,
+      undoable: true,
+    };
   }
 }
 

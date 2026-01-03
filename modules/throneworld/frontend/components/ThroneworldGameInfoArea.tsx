@@ -1,9 +1,7 @@
 import { useGameStateContext } from "../../../../shared-frontend/contexts/GameStateContext";
 import type { ThroneworldGameState } from "../../shared/models/GameState.Throneworld";
 
-export default function ThroneworldGameInfoArea({
-}: {
-}) {
+export default function ThroneworldGameInfoArea() {
   const gameState = useGameStateContext() as ThroneworldGameState;
   const currentPlayers = gameState.state.currentPlayers ?? [];
   const cpLbl = currentPlayers.length == 1 ? "Current Player" : "Current Players";
@@ -12,7 +10,8 @@ export default function ThroneworldGameInfoArea({
   const cpStr = currentPlayers.map((p) => gameState.players[p].displayName).join(", ");
 
   return (
-    <div className="tw-game-info"
+    <div
+      className="tw-game-info"
       style={{
         padding: "6px 8px",
         borderRadius: 4,
@@ -24,11 +23,11 @@ export default function ThroneworldGameInfoArea({
         Current Phase: {gameState.state.currentPhase}
       </div>
 
-      {showCP && (<div className="tw-current-player">
-        {cpLbl}: {cpStr}
-      </div>)}
+      {showCP && (
+        <div className="tw-current-player">
+          {cpLbl}: {cpStr}
+        </div>
+      )}
     </div>
   );
 }
-
-

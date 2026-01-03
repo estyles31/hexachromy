@@ -1,40 +1,26 @@
 // /modules/throneworld/functions/phases/OutreachPhase.ts
-import { Phase, PhaseContext } from "../../../../shared-backend/Phase";
+import { Phase } from "../../../../shared-backend/Phase";
+import { PhaseContext } from "../../../../shared/models/PhaseContext";
 import type { LegalActionsResponse } from "../../../../shared/models/ApiContexts";
-import type { ActionResponse } from "../../../../shared/models/GameAction";
-import { JumpAction } from "../actions/JumpAction";
-import { PassAction } from "../actions/PassAction";
-import { clearMovedUnits, readyAllBunkers, revealSystemToPlayer } from "../actions/ActionHelpers";
-import { resolveHexCombat } from "../actions/CombatHelpers";
+import { ActionResponse } from "../../../../shared/models/GameAction";
 import type { ThroneworldGameState } from "../../shared/models/GameState.Throneworld";
-import { UNITS } from "../../shared/models/UnitTypes.ThroneWorld";
+import { JumpAction } from "../actions/JumpAction";
 import { ProductionAction } from "../actions/ProductionAction";
+import { PassAction } from "../actions/PassAction";
+import { UNITS } from "../../shared/models/UnitTypes.ThroneWorld";
+import { clearMovedUnits, readyAllBunkers } from "../actions/ActionHelpers";
 
 export class OutreachPhase extends Phase {
   readonly name = "Outreach";
-
-  async loadPhase(ctx: PhaseContext): Promise<void> {
-    const state = ctx.gameState as ThroneworldGameState;
-
-    // Initialize phase metadata if needed
-    if (!state.state.phaseMetadata) {
-      state.state.phaseMetadata = {};
-    }
-
-    // Set currentPlayers to all players who haven't completed the phase
-    const activePlayers = Object.keys(state.players).filter(playerId => {
-      return !this.hasPlayerCompletedPhase(state, playerId);
-    });
-
-    state.state.currentPlayers = activePlayers.length > 0 ? activePlayers : undefined;
-  }
 
   private hasProductionComplete(state: ThroneworldGameState, playerId: string): boolean {
     return (state.state.phaseMetadata?.productionComplete as Record<string, boolean>)?.[playerId] ?? false;
   }
 
   private markProductionComplete(state: ThroneworldGameState, playerId: string): void {
-    if (!state.state.phaseMetadata) { state.state.phaseMetadata = {}; }
+    if (!state.state.phaseMetadata) {
+      state.state.phaseMetadata = {};
+    }
     if (!state.state.phaseMetadata.productionComplete) {
       state.state.phaseMetadata.productionComplete = {};
     }
@@ -65,10 +51,7 @@ export class OutreachPhase extends Phase {
     return usedBunkers;
   }
 
-  protected async getPhaseSpecificActions(
-    ctx: PhaseContext,
-    playerId: string
-  ): Promise<LegalActionsResponse> {
+  protected async getPhaseSpecificActions(ctx: PhaseContext, playerId: string): Promise<LegalActionsResponse> {
     const state = ctx.gameState as ThroneworldGameState;
 
     const jumpCount = this.countPlayerJumps(state, playerId);
@@ -78,7 +61,7 @@ export class OutreachPhase extends Phase {
     if (jumpsRemaining > 0) {
       return {
         actions: [new JumpAction()],
-        message: `Outreach phase - ${jumpsRemaining} jump${jumpsRemaining === 1 ? '' : 's'} remaining`
+        message: `Outreach phase - ${jumpsRemaining} jump${jumpsRemaining === 1 ? "" : "s"} remaining`,
       };
     }
 
@@ -87,44 +70,42 @@ export class OutreachPhase extends Phase {
 
     if (!productionDone) {
       const prodAction = new ProductionAction();
-      const hexParam = prodAction.params.find(p => p.name == "hexId");
+      const hexParam = prodAction.params.find((p) => p.name == "hexId");
       const choices = hexParam?.populateChoices?.(state, playerId);
 
       //in Outreach, you can only produce at your homeworld
-      if(choices?.length === 1) {
+      if (choices?.length === 1) {
         prodAction.setParamValue("hexId", choices[0].id);
       }
 
       return {
-        actions: [
-          prodAction,
-          new PassAction("Pass (End Production)", "Passed Production"),
-        ],
-        message: "Outreach phase - Homeworld production (or pass)"
+        actions: [prodAction, new PassAction({ label: "Pass Production", historyMessage: "Passed Production" })],
+        message: "Outreach phase - Homeworld production (or pass)",
       };
     }
 
     // Phase complete for this player
     return {
       actions: [],
-      message: "Waiting for other players"
+      message: "Waiting for other players",
     };
   }
 
-  async onActionCompleted(ctx: PhaseContext, playerId: string, result: ActionResponse)
-    : Promise<ActionResponse> {
+  async onActionCompleted(ctx: PhaseContext, playerId: string, result: ActionResponse): Promise<ActionResponse> {
     const state = ctx.gameState as ThroneworldGameState;
 
-    // Handle action-specific logic
-    if (result.action.type === "jump") {
-      await this.handleJumpCompleted(ctx, playerId, result);
+    // Execute action consequences immediately
+    // Each action knows how to handle its own consequences
+    if (result.action.type === "jump" || result.action.type === "scan") {
+      if ("executeConsequences" in result.action && typeof result.action.executeConsequences === "function") {
+        await (result.action as any).executeConsequences(ctx, playerId);
+      }
     } else if (result.action.type === "pass") {
-      // Mark production as complete in phase metadata
       this.markProductionComplete(state, playerId);
     }
 
     // Update currentPlayers based on who can still act
-    const activePlayers = Object.keys(state.players).filter(pid => {
+    const activePlayers = Object.keys(state.players).filter((pid) => {
       return !this.hasPlayerCompletedPhase(state, pid);
     });
 
@@ -141,29 +122,10 @@ export class OutreachPhase extends Phase {
 
       result.phaseTransition = {
         nextPhase: "Expansion",
-        transitionType: "nextPhase"
+        transitionType: "nextPhase",
       };
     }
 
     return result;
-  }
-
-  private async handleJumpCompleted(
-    ctx: PhaseContext,
-    playerId: string,
-    result: ActionResponse
-  ): Promise<void> {
-    const action = result.action as JumpAction;
-    const targetHexId = action.metadata.targetHexId;
-
-    if (!targetHexId) return;
-
-    // Check for combat - can't actually happen during Outreach, but leave it here so we remember to do this in Expansion phase
-    await resolveHexCombat(ctx, playerId, targetHexId);
-
-    // After combat, reveal if scanned (survey team must have survived)
-    if (action.metadata.didScan) {
-      await revealSystemToPlayer(ctx, playerId, targetHexId);
-    }
   }
 }
