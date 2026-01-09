@@ -1,25 +1,42 @@
 // /modules/throneworld/functions/phases/ExpansionPhase.ts
 import { Phase } from "../../../../shared-backend/Phase";
-import { PhaseContext } from "../../../../shared/models/PhaseContext";
 import type { LegalActionsResponse } from "../../../../shared/models/ApiContexts";
-import { ActionResponse } from "../../../../shared/models/GameAction";
+import { GameAction, ActionResponse } from "../../../../shared/models/GameAction";
 import type { ThroneworldGameState } from "../../shared/models/GameState.Throneworld";
 import { JumpAction } from "../actions/JumpAction";
 import { ScanAction } from "../actions/ScanAction";
 import { PassAction } from "../actions/PassAction";
 import { TransferAction } from "../actions/TransferAction";
 import { getActionFromJson } from "../../../../shared-backend/ActionRegistry";
+import {
+  CombatMetadata,
+  findAllCombatHexes,
+  initiateCombat,
+  transitionToCombatSubPhase,
+} from "../actions/CombatHelpers";
+import { PhaseContext } from "../../../../shared/models/PhaseContext";
+import { ReorganizeAction } from "../actions/ReorganizeAction";
 
-interface PendingConsequence {
-  playerId: string;
-  actionData: any; // Serialized action as plain JSON
-}
-
-interface ExpansionPhaseMetadata extends Record<string, unknown> {
+export interface ExpansionPhaseMetadata extends Record<string, unknown> {
   currentPlayerIndex: number;
-  pendingConsequences: PendingConsequence[];
+  pendingConsequences: Array<{
+    playerId: string;
+    actionData: any; // Serialized action
+  }>;
   playerChoices: Record<string, "transfer" | "scan_jump">;
   actionsUsed: Record<string, number>;
+
+  // Track jump metadata for combat
+  jumpMetadata: Record<
+    string,
+    {
+      // keyed by hexId
+      inCommRange: boolean;
+      sourceHexId: string;
+    }
+  >;
+
+  activeCombat?: CombatMetadata;
 }
 
 export class ExpansionPhase extends Phase {
@@ -34,11 +51,11 @@ export class ExpansionPhase extends Phase {
       pendingConsequences: [],
       playerChoices: {},
       actionsUsed: {},
+      jumpMetadata: {},
     };
 
     state.state.phaseMetadata = metadata;
 
-    // Set current player to first in order
     const firstPlayer = state.playerOrder[0];
     state.state.currentPlayers = [firstPlayer];
 
@@ -52,25 +69,34 @@ export class ExpansionPhase extends Phase {
   async loadPhase(ctx: PhaseContext): Promise<void> {
     const state = ctx.gameState as ThroneworldGameState;
 
-    // Only initialize if metadata doesn't exist
     if (!state.state.phaseMetadata) {
       const metadata: ExpansionPhaseMetadata = {
         currentPlayerIndex: 0,
         pendingConsequences: [],
         playerChoices: {},
         actionsUsed: {},
+        jumpMetadata: {},
       };
 
       state.state.phaseMetadata = metadata;
 
-      // Set current player to first in order
       const firstPlayer = state.playerOrder[0];
       state.state.currentPlayers = [firstPlayer];
     }
   }
 
-  // REMOVED executeAction override - let actions execute normally
-  // Movement happens immediately, consequences deferred in onActionCompleted
+  async executeAction(ctx: PhaseContext, action: GameAction, playerId: string): Promise<ActionResponse> {
+    const state = ctx.gameState as ThroneworldGameState;
+
+    // Scan/Jump actions execute immediately (movement), consequences deferred
+    if (action.type === "scan" || action.type === "jump") {
+      if (!action.allParamsComplete()) {
+        return { action, success: false, error: "missing_parameters" };
+      }
+    }
+
+    return action.execute(state, playerId);
+  }
 
   private getMetadata(state: ThroneworldGameState): ExpansionPhaseMetadata {
     return state.state.phaseMetadata as ExpansionPhaseMetadata;
@@ -86,7 +112,6 @@ export class ExpansionPhase extends Phase {
     metadata.currentPlayerIndex++;
 
     if (metadata.currentPlayerIndex >= state.playerOrder.length) {
-      // All players done
       state.state.currentPlayers = undefined;
     } else {
       const nextPlayer = state.playerOrder[metadata.currentPlayerIndex];
@@ -99,7 +124,6 @@ export class ExpansionPhase extends Phase {
     const metadata = this.getMetadata(state);
     const currentPlayer = this.getCurrentPlayer(state);
 
-    // Only current player can act
     if (playerId !== currentPlayer) {
       return {
         actions: [],
@@ -109,13 +133,13 @@ export class ExpansionPhase extends Phase {
 
     const playerChoice = metadata.playerChoices[playerId];
 
-    // Player hasn't chosen Transfer vs Scan/Jump yet
     if (!playerChoice) {
       return {
         actions: [
           new TransferAction(),
           new ScanAction(),
           new JumpAction(),
+          new ReorganizeAction(),
           new PassAction({
             label: "Pass Movement",
             confirmLabel: "Pass without moving anything?",
@@ -126,7 +150,6 @@ export class ExpansionPhase extends Phase {
       };
     }
 
-    // Player chose Scan/Jump
     if (playerChoice === "scan_jump") {
       const actionsUsed = metadata.actionsUsed[playerId] || 0;
 
@@ -134,9 +157,9 @@ export class ExpansionPhase extends Phase {
         return {
           actions: [
             new PassAction({
-              label: "Pass (End Movement)",
-              confirmLabel: "End Movement",
-              historyMessage: "Completed Movement",
+              label: "Pass (Execute Actions)",
+              confirmLabel: "Execute queued actions?",
+              historyMessage: "Executed Actions",
             }),
           ],
           message: "All 3 actions used - Pass to execute",
@@ -147,17 +170,17 @@ export class ExpansionPhase extends Phase {
         actions: [
           new ScanAction(),
           new JumpAction(),
+          new ReorganizeAction(),
           new PassAction({
-            label: "Pass (End Movement)",
-            confirmLabel: "End Movement",
-            historyMessage: "Completed Movement",
+            label: "Pass (Execute Actions)",
+            confirmLabel: "Execute queued actions?",
+            historyMessage: "Executed Actions",
           }),
         ],
-        message: `Expansion phase - ${3 - actionsUsed} action${3 - actionsUsed === 1 ? "" : "s"} remaining (or Pass to execute)`,
+        message: `Expansion phase - ${3 - actionsUsed} action${3 - actionsUsed === 1 ? "" : "s"} remaining`,
       };
     }
 
-    // Player chose Transfer - shouldn't get here as they advance immediately
     return {
       actions: [],
       message: "Waiting for other players",
@@ -169,27 +192,46 @@ export class ExpansionPhase extends Phase {
     const metadata = this.getMetadata(state);
 
     if (result.action.type === "transfer") {
-      // Transfer executes immediately, move to next player
       metadata.playerChoices[playerId] = "transfer";
       this.moveToNextPlayer(state);
     } else if (result.action.type === "scan" || result.action.type === "jump") {
-      // Action already executed (movement happened)
-      // Serialize action to plain JSON for Firestore storage
       metadata.playerChoices[playerId] = "scan_jump";
       metadata.actionsUsed[playerId] = (metadata.actionsUsed[playerId] || 0) + 1;
 
+      // Store serialized action for consequence execution
       metadata.pendingConsequences.push({
         playerId,
-        actionData: JSON.parse(JSON.stringify(result.action)), // Serialize to plain JSON
+        actionData: JSON.parse(JSON.stringify(result.action)),
       });
+
+      // Track jump metadata for combat
+      if (result.action.type === "jump") {
+        const jumpAction = result.action as JumpAction;
+        const targetHexId = jumpAction.metadata.targetHexId;
+        const sourceHexId = jumpAction.metadata.sourceHexId;
+
+        if (targetHexId) {
+          metadata.jumpMetadata[targetHexId] = {
+            inCommRange: jumpAction.metadata.commSupport ?? false,
+            sourceHexId: sourceHexId || targetHexId, // Fallback to target if source missing
+          };
+        }
+      }
     } else if (result.action.type === "pass") {
+      // Execute all pending consequences for this player
       await this.executePendingConsequences(ctx, playerId);
+
+      // Check for combat after consequences execute
+      const combatResult = this.checkForCombatAndTransition(state, playerId);
+      if (combatResult.phaseTransition) {
+        return combatResult; // Transition to combat
+      }
+
       this.moveToNextPlayer(state);
     }
 
     // Check if phase is complete
     if (!state.state.currentPlayers) {
-      // Clear metadata and advance to Empire phase
       state.state.phaseMetadata = {};
       result.phaseTransition = {
         nextPhase: "Empire",
@@ -206,16 +248,50 @@ export class ExpansionPhase extends Phase {
 
     const playerConsequences = metadata.pendingConsequences.filter((pc) => pc.playerId === playerId);
 
-    // Execute consequences in order
     for (const pending of playerConsequences) {
-      // Reconstruct action from plain JSON
       const action = getActionFromJson(pending.actionData);
 
-      // Let the action handle its own consequences
-      await action.executeConsequences(ctx, playerId);
+      // Execute consequences (combat, scans, reveals)
+      if (action.executeConsequences) {
+        await action.executeConsequences(ctx, playerId);
+      }
     }
 
     // Remove executed consequences
     metadata.pendingConsequences = metadata.pendingConsequences.filter((pc) => pc.playerId !== playerId);
+  }
+
+  private checkForCombatAndTransition(state: ThroneworldGameState, actingPlayerId: string): ActionResponse {
+    const metadata = this.getMetadata(state);
+    const combatInfos = findAllCombatHexes(state, actingPlayerId);
+
+    if (combatInfos.length > 0) {
+      // Take first combat (already randomized)
+      const combatInfo = combatInfos[0];
+
+      // Get jump metadata for this hex
+      const jumpMeta = metadata.jumpMetadata[combatInfo.hexId];
+
+      const combat = initiateCombat(
+        state,
+        combatInfo.hexId,
+        combatInfo.attackerId,
+        combatInfo.defenderId,
+        actingPlayerId,
+        jumpMeta?.inCommRange ?? false,
+        jumpMeta?.sourceHexId
+      );
+
+      if (combat) {
+        return transitionToCombatSubPhase(state, combat);
+      }
+    }
+
+    // No combat found
+    return {
+      action: new PassAction(),
+      success: true,
+      message: "No combat",
+    };
   }
 }

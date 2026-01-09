@@ -11,9 +11,9 @@ export interface ThroneworldSystemDetails {
   dev: number;
   systemId?: string;
   owner?: string;
-  spaceTech: number;         // Neutral space units tech level
-  groundTech: number;        // Neutral ground units tech level
-  spaceUnits: UnitCountMap;  // Neutral space units printed on tile
+  spaceTech: number; // Neutral space units tech level
+  groundTech: number; // Neutral ground units tech level
+  spaceUnits: UnitCountMap; // Neutral space units printed on tile
   groundUnits: UnitCountMap; // Neutral ground units printed on tile
 }
 
@@ -31,15 +31,15 @@ export interface ThroneworldPublicSystemState {
 
   /** Present when the hex has been revealed publicly. */
   details?: ThroneworldSystemDetails;
-  
-  unitsOnPlanet: Record<string, ThroneworldUnit[]>;       // By playerId
-  fleetsInSpace: Record<string, Fleet[]>;        // By playerId
+
+  unitsOnPlanet: Record<string, ThroneworldUnit[]>; // By playerId
+  fleetsInSpace: Record<string, Fleet[]>; // By playerId
 }
 
 export function addUnitToSystem(system: ThroneworldPublicSystemState, unit: ThroneworldUnit) {
   const owner = unit.owner ?? "neutral";
-  
-  if(UNITS[unit.unitTypeId]?.Type == "Ground") {
+
+  if (UNITS[unit.unitTypeId]?.Domain == "Ground") {
     system.unitsOnPlanet[owner] ??= [];
     system.unitsOnPlanet[owner].push(unit);
   } else {

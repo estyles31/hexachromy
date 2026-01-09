@@ -21,6 +21,7 @@ import type { ThroneworldUnit } from "../../shared/models/Unit.Throneworld";
 
 interface JumpMetadata {
   targetHexId?: string;
+  sourceHexId?: string;
   didScan?: boolean;
   willCombat?: boolean;
   commSupport?: boolean;
@@ -191,6 +192,7 @@ export class JumpAction extends GameAction<JumpMetadata> {
     );
 
     // Store metadata for phase to handle consequences
+    this.metadata.sourceHexId = fleetHex;
     this.metadata.targetHexId = targetHexId;
     this.metadata.didScan = didScan;
     this.metadata.willCombat = willCombat;
@@ -313,22 +315,6 @@ export class JumpAction extends GameAction<JumpMetadata> {
         await revealSystemToPlayer(ctx, playerId, targetHexId);
       }
     }
-
-    // Step 3: Combat if multiple players present
-
-    // Step 4: Post-combat scan if explore unit survived and hex still unscanned
-    const stillUnscanned = !targetSystem.scannedBy?.includes(playerId);
-    if (stillUnscanned) {
-      const fleetAfterCombat = targetSystem.fleetsInSpace[playerId]?.find((f) => f.id === jumpingFleet.id);
-      const stillHasExplore = fleetAfterCombat?.spaceUnits.some((u) => UNITS[u.unitTypeId]?.Explore);
-
-      if (stillHasExplore) {
-        await scanHex();
-      }
-    }
-
-    // Step 5: Check for conquest (TODO - implement later)
-    // await checkForConquest(ctx, playerId, targetHexId);
   }
 }
 

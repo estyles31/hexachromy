@@ -1,8 +1,7 @@
-// /modules/throneworld/frontend/components/SystemMarker.tsx
-import { systemStyles } from "../config/systemStyles";
 import type { ThroneworldSystemDetails } from "../../shared/models/Systems.ThroneWorld";
 import { UNITS } from "../../shared/models/UnitTypes.ThroneWorld";
 import type { WorldType } from "../../shared/models/BoardLayout.ThroneWorld";
+import "./SystemMarker.css";
 
 interface Props {
   system: ThroneworldSystemDetails;
@@ -11,67 +10,66 @@ interface Props {
   size?: number;
   revealed?: boolean;
   scannerColors?: string[];
+  showScanners?: boolean;
   onHover?: (isHovering: boolean) => void;
   hideUnits?: boolean;
 }
 
-// Layout configuration - all positioning as ratios of marker size
+export const DEFAULT_SIZE = 36;
+
+/**
+ * All layout values are normalized (0–1) relative to marker size
+ */
 const LAYOUT = {
-  // Owner badge in top-left corner
-  ownerBadge: {
-    cx: 0.15,
-    cy: 0.15,
-    radius: 0.11,
-    strokeWidth: 1.5,
+  devValue: {
+    y: 0.3,
+    fontSize: 0.5,
   },
 
   homeworldLabel: {
     y: 0.7,
     fontSize: 0.32,
   },
-  
-  // Development value (large number at top)
-  devValue: {
-    y: 0.30,
-    fontSize: 0.5,
-  },
-  
-  // Space units column (left side, bottom-aligned)
+
   spaceColumn: {
     x: 0.01,
-    bottomPadding: 0.10,  // padding from bottom of marker
-    lineHeight: 0.18,     // spacing between each line
-    techFontSize: 0.18,
-    glyphFontSize: 0.18,
-    countFontSize: 0.18,
-  },
-  
-  // Ground units column (right side, bottom-aligned)
-  groundColumn: {
-    x: 0.99,              // right-aligned
-    bottomPadding: 0.10,
+    bottomPadding: 0.1,
     lineHeight: 0.18,
-    techFontSize: 0.18,
-    glyphFontSize: 0.18,
-    countFontSize: 0.18,
+    fontSize: 0.18,
   },
-  
-  // Fogged version
+
+  groundColumn: {
+    x: 0.99,
+    bottomPadding: 0.1,
+    lineHeight: 0.18,
+    fontSize: 0.18,
+  },
+
   fogged: {
     labelY: 0.55,
-    labelFontSize: 0.50,
+    labelFontSize: 0.5,
   },
 
   scanner: {
-    cx: 0.9,
-    startY: 0.2,
-    spacing: 0.14,
-    radius: 0.05,
-    strokeWidth: 1.25,
+    positions: [
+      { x: 0.1, y: 0.25 },
+      { x: 0.1, y: 0.6 },
+      { x: 0.9, y: 0.25 },
+      { x: 0.9, y: 0.6 },
+      { x: 0.3, y: 0.9 },
+      { x: 0.7, y: 0.9 },
+    ],
+    radius: 0.14, // ← bigger, actually reads
+    strokeWidth: 1,
+  },
+
+  scannerCenter: {
+    y: 0.52,
+    fontSize: 0.34,
+    opacity: 0.35,
+    glyph: "⊙",
   },
 };
-
-export const DEFAULT_SIZE = 36;
 
 export function SystemMarker({
   system,
@@ -80,106 +78,97 @@ export function SystemMarker({
   size = DEFAULT_SIZE,
   revealed = true,
   scannerColors = [],
+  showScanners = true,
   onHover,
   hideUnits = false,
 }: Props) {
-  const styleKey = worldType as keyof typeof systemStyles;
-  const style = systemStyles[styleKey] ?? systemStyles.default;
-
   const isHomeworld = worldType === "Homeworld";
+  revealed = revealed || isHomeworld;
 
-  revealed = revealed || isHomeworld
-  const typeLabel = worldType == "Throneworld" ? "TW" : worldType.charAt(0).toUpperCase();
+  const typeLabel = worldType === "Throneworld" ? "TW" : worldType.charAt(0).toUpperCase();
 
-  const shouldRenderScanners = true;  //turns out we need these even when revealed
-  const scannerMarkers = shouldRenderScanners ? scannerColors.slice(0, 6) : [];
+  const scannerMarkers = showScanners ? scannerColors.slice(0, 6) : [];
 
-  const renderScannerMarkers = () =>
-    shouldRenderScanners && scannerMarkers.length > 0 ? (
-      <g>
-        {scannerMarkers.map((color, index) => {
-          const cy = size * (LAYOUT.scanner.startY + index * LAYOUT.scanner.spacing);
+  const renderScannerMarkers = () => {
+    if (scannerMarkers.length === 0) return null;
+
+    return (
+      <g className="system-scanners">
+        {scannerMarkers.map((color, i) => {
+          const pos = LAYOUT.scanner.positions[i];
+          if (!pos) return null;
+
+          const cx = size * pos.x;
+          const cy = size * pos.y;
+          const r = size * LAYOUT.scanner.radius;
+
           return (
-            <circle
-              key={`${color}-${index}`}
-              cx={size * LAYOUT.scanner.cx}
-              cy={cy}
-              r={size * LAYOUT.scanner.radius}
-              fill={color}
-              stroke="black"
-              strokeWidth={LAYOUT.scanner.strokeWidth}
-            />
+            <g key={`${color}-${i}`}>
+              {/* actual marker */}
+              <circle cx={cx} cy={cy} r={r} fill={color} stroke="white" strokeWidth={LAYOUT.scanner.strokeWidth} />
+
+              {/* scan glyph */}
+              <text
+                x={cx}
+                y={cy}
+                textAnchor="middle"
+                dominantBaseline="middle"
+                fontSize={r * 0.9}
+                opacity={0.45}
+                pointerEvents="none"
+                fill="black"
+              >
+                ⊙
+              </text>
+            </g>
           );
         })}
       </g>
-    ) : null;
+    );
+  };
 
-  // FOGGED VERSION
+  // ---------- FOGGED ----------
   if (!revealed) {
     return (
-      <svg width={size} height={size}
+      <svg
+        width={size}
+        height={size}
+        className={`system-marker system-${worldType.toLowerCase()} fogged`}
         onMouseEnter={() => onHover?.(true)}
-        onMouseLeave={() => onHover?.(false)}>
-        <rect
-          width={size}
-          height={size}
-          rx={4}
-          fill={style.fog}
-          stroke="black"
-          strokeWidth={2}
-        />
+        onMouseLeave={() => onHover?.(false)}
+      >
+        <rect width={size} height={size} rx={4} />
         <text
           x="50%"
           y={size * LAYOUT.fogged.labelY}
           textAnchor="middle"
           dominantBaseline="middle"
           fontSize={size * LAYOUT.fogged.labelFontSize}
-          fill="#a8a887"
+          className="system-type-label"
         >
           {typeLabel}
         </text>
+
         {renderScannerMarkers()}
       </svg>
     );
   }
 
-  const spaceEntries = hideUnits
-    ? []
-    : Object.entries(system.spaceUnits).filter(([, count]) => count && count > 0);
-  const groundEntries = hideUnits
-    ? []
-    : Object.entries(system.groundUnits).filter(([, count]) => count && count > 0);
+  const spaceEntries = hideUnits ? [] : Object.entries(system.spaceUnits).filter(([, c]) => c && c > 0);
 
+  const groundEntries = hideUnits ? [] : Object.entries(system.groundUnits).filter(([, c]) => c && c > 0);
+
+  // ---------- REVEALED ----------
   return (
-    <svg className="game-object"
-      width={size} 
+    <svg
+      width={size}
       height={size}
+      className={`system-marker system-${worldType.toLowerCase()}`}
       onMouseEnter={() => onHover?.(true)}
       onMouseLeave={() => onHover?.(false)}
     >
-      {/* Background */}
-      <rect
-        width={size}
-        height={size}
-        rx={4}
-        fill={ownerColor ?? style.background}
-        stroke={style.border}
-        strokeWidth={2}
-      />
+      <rect className={ownerColor ?? "unowned"} width={size} height={size} rx={4} fill={ownerColor || undefined} />
 
-      {/* Owner badge (top-left corner) */}
-      {ownerColor && !isHomeworld && (
-        <circle
-          cx={size * LAYOUT.ownerBadge.cx}
-          cy={size * LAYOUT.ownerBadge.cy}
-          r={size * LAYOUT.ownerBadge.radius}
-          fill={ownerColor}
-          stroke="black"
-          strokeWidth={LAYOUT.ownerBadge.strokeWidth}
-        />
-      )}
-
-      {/* Development value (large number) */}
       <text
         x="50%"
         y={size * LAYOUT.devValue.y}
@@ -187,7 +176,7 @@ export function SystemMarker({
         dominantBaseline="middle"
         fontSize={size * LAYOUT.devValue.fontSize}
         fontWeight="bold"
-        fill={style.text}
+        className="system-dev"
       >
         {system.dev}
       </text>
@@ -200,7 +189,6 @@ export function SystemMarker({
           dominantBaseline="middle"
           fontSize={size * LAYOUT.homeworldLabel.fontSize}
           fontWeight="bold"
-          fill={style.text}
         >
           HW
         </text>
@@ -208,89 +196,44 @@ export function SystemMarker({
 
       {renderScannerMarkers()}
 
-      {/* Space units column (left side, bottom-aligned) */}
-      {spaceEntries.length > 0 && (
-        <g>
-          {/* Calculate starting y position (bottom-aligned, stack upward) */}
-          {spaceEntries.map(([unitId, count], i) => {
-            const glyph = UNITS[unitId]?.Symbol ?? "?";
-            const lineIndex = spaceEntries.length - 1 - i; // reverse index (bottom to top)
-            const y = size * (1 - LAYOUT.spaceColumn.bottomPadding) - lineIndex * size * LAYOUT.spaceColumn.lineHeight;
-            
-            return (
-              <g key={unitId}>
-                {/* Count & glyph */}
-                <text 
-                  x={size * LAYOUT.spaceColumn.x} 
-                  y={y} 
-                  fontSize={size * LAYOUT.spaceColumn.glyphFontSize} 
-                  fill={style.text}
-                  dominantBaseline="middle"
-                >
-                  {count}{glyph}
-                </text>
-              </g>
-            );
-          })}
-          
-          {/* Tech level at top of column */}
-          {system.spaceTech > 0 && worldType !== "Homeworld" && (
-            <text
-              x={size * LAYOUT.spaceColumn.x}
-              y={size * (1 - LAYOUT.spaceColumn.bottomPadding) - spaceEntries.length * size * LAYOUT.spaceColumn.lineHeight}
-              fontSize={size * LAYOUT.spaceColumn.techFontSize}
-              fontWeight="bold"
-              fill={style.text}
-              dominantBaseline="middle"
-            >
-              S{system.spaceTech}
-            </text>
-          )}
-        </g>
-      )}
+      {/* Space units (left) */}
+      {spaceEntries.map(([unitId, count], i) => {
+        const glyph = UNITS[unitId]?.Symbol ?? "?";
+        const y = size * (1 - LAYOUT.spaceColumn.bottomPadding) - i * size * LAYOUT.spaceColumn.lineHeight;
 
-      {/* Ground units column (right side, bottom-aligned) */}
-      {groundEntries.length > 0 && (
-        <g>
-          {/* Calculate starting y position (bottom-aligned, stack upward) */}
-          {groundEntries.map(([unitId, count], i) => {
-            const glyph = UNITS[unitId]?.Symbol ?? "?";
-            const lineIndex = groundEntries.length - 1 - i; // reverse index (bottom to top)
-            const y = size * (1 - LAYOUT.groundColumn.bottomPadding) - lineIndex * size * LAYOUT.groundColumn.lineHeight;
-            
-            return (
-              <g key={unitId}>
-                {/* Count and glyph */}
-                <text 
-                  x={size * LAYOUT.groundColumn.x} 
-                  y={y} 
-                  fontSize={size * LAYOUT.groundColumn.glyphFontSize} 
-                  fill={style.text}
-                  dominantBaseline="middle"
-                  textAnchor="end"
-                >
-                  {count}{glyph}
-                </text>
-              </g>
-            );
-          })}
-          
-          {/* Tech level at top of column */}
-          {system.groundTech > 0 && worldType !== "Homeworld" && (
-            <text
-              x={size * LAYOUT.groundColumn.x}
-              y={size * (1 - LAYOUT.groundColumn.bottomPadding) - groundEntries.length * size * LAYOUT.groundColumn.lineHeight}
-              fontSize={size * LAYOUT.groundColumn.techFontSize}
-              fontWeight="bold"
-              fill={style.text}
-              dominantBaseline="middle"
-              textAnchor="end"
-            >
-              G{system.groundTech}
-            </text>
-          )}
-        </g>
-      )}
+        return (
+          <text
+            key={unitId}
+            x={size * LAYOUT.spaceColumn.x}
+            y={y}
+            fontSize={size * LAYOUT.spaceColumn.fontSize}
+            dominantBaseline="middle"
+          >
+            {count}
+            {glyph}
+          </text>
+        );
+      })}
+
+      {/* Ground units (right) */}
+      {groundEntries.map(([unitId, count], i) => {
+        const glyph = UNITS[unitId]?.Symbol ?? "?";
+        const y = size * (1 - LAYOUT.groundColumn.bottomPadding) - i * size * LAYOUT.groundColumn.lineHeight;
+
+        return (
+          <text
+            key={unitId}
+            x={size * LAYOUT.groundColumn.x}
+            y={y}
+            fontSize={size * LAYOUT.groundColumn.fontSize}
+            textAnchor="end"
+            dominantBaseline="middle"
+          >
+            {count}
+            {glyph}
+          </text>
+        );
+      })}
     </svg>
   );
 }

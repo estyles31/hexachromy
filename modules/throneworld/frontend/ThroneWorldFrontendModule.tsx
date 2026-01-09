@@ -6,7 +6,7 @@ import type { ThroneworldGameState, ThroneworldState } from "../shared/models/Ga
 import { computeBoardGeometry, type ThroneworldBoardGeometry } from "../shared/models/BoardGeometry.ThroneWorld";
 
 import type { FrontendModuleDefinition } from "../../../shared-frontend/FrontendModuleDefinition";
-import type InspectContext from "../../../shared/models/InspectContext";
+import type InspectContext from "../../../shared-frontend/InspectContext";
 import type { GameState } from "../../../shared/models/GameState";
 import type { HoveredInfo } from "./models/HoveredInfo";
 import type { VictoryPoints } from "../../../shared-frontend/FrontendModuleDefinition";
@@ -14,6 +14,7 @@ import { ThroneworldGameDefinition } from "../shared/models/GameDefinition.Thron
 import type { BoardGeometry } from "../../../shared/models/BoardGeometry";
 import ThroneworldBoard from "./components/ThroneworldBoard";
 import ThroneworldUnitCounterButton from "./components/ThroneworldUnitCounterButton";
+import { ReorganizeFleetParam } from "./components/ReorganizeFleetParam";
 
 export const ThroneworldFrontendModule: FrontendModuleDefinition<ThroneworldState, HoveredInfo> = {
   getBoardGeometry: (gameState: ThroneworldGameState) => {
@@ -26,9 +27,12 @@ export const ThroneworldFrontendModule: FrontendModuleDefinition<ThroneworldStat
   GameInfoAreaComponent: ThroneworldGameInfoArea,
   InfoPanelComponent: ThroneworldInfoPanel,
   getVictoryPoints,
-  choiceRenderers: { 
-    "unitType": ThroneworldUnitCounterButton
-  }
+  parameterRenderers: {
+    reorganizeFleet: ReorganizeFleetParam,
+  },
+  choiceRenderers: {
+    unitType: ThroneworldUnitCounterButton,
+  },
 };
 
 function MainBoardComponent(params: {
@@ -41,12 +45,7 @@ function MainBoardComponent(params: {
     return <div>ERROR RENDERING BOARD</div>;
   }
 
-  return (
-      <ThroneworldBoard
-        boardGeometry={geometry}
-        onInspect={params.onInspect}
-      />
-  );
+  return <ThroneworldBoard boardGeometry={geometry} onInspect={params.onInspect} />;
 }
 
 function getVictoryPoints(params: { gameState: GameState<ThroneworldState> }) {

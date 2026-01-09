@@ -1,0 +1,51 @@
+.system-marker {
+  overflow: visible;
+}
+
+.system-marker rect {
+  stroke-width: 2px;
+  stroke: black;
+  overflow: visible;
+}
+
+.system-fringe rect.unowned {
+  fill: #e8e8e8;
+}
+
+.system-outer rect.unowned {
+  fill: #e8e8e8;
+}
+
+.system-inner rect.unowned {
+  fill: #e8e8e8;
+}
+
+.system-throneworld rect.unowned {
+  fill: #e8e8e8;
+}
+
+.system-homeworld rect.unowned {
+  fill: #fff7dd;
+}
+
+.system-marker.fogged rect {
+  fill: #4f4f40;
+}
+
+.system-type-label {
+  fill: #a8a887;
+  font-weight: bold;
+}
+
+.system-dev {
+  fill: #000;
+}
+
+.system-scan-glyph {
+  fill: #000;
+  pointer-events: none;
+}
+
+.system-scanners circle {
+  pointer-events: none;
+}

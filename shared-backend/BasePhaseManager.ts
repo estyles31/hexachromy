@@ -15,17 +15,17 @@ export class BasePhaseManager implements IPhaseManager {
   constructor(gameId: string, db: GameDatabaseAdapter, phases?: Record<string, new () => Phase>) {
     this.gameId = gameId;
     this.db = db;
-    this.phases = phases || { "empty": EmptyPhase };
+    this.phases = phases || { empty: EmptyPhase };
   }
 
   async reloadGameState(): Promise<GameState> {
-    this.state = await this.db.getDocument(`games/${this.gameId}`) as GameState;
+    this.state = (await this.db.getDocument(`games/${this.gameId}`)) as GameState;
     return this.state!;
   }
 
   async getGameState(): Promise<GameState> {
     if (!this.state) {
-      this.state = await this.db.getDocument(`games/${this.gameId}`) as GameState;
+      this.state = (await this.db.getDocument(`games/${this.gameId}`)) as GameState;
     }
     return this.state!;
   }
@@ -34,11 +34,11 @@ export class BasePhaseManager implements IPhaseManager {
     const state = await this.getGameState();
     const ctor = this.phases[state!.state.currentPhase];
     const phase = ctor ? new ctor() : new EmptyPhase();
-    
+
     if (phase.loadPhase) {
       await phase.loadPhase({ gameState: state, db: this.db });
     }
-    
+
     return phase;
   }
 
@@ -52,19 +52,12 @@ export class BasePhaseManager implements IPhaseManager {
     return phase.validateAction({ gameState: this.state!, db: this.db }, playerId, action);
   }
 
-  async getLegalActions(
-    playerId: string,
-    filledParams?: Record<string, string>
-  ): Promise<LegalActionsResponse> {
+  async getLegalActions(playerId: string, filledParams?: Record<string, string>): Promise<LegalActionsResponse> {
     const phase = await this.getCurrentPhase();
     const state = await this.getGameState();
-    
+
     // Get base legal actions from phase
-    let actionsResponse = await phase.getLegalActions(
-      { gameState: state, db: this.db },
-      playerId
-    );
-    
+    const actionsResponse = await phase.getLegalActions({ gameState: state, db: this.db }, playerId);
     let actions = actionsResponse.actions;
 
     // Apply filled params if provided
@@ -78,40 +71,36 @@ export class BasePhaseManager implements IPhaseManager {
     }
 
     // Filter out actions that have no valid choices
-    actions = actions.filter(action => {
-      if (action.params.every(p =>  p.optional || p.value !== undefined))
-        return true;
-      
-      return(action.params.some(p =>  p.choices && p.choices.length > 0));
+    actions = actions.filter((action) => {
+      if (action.params.every((p) => p.optional || p.value !== undefined)) return true;
+
+      //this needs to be fixed because we don't collapse choices when one is chosen
+      return action.params.some((p) => p.hasValidChoices ?? (p.choices && p.choices.length > 0));
     });
 
     if (process.env.DEBUG === "true") {
-      console.log(`Legal actions for player ${playerId} in phase ${phase.name}:`,
-        JSON.stringify(actions, null, 2));
+      console.log(`Legal actions for player ${playerId} in phase ${phase.name}:`, JSON.stringify(actions, null, 2));
     }
 
     return {
       actions,
-      message: actionsResponse.message
+      message: actionsResponse.message,
     };
   }
 
-  private applyFilledParams(
-    actions: GameAction[],
-    filledParams: Record<string, string>
-  ): GameAction[] {
+  private applyFilledParams(actions: GameAction[], filledParams: Record<string, string>): GameAction[] {
     const survivors: GameAction[] = [];
 
     for (const action of actions) {
       let valid = true;
 
       for (const [paramName, value] of Object.entries(filledParams)) {
-        const param = action.params.find(p => p.name === paramName);
+        const param = action.params.find((p) => p.name === paramName);
         if (!param) {
-          valid = false;  // Action doesn't have this param
+          valid = false; // Action doesn't have this param
           break;
         }
-        param.value = value;  // Fill the param
+        param.value = value; // Fill the param
       }
 
       if (valid) survivors.push(action);
@@ -132,18 +121,14 @@ export class BasePhaseManager implements IPhaseManager {
     }
 
     if (phase.onActionCompleted) {
-      result = await phase.onActionCompleted(
-        { gameState: this.state!, db: this.db },
-        playerId,
-        result
-      );
+      result = await phase.onActionCompleted({ gameState: this.state!, db: this.db }, playerId, result);
     }
 
     while (result.phaseTransition) {
       this.state!.state.currentPhase = result.phaseTransition.nextPhase;
       const newPhase = await this.getCurrentPhase();
       if (!newPhase.onPhaseStart) break;
-        
+
       result = await newPhase.onPhaseStart({ gameState: this.state!, db: this.db });
     }
 

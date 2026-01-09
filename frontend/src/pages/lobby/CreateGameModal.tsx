@@ -1,18 +1,17 @@
-// /frontend/src/pages/lobby/CreateGameModal.tsx
-import { useEffect, useMemo, useState, useRef } from "react";
+import { useMemo, useRef, useState } from "react";
+import Draggable from "react-draggable";
+import type { User } from "firebase/auth";
 import { authFetch } from "../../auth/authFetch";
 import { useAuth } from "../../auth/useAuth";
 import type { GameDefinition } from "../../../../shared/models/GameDefinition";
-import { formatPlayerCount } from "../../../../shared/models/ScenarioDefinition";
 import type { ModuleDescription } from "../../../../modules";
 import type { CreateGameOptions } from "../../../../shared/models/CreateGameOptions";
-import type { User } from "firebase/auth";
-import "./CreateGameModal.css";
-import Draggable from "react-draggable";
-import PlayerSlotControl from "./PlayerSlotControl";
 import type { PlayerSlot } from "../../../../shared/models/PlayerSlot";
+import { formatPlayerCount } from "../../../../shared/models/ScenarioDefinition";
+import PlayerSlotControl from "./PlayerSlotControl";
 import { OptionControl } from "./OptionControl";
 import { EpicSpaceBattleNameGenerator } from "../../../../shared/utils/generateEpicSpaceBattleName";
+import "./CreateGameModal.css";
 
 interface Props {
   modules: ModuleDescription[];
@@ -27,150 +26,184 @@ async function loadGameDefinition(user: User | null | undefined, gameType: strin
   return res.json();
 }
 
-export default function CreateGameModal({
-  modules,
-  currentUserId,
-  onCreate,
-  onClose,
-}: Props) {
+function buildPlayerSlots(
+  prev: PlayerSlot[],
+  count: number,
+  currentUserId: string,
+  user: User | null | undefined
+): PlayerSlot[] {
+  return Array.from({ length: count }, (_, i): PlayerSlot => {
+    if (i === 0) {
+      return {
+        type: "human",
+        slotIndex: 0,
+        uid: currentUserId,
+        displayName: user?.displayName ?? user?.uid ?? "You",
+      };
+    }
+
+    const existing = prev[i];
+    if (existing) return { ...existing, slotIndex: i };
+
+    return {
+      type: "bot",
+      slotIndex: i,
+      botId: `bot-${crypto.randomUUID()}`,
+      displayName: `Bot ${i + 1}`,
+    };
+  });
+}
+
+export default function CreateGameModal({ modules, currentUserId, onCreate, onClose }: Props) {
+  const user = useAuth();
+  const modalRef = useRef<HTMLDivElement>(null);
+  const namer = useRef(new EpicSpaceBattleNameGenerator()).current;
+
+  /* -------------------------
+   * State
+   * ------------------------- */
+
   const [moduleId, setModuleId] = useState<string | null>(null);
+
   const [definition, setDefinition] = useState<GameDefinition | null>(null);
   const [loadingDefinition, setLoadingDefinition] = useState(false);
   const [definitionError, setDefinitionError] = useState<string | null>(null);
+
   const [scenarioId, setScenarioId] = useState<string | null>(null);
   const [optionValues, setOptionValues] = useState<Record<string, unknown>>({});
+
+  // Single source of truth for “who’s playing”
   const [playerSlots, setPlayerSlots] = useState<PlayerSlot[]>([]);
   const [gameName, setGameName] = useState("");
-  const [playerCount, setPlayerCount] = useState<number | null>(null);
 
-  const user = useAuth();
-  const modalRef = useRef<HTMLDivElement>(null);
-  const namer = new EpicSpaceBattleNameGenerator();
+  /* -------------------------
+   * Derived “effective” definition/scenario (no cleanup effect)
+   * ------------------------- */
 
-  /* ------------------ Game ---------------------- */
+  const effectiveDefinition = moduleId ? definition : null;
 
-  useEffect(() => {
-    if (!moduleId) return;
+  const scenario = useMemo(() => {
+    if (!effectiveDefinition) return null;
 
-    setLoadingDefinition(true);
-    setDefinitionError(null);
-
-    loadGameDefinition(user, moduleId)
-      .then(def => setDefinition(def))
-      .catch(err => setDefinitionError(String(err)))
-      .finally(() => setLoadingDefinition(false));
-
-    if (!gameName) {
-      setGameName(namer.generate());
-    };
-  }, [moduleId]);
-
-  const rerollGameName = () => {
-    setGameName(namer.generate());
-  };
-
-  /* ------------------ Scenario ------------------ */
-
-  useEffect(() => {
-    if (definition?.scenarios.length === 1) {
-      setScenarioId(definition.scenarios[0].id);
+    if (effectiveDefinition.scenarios.length === 1) {
+      return effectiveDefinition.scenarios[0];
     }
-  }, [definition]);
 
-  const scenario = useMemo(
-    () => definition?.scenarios.find(s => s.id === scenarioId) ?? null,
-    [definition, scenarioId],
-  );
-
-  /* ------------------ Player count ------------------ */
-
-  useEffect(() => {
-    if (!scenario) return;
-    setPlayerCount(scenario.playerCount.value);
-  }, [scenario]);
+    return effectiveDefinition.scenarios.find((s) => s.id === scenarioId) ?? null;
+  }, [effectiveDefinition, scenarioId]);
 
   const minPlayers = scenario?.playerCount.min ?? scenario?.playerCount.value;
   const maxPlayers = scenario?.playerCount.max ?? scenario?.playerCount.value;
   const isVariablePlayerCount = minPlayers !== maxPlayers;
 
-  /* ------------------ Player slots ------------------ */
-
-  // When player count changes:
-  useEffect(() => {
-    if (!playerCount) return;
-
-    setPlayerSlots(prev =>
-      Array.from({ length: playerCount }, (_, i): PlayerSlot => {
-        if (i === 0) {
-          // First slot is always the current user
-          return {
-            type: "human",
-            slotIndex: i,
-            uid: currentUserId,
-            displayName: user?.displayName ?? user?.uid ?? "You", // or get from user profile
-          };
-        }
-
-        const existing = prev[i];
-        if (existing) return { ...existing, slotIndex: i };
-
-        // Default to open slot
-        return {
-          type: "open",
-          slotIndex: i,
-        };
-      }),
-    );
-  }, [playerCount, currentUserId]);
-
-  /* ------------------ Options ------------------ */
+  const playerCount = playerSlots.length;
 
   const resolvedOptions = useMemo(() => {
+    if (!effectiveDefinition || !scenario) return {};
+
     const result: Record<string, unknown> = {};
 
-    for (const option of definition?.options ?? []) {
-      if (scenario?.settings?.fixed?.[option.id] !== undefined) {
+    for (const option of effectiveDefinition.options ?? []) {
+      if (scenario.settings?.fixed?.[option.id] !== undefined) {
         result[option.id] = scenario.settings.fixed[option.id];
       } else {
-        result[option.id] =
-          optionValues[option.id] ??
-          option.defaultValue ??
-          null;
+        result[option.id] = optionValues[option.id] ?? option.defaultValue ?? null;
       }
     }
 
     return result;
-  }, [definition, scenario, optionValues]);
+  }, [effectiveDefinition, scenario, optionValues]);
 
-  /* ------------------ Create ------------------ */
+  /* -------------------------
+   * Events (do state changes here, not in effects)
+   * ------------------------- */
+
+  const ensureGameName = () => {
+    setGameName((prev) => (prev && prev.trim().length > 0 ? prev : namer.generate()));
+  };
+
+  const applyScenarioDefaults = (def: GameDefinition, nextScenarioId: string | null) => {
+    const nextScenario =
+      def.scenarios.length === 1 ? def.scenarios[0] : (def.scenarios.find((s) => s.id === nextScenarioId) ?? null);
+
+    if (!nextScenario) {
+      setPlayerSlots([]);
+      return;
+    }
+
+    setPlayerSlots((prev) => buildPlayerSlots(prev, nextScenario.playerCount.value, currentUserId, user));
+  };
+
+  const onChangeModule = (nextModuleId: string) => {
+    setModuleId(nextModuleId);
+    ensureGameName();
+
+    // Reset UI state immediately (event handler is fine; linter rule is about effects)
+    setDefinition(null);
+    setDefinitionError(null);
+    setScenarioId(null);
+    setOptionValues({});
+    setPlayerSlots([]);
+
+    setLoadingDefinition(true);
+    loadGameDefinition(user, nextModuleId)
+      .then((def) => {
+        setDefinition(def);
+
+        // If only one scenario, auto-select it and initialize slots.
+        if (def.scenarios.length === 1) {
+          const only = def.scenarios[0];
+          setScenarioId(only.id);
+          setPlayerSlots((prev) => buildPlayerSlots(prev, only.playerCount.value, currentUserId, user));
+        }
+      })
+      .catch((err) => setDefinitionError(String(err)))
+      .finally(() => setLoadingDefinition(false));
+  };
+
+  const onChangeScenario = (nextScenarioId: string) => {
+    setScenarioId(nextScenarioId);
+
+    if (effectiveDefinition) {
+      applyScenarioDefaults(effectiveDefinition, nextScenarioId);
+    } else {
+      // Defensive; shouldn’t happen, but keep behavior sane.
+      setPlayerSlots([]);
+    }
+  };
+
+  const rerollGameName = () => {
+    setGameName(namer.generate());
+  };
 
   const handleCreate = () => {
-    if (!scenario || !playerCount) return;
+    if (!scenario || playerSlots.length === 0) return;
 
-    //if user leaves game name blank or tries to use whitespace or a single letter, then screw them, random name
-    let gn = gameName?.trim();
-    if(!gn || gn.length < 2)
-      gn = namer.generate();
+    let name = gameName.trim();
+    if (name.length < 2) name = namer.generate();
 
     onCreate({
-      gameType: definition?.id ?? "throneworld",
+      gameType: effectiveDefinition?.id ?? "throneworld",
       scenarioId: scenario.id,
-      playerSlots,  // Send slots instead of player IDs
+      playerSlots,
       options: resolvedOptions,
-      name: gn,
+      name,
     });
   };
 
-  /* ------------------ Render ------------------ */
+  /* -------------------------
+   * Render
+   * ------------------------- */
 
   return (
     <div className="modal-backdrop">
       <Draggable handle=".modal-header" nodeRef={modalRef}>
         <div className="modal" ref={modalRef}>
-
           <header className="modal-header">
             <h2>Create Game</h2>
-            <button className="closeButton" onClick={onClose}>✕</button>
+            <button className="closeButton" onClick={onClose}>
+              ✕
+            </button>
           </header>
 
           <section className="modal-body">
@@ -179,10 +212,16 @@ export default function CreateGameModal({
               Game
               <select
                 value={moduleId ?? ""}
-                onChange={e => setModuleId(e.target.value)}
+                onChange={(e) => {
+                  const next = e.target.value;
+                  if (!next) return;
+                  onChangeModule(next);
+                }}
               >
-                <option value="" disabled>Select game</option>
-                {modules.map(m => (
+                <option value="" disabled>
+                  Select game
+                </option>
+                {modules.map((m) => (
                   <option key={m.id} value={m.id}>
                     {m.name}
                   </option>
@@ -194,15 +233,14 @@ export default function CreateGameModal({
             {definitionError && <div className="error">{definitionError}</div>}
 
             {/* Scenario */}
-            {definition && definition.scenarios?.length > 1 && (
+            {effectiveDefinition && effectiveDefinition.scenarios.length > 1 && (
               <label>
                 Scenario
-                <select
-                  value={scenarioId ?? ""}
-                  onChange={e => setScenarioId(e.target.value)}
-                >
-                  <option value="" disabled>Select scenario</option>
-                  {definition.scenarios.map(s => (
+                <select value={scenarioId ?? ""} onChange={(e) => onChangeScenario(e.target.value)}>
+                  <option value="" disabled>
+                    Select scenario
+                  </option>
+                  {effectiveDefinition.scenarios.map((s) => (
                     <option key={s.id} value={s.id}>
                       {s.label}
                     </option>
@@ -214,21 +252,12 @@ export default function CreateGameModal({
             {/* Game name */}
             <label>
               <div className="game-name-row">
-              Game name
-                <button
-                  type="button"
-                  className="reroll-button"
-                  title="Reroll name"
-                  onClick={rerollGameName}
-                >
+                Game name
+                <button type="button" className="reroll-button" onClick={rerollGameName}>
                   🎲
                 </button>
               </div>
-                <input
-                  type="text"
-                  value={gameName}
-                  onChange={e => setGameName(e.target.value)}
-                />
+              <input type="text" value={gameName} onChange={(e) => setGameName(e.target.value)} />
             </label>
 
             {/* Player count */}
@@ -240,60 +269,56 @@ export default function CreateGameModal({
                     type="number"
                     min={minPlayers}
                     max={maxPlayers}
-                    value={playerCount ?? scenario.playerCount.value}
-                    onChange={e => setPlayerCount(Number(e.target.value))}
+                    value={playerCount}
+                    onChange={(e) => {
+                      const next = Number(e.target.value);
+                      setPlayerSlots((prev) => buildPlayerSlots(prev, next, currentUserId, user));
+                    }}
                   />
                 )}
               </label>
             )}
 
             {/* Options */}
-            {scenario && definition && definition.options?.map(option => {
-              const fixed = scenario.settings?.fixed?.[option.id];
+            {scenario &&
+              effectiveDefinition?.options?.map((option) => {
+                const fixed = scenario.settings?.fixed?.[option.id];
+                if (fixed !== undefined) {
+                  return (
+                    <div key={option.id}>
+                      <strong>{option.label}:</strong> {String(fixed)}
+                    </div>
+                  );
+                }
 
-              if (fixed !== undefined) {
                 return (
-                  <div key={option.id}>
-                    <strong>{option.label}:</strong> {String(fixed)}
-                  </div>
+                  <OptionControl
+                    key={option.id}
+                    option={option}
+                    value={resolvedOptions[option.id]}
+                    onChange={(value) => setOptionValues((v) => ({ ...v, [option.id]: value }))}
+                  />
                 );
-              }
-
-              return (
-                <OptionControl
-                  key={option.id}
-                  option={option}
-                  value={resolvedOptions[option.id]}
-                  onChange={value =>
-                    setOptionValues(v => ({ ...v, [option.id]: value }))
-                  }
-                />
-              );
-            })}
+              })}
 
             {/* Players */}
-            {playerCount != null && (
-              <>
-                {playerSlots.map((slot, i) => (
-                  <PlayerSlotControl
-                    key={i}
-                    slot={slot}
-                    slotIndex={i}
-                    isCurrentUser={i === 0}
-                    onChange={newSlot => {
-                      const updated = [...playerSlots];
-                      updated[i] = newSlot;
-                      setPlayerSlots(updated);
-                    }}
-                  />
-                ))}
-              </>
-            )}
-
+            {playerSlots.map((slot, i) => (
+              <PlayerSlotControl
+                key={i}
+                slot={slot}
+                slotIndex={i}
+                isCurrentUser={i === 0}
+                onChange={(newSlot) => {
+                  const updated = [...playerSlots];
+                  updated[i] = newSlot;
+                  setPlayerSlots(updated);
+                }}
+              />
+            ))}
           </section>
 
           <footer className="modal-footer">
-            <button onClick={handleCreate} disabled={!scenario || !playerCount}>
+            <button onClick={handleCreate} disabled={!scenario || playerSlots.length === 0}>
               Create Game
             </button>
           </footer>

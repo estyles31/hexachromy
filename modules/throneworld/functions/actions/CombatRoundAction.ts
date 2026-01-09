@@ -1,5 +1,6 @@
 // /modules/throneworld/functions/actions/CombatRoundAction.ts
-import { ActionResponse, SystemAction } from "../../../../shared/models/GameAction";
+import { ActionResponse } from "../../../../shared/models/GameAction";
+import { SystemAction } from "../../../../shared/models/GameAction";
 import type { GameState } from "../../../../shared/models/GameState";
 import type { ThroneworldGameState } from "../../shared/models/GameState.Throneworld";
 import { executeOneCombatRound, CombatMetadata } from "./CombatHelpers";

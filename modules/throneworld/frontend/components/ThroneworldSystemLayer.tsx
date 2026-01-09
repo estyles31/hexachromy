@@ -1,6 +1,6 @@
 // /modules/throneworld/frontend/components/ThroneworldSystemLayer.tsx
 import type { ThroneworldBoardView } from "../models/ThroneworldBoardView";
-import type InspectContext from "../../../../shared/models/InspectContext";
+import type InspectContext from "../../../../shared-frontend/InspectContext";
 import type { HoveredInfo } from "../models/HoveredInfo";
 import { SystemMarker } from "./SystemMarker";
 import PlanetArc from "./PlanetArc";
@@ -11,11 +11,7 @@ interface Props {
   onInspect?: (ctx: InspectContext<HoveredInfo> | null) => void;
 }
 
-export default function ThroneworldSystemLayer({
-  boardView,
-  onInspect
-}: Props) {
-
+export default function ThroneworldSystemLayer({ boardView, onInspect }: Props) {
   return (
     <>
       {boardView.systems.map((sys) => {

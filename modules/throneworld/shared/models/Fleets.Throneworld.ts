@@ -5,21 +5,21 @@ import { UNITS } from "./UnitTypes.ThroneWorld";
 export interface Fleet {
   id: string;
   owner: string;
-  spaceUnits:  ThroneworldUnit[];
+  spaceUnits: ThroneworldUnit[];
   groundUnits: ThroneworldUnit[];
 }
 
 export function getCargo(fleet: Fleet) {
-    let c = 0;
-    for(const u of fleet.spaceUnits) {
-        c += UNITS[u.unitTypeId].Cargo ?? 0;
-    }
+  let c = 0;
+  for (const u of fleet.spaceUnits) {
+    c += UNITS[u.unitTypeId].Cargo ?? 0;
+  }
 
-    for(const u of fleet.groundUnits) {
-        c += UNITS[u.unitTypeId].Cargo ?? 0;
-    }
+  for (const u of fleet.groundUnits) {
+    c += UNITS[u.unitTypeId].Cargo ?? 0;
+  }
 
-    return c;
+  return c;
 }
 
 let fleetIdCounter = 0;
@@ -33,29 +33,39 @@ export function generateFleetId(): string {
 }
 
 export function createFleet(firstUnit: ThroneworldUnit): Fleet {
-    const fleet: Fleet = { 
-        id: generateFleetId(),
-        owner: firstUnit.owner ?? "neutral",
-        spaceUnits: [],
-        groundUnits: [],
-    };
+  const fleet: Fleet = {
+    id: generateFleetId(),
+    owner: firstUnit.owner ?? "neutral",
+    spaceUnits: [],
+    groundUnits: [],
+  };
 
-    return addUnitToFleet(fleet, firstUnit);
+  return addUnitToFleet(fleet, firstUnit);
+}
+
+export function createEmptyFleet(owner: string): Fleet {
+  const fleet: Fleet = {
+    id: generateFleetId(),
+    owner,
+    spaceUnits: [],
+    groundUnits: [],
+  };
+
+  return fleet;
 }
 
 //todo: validate cargo space
 export function addUnitToFleet(fleet: Fleet, unit: ThroneworldUnit): Fleet {
-    if (UNITS[unit.unitTypeId]?.Type === "Ground") {
-        fleet.groundUnits ??= [];
-        fleet.groundUnits.push(unit);
-    } else {
-        fleet.spaceUnits ??= [];
-        fleet.spaceUnits.push(unit);
-    }
-    return fleet;
+  if (UNITS[unit.unitTypeId]?.Domain === "Ground") {
+    fleet.groundUnits ??= [];
+    fleet.groundUnits.push(unit);
+  } else {
+    fleet.spaceUnits ??= [];
+    fleet.spaceUnits.push(unit);
+  }
+  return fleet;
 }
 
 export function fleetHasMoved(fleet: Fleet) {
-    return fleet.groundUnits.some(g => g.hasMoved)
-        || fleet.spaceUnits.some(s => s.hasMoved);
+  return fleet.groundUnits.some((g) => g.hasMoved) || fleet.spaceUnits.some((s) => s.hasMoved);
 }

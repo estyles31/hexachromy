@@ -1,6 +1,6 @@
-import type { ThroneworldGameState } from "../../shared/models/GameState.Throneworld";
-import type { HoveredInfo } from "../models/HoveredInfo";
-import type InspectContext from "../../../../shared/models/InspectContext";
+import type { ThroneworldGameState, ThroneworldPlayerState } from "../../shared/models/GameState.Throneworld";
+import type { HoveredFleetInfo, HoveredInfo, HoveredSystemInfo, HoveredUnitInfo } from "../models/HoveredInfo";
+import type InspectContext from "../../../../shared-frontend/InspectContext";
 import "./ThroneworldInfoPanel.css";
 import { useGameStateContext } from "../../../../shared-frontend/contexts/GameStateContext";
 import { UNITS } from "../../shared/models/UnitTypes.ThroneWorld";
@@ -10,6 +10,7 @@ import type { ThroneworldUnitType } from "../../shared/models/UnitTypes.ThroneWo
 import { SystemMarker } from "./SystemMarker";
 import { neutralColor } from "./ThroneworldBoard";
 import { Factions } from "../../shared/models/Factions.ThroneWorld";
+import type { ThroneworldPublicSystemState } from "../../shared/models/Systems.ThroneWorld";
 
 /* ============================================================
  * Root dispatcher
@@ -125,24 +126,91 @@ function sumCargo(units: ThroneworldUnit[]): number {
 }
 
 /* ============================================================
- * Reusable UI bits
+ * Reusable totals UI (row + section)
+ * - Lets us hide Attack for neutral rows
+ * - Lets us tweak spacing in one place
  * ============================================================ */
 
-function TotalsRow({
+function TotalsRowLine({
   label,
   totals,
   compactLabel = false,
+  hideAttack = false,
+  className = "",
 }: {
   label: string;
   totals: CombatTotals;
   compactLabel?: boolean;
+  hideAttack?: boolean;
+  className?: string;
 }) {
   return (
-    <div className="totals-row">
+    <div className={`totals-row ${className}`.trim()}>
       <span className="totals-label">{compactLabel ? label : `${label}:`}</span>
-      <span>⚔{totals.attack}</span>
+      {!hideAttack && <span>⚔{totals.attack}</span>}
       <span>🛡{totals.defense}</span>
       <span>❤{totals.hp}</span>
+    </div>
+  );
+}
+
+type TotalsSectionRow = {
+  key: string;
+  label: string;
+  totals: CombatTotals;
+  hideAttack?: boolean;
+};
+
+function TotalsSection({
+  title,
+  rows,
+  indentRows = false,
+  compactLabel = false,
+}: {
+  title?: string;
+  rows: TotalsSectionRow[];
+  indentRows?: boolean;
+  compactLabel?: boolean;
+}) {
+  if (!rows || rows.length === 0) return null;
+
+  return (
+    <div className="totals-section">
+      {title && <div className="info-subtitle totals-section-title">{title}</div>}
+      <div className={`totals-rows ${indentRows ? "totals-rows--indented" : ""}`.trim()}>
+        {rows.map((r) => (
+          <TotalsRowLine
+            key={r.key}
+            label={r.label}
+            totals={r.totals}
+            compactLabel={compactLabel}
+            hideAttack={!!r.hideAttack}
+            className={indentRows ? "player" : ""}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ScannedBy({
+  data,
+  players,
+}: {
+  data: ThroneworldPublicSystemState;
+  players: Record<string, ThroneworldPlayerState>;
+}) {
+  const scannedBy = data.scannedBy || [];
+  if (scannedBy.length === 0) return null;
+  return (
+    <div className="info-meta">
+      Scanned by:{" "}
+      {scannedBy.map((pid, i) => (
+        <span key={pid}>
+          {i > 0 && ", "}
+          <span style={{ color: players[pid]?.color || "white" }}>{players[pid]?.displayName || pid}</span>
+        </span>
+      ))}
     </div>
   );
 }
@@ -169,9 +237,9 @@ function UnitStatCounter({
   return (
     <div className="unit-stat-counter">
       <div className="unit-stat-left">
-        {!unitDef.NonCombat && <div>⚔{unitDef.Attack}</div>}
-        {!unitDef.NonCombat && <div>🛡{unitDef.Defense}</div>}
-        {!unitDef.NonCombat && <div className="unit-stat-hp">❤{unitDef.HP}</div>}
+        {!unitDef.NonCombat && <div>{unitDef.Attack! > 0 && <>{unitDef.Attack}⚔</>}</div>}
+        {!unitDef.NonCombat && <div>{unitDef.Defense}🛡</div>}
+        {!unitDef.NonCombat && <div className="unit-stat-hp">{unitDef.HP}❤</div>}
       </div>
 
       <div className="unit-stat-icon">
@@ -274,17 +342,11 @@ function FleetContents({
  * UnitInfo (restore rich stats + abilities)
  * ============================================================ */
 
-function UnitInfo({
-  data,
-  gameState,
-}: {
-  data: Extract<HoveredInfo, { kind: "unit" }>;
-  gameState: ThroneworldGameState;
-}) {
+function UnitInfo({ data, gameState }: { data: HoveredUnitInfo; gameState: ThroneworldGameState }) {
   const ownerId = data.unit.owner;
   const player = ownerId ? gameState.players[ownerId] : undefined;
   const playerName = player?.displayName || ownerId || "Neutral";
-  const playerColor = player?.color || "#666";
+  const playerColor = player?.color || "transparent";
 
   const unitDef = data.unitDef;
   const abilities = getSpecialAbilities(unitDef);
@@ -305,7 +367,6 @@ function UnitInfo({
       </div>
 
       <div className="info-section">
-        {/* Header row: icon + stats */}
         <div className="unit-info-header">
           <div className="unit-info-icon">
             <ThroneworldUnitCounter
@@ -316,19 +377,22 @@ function UnitInfo({
               playerColor={playerColor}
             />
           </div>
+          <div className="unit-info-cost">${finalCost}</div>
+        </div>
 
-          <div className="unit-detail-stats">
-            {!unitDef.NonCombat && (
-              <>
-                <div>
-                  <strong>Attack:</strong> {unitDef.Attack}
-                </div>
-                <div>
-                  <strong>Defense:</strong> {unitDef.Defense}
-                </div>
-              </>
-            )}
+        <div className="unit-detail-stats">
+          {!unitDef.NonCombat && (
+            <div>
+              <div>
+                <strong>Attack:</strong> {unitDef.Attack}
+              </div>
+              <div>
+                <strong>Defense:</strong> {unitDef.Defense}
+              </div>
+            </div>
+          )}
 
+          <div>
             <div>
               <strong>HP:</strong> {unitDef.HP}
             </div>
@@ -339,15 +403,9 @@ function UnitInfo({
                 {unitDef.Cargo}
               </div>
             )}
-
-            <div className="unit-info-cost">
-              <strong>Cost:</strong> {finalCost}
-              {discount > 0 && <span className="unit-info-cost-discount"> (−{discount})</span>}
-            </div>
           </div>
         </div>
 
-        {/* Abilities */}
         {abilities.length > 0 && (
           <div className="abilities-list">
             {abilities.map((ability, idx) => (
@@ -363,16 +421,10 @@ function UnitInfo({
 }
 
 /* ============================================================
- * FleetInfo (fleet icon + totals NEXT to it)
+ * FleetInfo (fleet icon + totals NEXT to it)  [NOW uses TotalsSection]
  * ============================================================ */
 
-function FleetInfo({
-  data,
-  gameState,
-}: {
-  data: Extract<HoveredInfo, { kind: "fleet" }>;
-  gameState: ThroneworldGameState;
-}) {
+function FleetInfo({ data, gameState }: { data: HoveredFleetInfo; gameState: ThroneworldGameState }) {
   const playerColor = gameState.players[data.owner]?.color || "#666";
   const playerName = gameState.players[data.owner]?.displayName || data.owner;
 
@@ -381,6 +433,11 @@ function FleetInfo({
   const spaceTotals = sumCombatStats(data.spaceUnits);
   const groundTotals = sumCombatStats(data.groundUnits);
   const cargo = sumCargo([...data.spaceUnits, ...data.groundUnits]);
+
+  const fleetTotalsRows: TotalsSectionRow[] = [
+    { key: "space", label: "Space", totals: spaceTotals, hideAttack: false },
+    { key: "ground", label: "Ground", totals: groundTotals, hideAttack: false },
+  ];
 
   return (
     <div className="throneworld-info">
@@ -399,8 +456,7 @@ function FleetInfo({
         />
 
         <div className="fleet-header-stats">
-          <TotalsRow label="Space" totals={spaceTotals} />
-          <TotalsRow label="Ground" totals={groundTotals} />
+          <TotalsSection rows={fleetTotalsRows} compactLabel={false} />
           {cargo !== 0 && <div className="cargo-row">📦 {cargo}</div>}
         </div>
       </div>
@@ -418,13 +474,15 @@ function FleetInfo({
 /* ============================================================
  * SystemInfo
  * - Marker + Planet + Space-by-player totals in SAME ROW
- * - Fleets are shown (composition preview), no totals here
+ * - Neutral totals keep space vs ground separate
+ * - Hide Attack for neutral rows
  * ============================================================ */
 
 type SystemInfoProps = {
-  data: Extract<HoveredInfo, { kind: "system" }>;
+  data: HoveredSystemInfo;
   gameState: ThroneworldGameState;
 };
+
 function SystemInfo({ data, gameState }: SystemInfoProps) {
   const hexId = data.hexId;
   const systemData = gameState.state.systems[hexId];
@@ -449,7 +507,7 @@ function SystemInfo({ data, gameState }: SystemInfoProps) {
   // Revealed: real planet units
   const revealedPlanetUnits = Object.values(systemData.unitsOnPlanet || {}).flat();
 
-  // Unrevealed but scanned: neutral spawn units
+  // Unrevealed but scanned: neutral spawn units (planet/ground)
   const scannedPlanetUnits: ThroneworldUnit[] =
     !data.revealed && systemDetails
       ? Object.entries(systemDetails.groundUnits || {}).flatMap(([unitTypeId, count]) =>
@@ -467,10 +525,47 @@ function SystemInfo({ data, gameState }: SystemInfoProps) {
     spaceUnitsByPlayer.get(fleet.owner)!.push(...fleet.spaceUnits);
   }
 
+  // Unrevealed but scanned: neutral spawn units (space)
+  const scannedSpaceUnits: ThroneworldUnit[] =
+    !data.revealed && systemDetails
+      ? Object.entries(systemDetails.spaceUnits || {}).flatMap(([unitTypeId, count]) =>
+          Array.from({ length: count ?? 0 }, () => ({ unitTypeId }) as ThroneworldUnit)
+        )
+      : [];
+
+  // Only add Neutral if there are any scanned space units
+  if (scannedSpaceUnits.length > 0) {
+    spaceUnitsByPlayer.set("Neutral", scannedSpaceUnits);
+  }
+
+  const planetRows: TotalsSectionRow[] =
+    planetUnitsForTotals.length > 0
+      ? [
+          {
+            key: "planet",
+            label: "Planet",
+            totals: planetTotals,
+            hideAttack: !data.revealed, // neutral planet strength: hide Attack
+          },
+        ]
+      : [];
+
+  const spaceRows: TotalsSectionRow[] = Array.from(spaceUnitsByPlayer.entries()).map(([playerId, units]) => {
+    const display = gameState.players[playerId]?.displayName || playerId;
+    const isNeutral = playerId === "Neutral" || !gameState.players[playerId];
+    return {
+      key: playerId,
+      label: display,
+      totals: sumCombatStats(units),
+      hideAttack: isNeutral, // neutral space strength: hide Attack
+    };
+  });
+
   return (
     <div className="throneworld-info">
       <div className="info-title">System {hexId}</div>
       <div className="info-meta">{data.revealed ? `${ownerName} • Dev ${systemDetails?.dev || 0}` : "Unrevealed"}</div>
+      <ScannedBy data={systemData} players={gameState.players} />
 
       <div className="info-section">
         <div className="system-summary">
@@ -487,57 +582,91 @@ function SystemInfo({ data, gameState }: SystemInfoProps) {
               }
               worldType={systemData.worldType}
               revealed={data.canPeek}
+              showScanners={false}
               size={64}
               ownerColor={ownerColor}
             />
           </div>
 
           <div className="system-totals">
-            {planetUnitsForTotals.length > 0 && <TotalsRow label="Planet" totals={planetTotals} compactLabel={true} />}
+            {/* Planet totals (always shown if we have any units for totals) */}
+            <TotalsSection rows={planetRows} compactLabel={true} />
 
-            {spaceUnitsByPlayer.size > 0 && (
-              <>
-                <div className="info-subtitle">Space</div>
-                <div className="system-space-rows">
-                  {Array.from(spaceUnitsByPlayer.entries()).map(([playerId, units]) => (
-                    <TotalsRow
-                      key={playerId}
-                      label={gameState.players[playerId]?.displayName || playerId}
-                      totals={sumCombatStats(units)}
-                    />
-                  ))}
-                </div>
-              </>
-            )}
+            {/* Space totals */}
+            <TotalsSection title="Space" rows={spaceRows} indentRows={true} compactLabel={true} />
           </div>
         </div>
       </div>
 
       {/* Fleets (composition previews; do not show totals here) */}
-      {allFleets.length > 0 && (
-        <div className="info-section">
-          <div className="info-subtitle">Fleets ({allFleets.length})</div>
-          <div className="fleets-list">
-            {allFleets.map((fleet) => (
-              <div key={fleet.id} className="fleet-preview-row">
-                <ThroneworldUnitCounter
-                  unit={UNITS["fleet"]}
-                  quantity={fleet.spaceUnits.length + fleet.groundUnits.length}
-                  size={36}
-                  hasMoved={false}
-                  playerColor={gameState.players[fleet.owner]?.color || "#666"}
-                />
-                <FleetContents
-                  compact={true}
-                  spaceUnits={fleet.spaceUnits}
-                  groundUnits={fleet.groundUnits}
-                  playerColor={gameState.players[fleet.owner]?.color || "#666"}
-                />
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+      {allFleets.length > 0 &&
+        (() => {
+          const singleUnitsByOwner = new Map<string, ThroneworldUnit[]>();
+          const multiFleets = [];
+
+          for (const fleet of allFleets) {
+            const units = [...fleet.spaceUnits, ...fleet.groundUnits];
+            if (units.length === 1) {
+              const u = units[0];
+              if (!singleUnitsByOwner.has(fleet.owner)) singleUnitsByOwner.set(fleet.owner, []);
+              singleUnitsByOwner.get(fleet.owner)!.push(u);
+            } else {
+              multiFleets.push(fleet);
+            }
+          }
+
+          return (
+            <div className="info-section">
+              <div className="info-subtitle">Fleets ({allFleets.length})</div>
+
+              {/* Single-unit fleets: all on ONE line (wrap if needed), no fleet icon */}
+              {singleUnitsByOwner.size > 0 && (
+                <div className="single-fleet-units">
+                  {Array.from(singleUnitsByOwner.entries()).flatMap(([ownerId, units]) => {
+                    const playerColor = gameState.players[ownerId]?.color || "#666";
+                    return units.map((u, idx) => {
+                      const unitDef = UNITS[u.unitTypeId];
+                      return (
+                        <div key={`${ownerId}-${u.id ?? u.unitTypeId}-${idx}`} className="single-fleet-unit">
+                          <UnitStatCounter
+                            unitDef={unitDef}
+                            quantity={1}
+                            hasMoved={!!u.hasMoved}
+                            playerColor={playerColor}
+                            size={32}
+                          />
+                        </div>
+                      );
+                    });
+                  })}
+                </div>
+              )}
+
+              {/* Multi-unit fleets: keep existing row format */}
+              {multiFleets.length > 0 && (
+                <div className="fleets-list">
+                  {multiFleets.map((fleet) => (
+                    <div key={fleet.id} className="fleet-preview-row">
+                      <ThroneworldUnitCounter
+                        unit={UNITS["fleet"]}
+                        quantity={fleet.spaceUnits.length + fleet.groundUnits.length}
+                        size={36}
+                        hasMoved={false}
+                        playerColor={gameState.players[fleet.owner]?.color || "#666"}
+                      />
+                      <FleetContents
+                        compact={true}
+                        spaceUnits={fleet.spaceUnits}
+                        groundUnits={fleet.groundUnits}
+                        playerColor={gameState.players[fleet.owner]?.color || "#666"}
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })()}
 
       {/* Unrevealed: show neutral spawn units (keep old/simple rendering) */}
       {!data.revealed && systemDetails && (

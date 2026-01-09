@@ -8,44 +8,44 @@ import { createFleet } from "../../shared/models/Fleets.Throneworld";
 import { pickRandom, shuffle } from "../../../../shared/utils/RandomUtils";
 
 export class ChooseHomeworldAction extends GameAction {
-
   constructor() {
     super({
       type: "choose_homeworld",
       undoable: false,
-      params: [{
-        name: "hexId",
-        type: "boardSpace",
-        subtype: "hex",
-        message: "Select homeworld hex",
-        populateChoices: (state: GameState, _playerId: string) => {
-          const tw = state as ThroneworldGameState;
-          const available: string[] = [];
-          for (const [hexId, system] of Object.entries(tw.state.systems)) {
-            if (system.worldType === "Homeworld" && !system.details?.owner) {
-              available.push(hexId);
+      params: [
+        {
+          name: "hexId",
+          type: "boardSpace",
+          subtype: "hex",
+          message: "Select homeworld hex",
+          populateChoices: (state: GameState, _playerId: string) => {
+            const tw = state as ThroneworldGameState;
+            const available: string[] = [];
+            for (const [hexId, system] of Object.entries(tw.state.systems)) {
+              if (system.worldType === "Homeworld" && !system.details?.owner) {
+                available.push(hexId);
+              }
             }
-          }
-          return available.map(h => ({
-            id: h,
-            displayHint: { hexId: h }
-          }));
-        }
-      }]
+            return available.map((h) => ({
+              id: h,
+              displayHint: { hexId: h },
+            }));
+          },
+        },
+      ],
     });
   }
 
   async execute(state: GameState, playerId: string): Promise<ActionResponse> {
     const tw = state as ThroneworldGameState;
-    const hexId = this.params.find(p => p.name === "hexId")?.value;
+    const hexId = this.params.find((p) => p.name === "hexId")?.value;
     if (!hexId) return { action: this, success: false, error: "missing_hexId" };
 
     const system = tw.state.systems[hexId];
     if (!system || system.worldType !== "Homeworld")
       return { action: this, success: false, error: "invalid_homeworld" };
 
-    if (system.details?.owner)
-      return { action: this, success: false, error: "homeworld_taken" };
+    if (system.details?.owner) return { action: this, success: false, error: "homeworld_taken" };
 
     this.assignHomeworld(tw, playerId, hexId);
 

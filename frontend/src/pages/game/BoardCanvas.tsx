@@ -1,6 +1,6 @@
 // /frontend/src/pages/game/BoardCanvas.tsx
 import { useRef, useState } from "react";
-import type InspectContext from "../../../../shared/models/InspectContext";
+import type InspectContext from "../../../../shared-frontend/InspectContext";
 import "./BoardCanvas.css";
 import type { FrontendModuleDefinition } from "../../../../shared-frontend/FrontendModuleDefinition";
 import { useGameStateContext } from "../../../../shared-frontend/contexts/GameStateContext";
@@ -10,10 +10,7 @@ interface Props {
   onInspect?: (context: InspectContext<unknown> | null) => void;
 }
 
-export default function BoardCanvas({
-  module,
-  onInspect,
-}: Props) {
+export default function BoardCanvas({ module, onInspect }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1.0);
   const [pan, setPan] = useState({ x: 0, y: 0 });
@@ -24,16 +21,11 @@ export default function BoardCanvas({
   const boardGeometry = module.getBoardGeometry(gameState);
 
   const handleZoomIn = () => {
-    setScale(prev => Math.min(prev + 0.1, 3.0));
+    setScale((prev) => Math.min(prev + 0.1, 3.0));
   };
 
   const handleZoomOut = () => {
-    setScale(prev => Math.max(prev - 0.1, 0.3));
-  };
-
-  const handleZoomReset = () => {
-    setScale(1.0);
-    setPan({ x: 0, y: 0 });
+    setScale((prev) => Math.max(prev - 0.1, 0.3));
   };
 
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -43,21 +35,17 @@ export default function BoardCanvas({
     const target = e.target as HTMLElement;
 
     // ignore clicks from floating UI
-    if (target.closest('.ui-overlay')) {
+    if (target.closest(".ui-overlay")) {
       return;
     }
 
     // Check if we're inside a nested SVG element (SystemMarker counters)
     const isSVGElement = target instanceof SVGElement;
-    const isNestedSVG = isSVGElement &&
-      target.ownerSVGElement &&
-      target.ownerSVGElement.parentElement?.tagName === 'g';
+    const isNestedSVG = isSVGElement && target.ownerSVGElement && target.ownerSVGElement.parentElement?.tagName === "g";
 
     // Check if we're inside a nested SVG or an interactive element
     const isInteractiveElement =
-      target.classList.contains('game-object') ||
-      target.closest('.game-object') !== null ||
-      isNestedSVG;
+      target.classList.contains("game-object") || target.closest(".game-object") !== null || isNestedSVG;
 
     // Only initiate drag if we're clicking on background or main board elements
     if (isInteractiveElement) return;
@@ -97,15 +85,19 @@ export default function BoardCanvas({
   return (
     <div className="board-viewport">
       <div className="board-controls">
-        <button onClick={handleZoomIn} title="Zoom In" className="zoom-btn">+</button>
+        <button onClick={handleZoomIn} title="Zoom In" className="zoom-btn">
+          +
+        </button>
         {/* <button onClick={handleZoomReset} title="Reset View" className="zoom-btn">⟲</button> */}
-        <button onClick={handleZoomOut} title="Zoom Out" className="zoom-btn">-</button>
+        <button onClick={handleZoomOut} title="Zoom Out" className="zoom-btn">
+          -
+        </button>
         <span className="zoom-label">{Math.round(scale * 100)}%</span>
       </div>
 
       <div
         ref={containerRef}
-        className={`board-pan-surface ${isDragging ? 'dragging' : ''}`}
+        className={`board-pan-surface ${isDragging ? "dragging" : ""}`}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
@@ -115,7 +107,7 @@ export default function BoardCanvas({
           className="board-transform-wrapper"
           style={{
             transform: `translate(${pan.x}px, ${pan.y}px) scale(${scale})`,
-            transformOrigin: '0 0',
+            transformOrigin: "0 0",
           }}
         >
           <svg
@@ -123,13 +115,10 @@ export default function BoardCanvas({
             height={boardGeometry.height}
             viewBox={`0 0 ${boardGeometry.width} ${boardGeometry.height}`}
             style={{
-              display: 'block',
+              display: "block",
             }}
           >
-            <MainBoardComponent
-              boardGeometry={boardGeometry}
-              onInspect={onInspect}
-            />
+            <MainBoardComponent boardGeometry={boardGeometry} onInspect={onInspect} />
           </svg>
         </div>
       </div>

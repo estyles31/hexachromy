@@ -16,7 +16,7 @@ export default function PlayerSlotControl({ slot, slotIndex, isCurrentUser, onCh
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<PlayerPublicProfile[]>([]);
   const [searching, setSearching] = useState(false);
-  
+
   const user = useAuth();
 
   // Search for players
@@ -100,13 +100,10 @@ export default function PlayerSlotControl({ slot, slotIndex, isCurrentUser, onCh
     <div className="player-slot">
       <label>
         Player {slotIndex + 1}
-        <select
-          value={slotType}
-          onChange={e => handleSlotTypeChange(e.target.value as "human" | "bot" | "open")}
-        >
+        <select value={slotType} onChange={(e) => handleSlotTypeChange(e.target.value as "human" | "bot" | "open")}>
+          <option value="bot">Add Bot</option>
           <option value="open">Open Slot</option>
           <option value="human">Invite Player</option>
-          <option value="bot">Add Bot</option>
         </select>
       </label>
 
@@ -116,19 +113,17 @@ export default function PlayerSlotControl({ slot, slotIndex, isCurrentUser, onCh
             type="text"
             placeholder="Search for player..."
             value={searchQuery}
-            onChange={e => setSearchQuery(e.target.value)}
+            onChange={(e) => setSearchQuery(e.target.value)}
           />
-          
+
           {searching && <div className="search-status">Searching...</div>}
-          
+
           {searchResults.length > 0 && (
             <ul className="search-results">
-              {searchResults.map(profile => (
+              {searchResults.map((profile) => (
                 <li key={profile.uid} onClick={() => handlePlayerSelect(profile)}>
                   {profile.displayName}
-                  {profile.avatarUrl && (
-                    <img src={profile.avatarUrl} alt="" className="player-avatar" />
-                  )}
+                  {profile.avatarUrl && <img src={profile.avatarUrl} alt="" className="player-avatar" />}
                 </li>
               ))}
             </ul>
@@ -143,9 +138,7 @@ export default function PlayerSlotControl({ slot, slotIndex, isCurrentUser, onCh
       )}
 
       {slotType === "open" && (
-        <div className="open-slot-info">
-          This slot will be filled when someone joins the game.
-        </div>
+        <div className="open-slot-info">This slot will be filled when someone joins the game.</div>
       )}
     </div>
   );

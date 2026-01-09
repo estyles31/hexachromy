@@ -1,9 +1,9 @@
 // /modules/FrontendModuleDefinition.ts
 import type { GameDefinition } from "../shared/models/GameDefinition";
 import type { GameState } from "../shared/models/GameState";
-import type InspectContext from "../shared/models/InspectContext";
+import type InspectContext from "./InspectContext";
 import type { BoardGeometry } from "../shared/models/BoardGeometry";
-import type { LegalChoice } from "../shared/models/GameAction";
+import type { ActionParam, GameAction, LegalChoice } from "../shared/models/GameAction";
 
 export type VictoryPoints = Record<string, number>;
 
@@ -11,6 +11,14 @@ export interface ChoiceRendererProps {
   choice: LegalChoice;
   playerId?: string;
   onClick: () => void;
+}
+
+export interface ParameterRendererProps {
+  action: GameAction;
+  param: ActionParam<string[]>;
+  value: string[];
+  playerId: string;
+  onChange: (value: any) => void;
 }
 
 export interface FrontendModuleDefinition<State = unknown, InspectPayload = unknown> {
@@ -27,5 +35,6 @@ export interface FrontendModuleDefinition<State = unknown, InspectPayload = unkn
   GameInfoAreaComponent?: React.ComponentType<Record<never, never>>;
   InfoPanelComponent?: React.ComponentType<{ inspected: InspectContext<InspectPayload> | null }>;
 
+  parameterRenderers?: Record<string, React.ComponentType<ParameterRendererProps>>;
   choiceRenderers?: Record<string, React.ComponentType<ChoiceRendererProps>>;
 }

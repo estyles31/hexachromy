@@ -30,7 +30,7 @@ function getBuildableUnits(factionId?: string, maxCost?: number, fleetsInSpace?:
     }
 
     // Filter out fighters if no fleet has cargo capacity
-    if (unitDef.Type === "Space" && (unitDef.Cargo ?? 0) < 0) {
+    if (unitDef.Domain === "Space" && (unitDef.Cargo ?? 0) < 0) {
       const fighterSize = Math.abs(unitDef.Cargo ?? 0);
       const hasCapacity = fleetsInSpace?.some((fleet) => {
         const currentCargo = getCargo(fleet);
@@ -52,7 +52,7 @@ function getUnitCost(unitTypeId: UnitTypeId, factionId?: string): number {
 
 function findFleetForUnit(fleetsInSpace: Fleet[], unitTypeId: UnitTypeId, playerId: string): Fleet | null {
   const unitDef = UNITS[unitTypeId];
-  if (!unitDef || unitDef.Type !== "Space") return null;
+  if (!unitDef || unitDef.Domain !== "Space") return null;
 
   // Shields and Survey Teams get their own fleet
   if (unitDef.Static || unitDef.Explore) {
@@ -124,7 +124,7 @@ export class ProductionAction extends GameAction<ProductionMetadata> {
               metadata: {
                 symbol: unitDef.Symbol,
                 cost: getUnitCost(unitDef.id, player.race),
-                unitType: unitDef.Type,
+                unitType: unitDef.Domain,
               },
             }));
           },
@@ -179,7 +179,7 @@ export class ProductionAction extends GameAction<ProductionMetadata> {
     const unit = buildUnit(unitTypeId, playerId);
 
     // Handle space units with fleet placement logic
-    if (unitDef.Type === "Space") {
+    if (unitDef.Domain === "Space") {
       if (!system.fleetsInSpace[playerId]) system.fleetsInSpace[playerId] = [];
 
       const targetFleet = findFleetForUnit(system.fleetsInSpace[playerId], unitTypeId, playerId);

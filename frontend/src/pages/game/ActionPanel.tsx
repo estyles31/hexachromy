@@ -1,9 +1,31 @@
+// /frontend/src/components/ActionPanel.tsx
 import "./ActionPanel.css";
+import { useEffect, useMemo } from "react";
 import { useSelection } from "../../../../shared-frontend/contexts/SelectionContext";
-import { useMemo } from "react";
 import { getFrontendModule } from "../../modules/getFrontendModule";
 import { useAuth } from "../../auth/useAuth";
 import { useGameStateContext } from "../../../../shared-frontend/contexts/GameStateContext";
+import type { ActionParam } from "../../../../shared/models/GameAction";
+
+/* ----------------------------------------
+   Helpers
+---------------------------------------- */
+
+function getNextChoiceParam(action: { params: ActionParam[] }) {
+  return action.params.find(
+    (p) =>
+      ["choice", "multichoice"].includes(p.type) && p.choices?.length && (p.value === undefined || p.value === null)
+  );
+}
+
+function ButtonRow({ children }: { children: React.ReactNode }) {
+  if (!children) return null;
+  return <div className="action-panel__buttons">{children}</div>;
+}
+
+/* ----------------------------------------
+   Component
+---------------------------------------- */
 
 export default function ActionPanel() {
   const {
@@ -13,6 +35,7 @@ export default function ActionPanel() {
     isLoading,
     showLoadingOverlay,
     select,
+    setParam,
     executeAction,
     cancelAction,
   } = useSelection();
@@ -21,12 +44,26 @@ export default function ActionPanel() {
   const gameState = useGameStateContext();
   const module = getFrontendModule(gameState.gameType);
 
+  /* ----------------------------------------
+     Derived state
+  ---------------------------------------- */
+
   const completeActions = useMemo(
     () => legalActions.actions.filter((a) => a.params.every((p) => p.optional || p.value != null)),
     [legalActions.actions]
   );
 
+  useEffect(() => {
+    if (!isLoading && completeActions.length === 1 && !completeActions[0].finalize) {
+      executeAction(completeActions[0]);
+    }
+  }, [completeActions, executeAction, isLoading]);
+
   const hasSelection = Object.keys(filledParams).length > 0;
+
+  /* ----------------------------------------
+     Early exits
+  ---------------------------------------- */
 
   if (!isLoading && legalActions.actions.length === 0) {
     return null;
@@ -40,45 +77,92 @@ export default function ActionPanel() {
     );
   }
 
+  /* ----------------------------------------
+     Render
+  ---------------------------------------- */
+
+  const actionMessages = legalActions.actions
+    .map((action) => {
+      const nextParam = action.params.find((p) => p.value == null);
+      return nextParam?.message;
+    })
+    .filter((m): m is string => Boolean(m));
+
+  const showMessages = actionMessages.length > 0;
+
   return (
     <div className={`action-panel ${legalActions.actions.length === 0 ? "empty" : ""}`}>
-      {legalActions.actions.flatMap((action) => {
-        const nextParam = action.params.find(
-          (p) =>
-            p.type !== "boardSpace" &&
-            p.type !== "gamePiece" &&
-            p.choices?.length &&
-            (p.value === undefined || p.value === null)
-        );
-
-        if (!nextParam || !nextParam.choices) return [];
-
-        return nextParam.choices.map((choice) => {
-          const Custom = nextParam.subtype && module?.choiceRenderers?.[nextParam.subtype];
-          return Custom ? (
-            <Custom key={choice.id} playerId={user?.uid} choice={choice} onClick={() => select(choice.id)} />
-          ) : (
-            <button key={choice.id} onClick={() => select(choice.id)}>
-              {choice.label}
-            </button>
-          );
-        });
-      })}
-
-      {completeActions.length > 0 && (
-        <>
-          <div className="action-panel__header">Confirm Action</div>
-          <div className="action-panel__buttons">
-            {completeActions.map((action) => (
-              <button key={action.type} onClick={() => executeAction(action)}>
-                {finalizeInfo[action.type]?.label}
-              </button>
-            ))}
-          </div>
-        </>
+      {showMessages && (
+        <div className="action-panel__messages">
+          {actionMessages.map((m, i) => (
+            <div key={i} className="action-message">
+              {m}
+            </div>
+          ))}
+        </div>
       )}
 
-      {hasSelection && <button onClick={cancelAction}>Cancel</button>}
+      {/* Custom parameter renderers for type="custom" */}
+      {legalActions.actions.map((action) => {
+        const nextParam = action.params.find((p) => p.value == null);
+        if (!nextParam || nextParam.type !== "custom" || !nextParam.subtype) return null;
+
+        const CustomParamRenderer = module?.parameterRenderers?.[nextParam.subtype];
+        if (!CustomParamRenderer) return null;
+
+        const currentValue = (filledParams[nextParam.name] as string[]) || [];
+        return (
+          <CustomParamRenderer
+            action={action}
+            key={nextParam.name}
+            param={nextParam}
+            value={currentValue}
+            playerId={user?.uid || ""}
+            onChange={(value) => setParam(nextParam.name, value)}
+          />
+        );
+      })}
+
+      <ButtonRow>
+        {legalActions.actions.flatMap((action) => {
+          const param = getNextChoiceParam(action);
+          if (!param?.choices) return [];
+
+          return param.choices.map((choice) => {
+            const Custom = param.subtype && module?.choiceRenderers?.[param.subtype];
+
+            return Custom ? (
+              <Custom key={choice.id} playerId={user?.uid} choice={choice} onClick={() => select(choice.id)} />
+            ) : (
+              <button key={choice.id} className="action-panel__button" onClick={() => select(choice.id)}>
+                {choice.label ?? choice.id}
+              </button>
+            );
+          });
+        })}
+      </ButtonRow>
+
+      {completeActions.length > 0 && (
+        <ButtonRow>
+          {completeActions.map((action) => (
+            <button
+              key={action.type}
+              className="action-panel__button action-panel__button--primary"
+              onClick={() => executeAction(action)}
+            >
+              {finalizeInfo[action.type]?.label ?? action.type}
+            </button>
+          ))}
+        </ButtonRow>
+      )}
+
+      {hasSelection && (
+        <ButtonRow>
+          <button className="action-panel__button action-panel__button--secondary" onClick={cancelAction}>
+            Cancel
+          </button>
+        </ButtonRow>
+      )}
     </div>
   );
 }

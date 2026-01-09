@@ -1,14 +1,18 @@
 // /modules/throneworld/functions/actions/CombatHelpers.ts
 import type { ThroneworldGameState } from "../../shared/models/GameState.Throneworld";
 import type { ThroneworldUnit } from "../../shared/models/Unit.Throneworld";
-import { getCargo, type Fleet } from "../../shared/models/Fleets.Throneworld";
+import type { Fleet } from "../../shared/models/Fleets.Throneworld";
 import { UNITS } from "../../shared/models/UnitTypes.ThroneWorld";
 import { getHexesWithinRange } from "../../shared/models/BoardLayout.ThroneWorld";
+import { getCargo } from "../../shared/models/Fleets.Throneworld";
+import { PassAction } from "./PassAction";
+import { ActionResponse } from "../../../../shared/models/GameAction";
 
 export interface CombatMetadata {
   hexId: string;
   attackerId: string;
   defenderId: string;
+  actingPlayerId: string;
   roundNumber: number;
   firstGroundRound: boolean;
   spaceCombatActive: boolean;
@@ -32,6 +36,89 @@ interface CombatRoundResult {
   defenderCasualties: ThroneworldUnit[];
 }
 
+/**
+ * Transition from current phase to CombatSubPhase
+ * Saves current phase state and initializes combat
+ */
+export function transitionToCombatSubPhase(state: ThroneworldGameState, combat: CombatMetadata): ActionResponse {
+  // Save current phase
+  (state.state as any).previousPhase = state.state.currentPhase;
+  (state.state as any).previousPhaseMetadata = state.state.phaseMetadata;
+
+  // Switch to combat
+  state.state.currentPhase = "CombatSubPhase";
+  state.state.phaseMetadata = combat as any;
+
+  return {
+    action: new PassAction(),
+    success: true,
+    message: `Combat initiated at ${combat.hexId}`,
+    phaseTransition: {
+      nextPhase: "CombatSubPhase",
+      transitionType: "nextPhase",
+    },
+  };
+}
+
+// ============================================================================
+// Combat Detection
+// ============================================================================
+
+/**
+ * Scan all hexes and find combat situations
+ * Returns array of all combat hexes (randomized order)
+ */
+export function findAllCombatHexes(
+  state: ThroneworldGameState,
+  actingPlayerId: string
+): Array<{
+  hexId: string;
+  attackerId: string;
+  defenderId: string;
+}> {
+  const combats: Array<{ hexId: string; attackerId: string; defenderId: string }> = [];
+
+  for (const [hexId, system] of Object.entries(state.state.systems)) {
+    const playersWithForces = new Set<string>();
+
+    // Check space forces
+    for (const [playerId, fleets] of Object.entries(system.fleetsInSpace)) {
+      if (fleets.length > 0 && fleets.some((f) => f.spaceUnits.length > 0)) {
+        playersWithForces.add(playerId);
+      }
+    }
+
+    // Check ground forces
+    for (const [playerId, units] of Object.entries(system.unitsOnPlanet)) {
+      if (units && units.length > 0) {
+        playersWithForces.add(playerId);
+      }
+    }
+
+    // Combat if 2+ players present
+    if (playersWithForces.size >= 2) {
+      const players = Array.from(playersWithForces);
+
+      // Acting player is always the attacker
+      const attackerId = actingPlayerId;
+
+      // Defender is first other player (prefer non-neutral if possible)
+      const defenderId =
+        players.find((p) => p !== attackerId && p !== "neutral") || players.find((p) => p !== attackerId) || "neutral";
+
+      combats.push({ hexId, attackerId, defenderId });
+    }
+  }
+
+  // Randomize combat order
+  for (let i = combats.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [combats[i], combats[j]] = [combats[j], combats[i]];
+  }
+
+  return combats;
+}
+
 // ============================================================================
 // Combat Initialization
 // ============================================================================
@@ -40,19 +127,13 @@ export function initiateCombat(
   state: ThroneworldGameState,
   hexId: string,
   attackerId: string,
+  defenderId: string,
+  actingPlayerId: string,
   inCommRange: boolean = false,
   sourceHexId?: string
 ): CombatMetadata | null {
   const system = state.state.systems[hexId];
   if (!system) return null;
-
-  const defenderId =
-    Object.keys(system.fleetsInSpace).find((owner) => owner !== attackerId && system.fleetsInSpace[owner].length > 0) ||
-    Object.keys(system.unitsOnPlanet).find(
-      (owner) => owner !== attackerId && (system.unitsOnPlanet[owner]?.length ?? 0) > 0
-    );
-
-  if (!defenderId) return null;
 
   const hasSpaceCombat = hasSpaceForces(system, attackerId) && hasSpaceForces(system, defenderId);
   const hasGroundCombat = hasGroundForces(system, attackerId) && hasGroundForces(system, defenderId);
@@ -63,6 +144,7 @@ export function initiateCombat(
     hexId,
     attackerId,
     defenderId,
+    actingPlayerId,
     roundNumber: 0,
     firstGroundRound: true,
     spaceCombatActive: hasSpaceCombat,
@@ -105,7 +187,27 @@ export function executeOneCombatRound(state: ThroneworldGameState, combat: Comba
     }
   }
 
+  // After space combat ends, check for normal invasion or ground combat start
   if (!combat.spaceCombatActive && !combat.groundCombatActive) {
+    // Check if attacker won space and can do normal invasion
+    if (combat.inCommRange && !hasSpaceForces(system, combat.defenderId)) {
+      const attackerFleets = system.fleetsInSpace[combat.attackerId] || [];
+      const hasGroundUnitsInFleets = attackerFleets.some((f) => f.groundUnits.length > 0);
+
+      if (hasGroundUnitsInFleets) {
+        // Move ground units from fleets to planet
+        if (!system.unitsOnPlanet[combat.attackerId]) {
+          system.unitsOnPlanet[combat.attackerId] = [];
+        }
+
+        for (const fleet of attackerFleets) {
+          system.unitsOnPlanet[combat.attackerId].push(...fleet.groundUnits);
+          fleet.groundUnits = [];
+        }
+      }
+    }
+
+    // Check if ground combat should start
     if (hasGroundForces(system, combat.attackerId) && hasGroundForces(system, combat.defenderId)) {
       combat.groundCombatActive = true;
     }

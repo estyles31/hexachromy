@@ -3,7 +3,7 @@ import type { GameState } from "./GameState";
 import type { PhaseContext } from "./PhaseContext";
 
 /** Base parameter types that the framework understands */
-export type ParamType = "boardSpace" | "gamePiece" | "choice" | "number" | "text";
+export type ParamType = "boardSpace" | "gamePiece" | "choice" | "multiChoice" | "number" | "text" | "custom";
 
 /** A legal choice for a parameter value */
 export interface LegalChoice {
@@ -28,6 +28,7 @@ export interface ActionParam<T = string> {
   value?: T | null;
   choices?: LegalChoice[];
   populateChoices?: (state: GameState, playerId: string) => LegalChoice[];
+  hasValidChoices?: boolean; //optional, defaults to choices?.length > 0
 }
 
 export interface ActionResponse {

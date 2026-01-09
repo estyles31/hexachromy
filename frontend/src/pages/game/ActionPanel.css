@@ -1,39 +1,39 @@
 /* /frontend/src/components/ActionPanel.css */
+
 .action-panel {
-  margin: 3px;
-  padding: 8px;
+  margin: 4px;
+  padding: 10px;
   background: #2a2a2a;
   border-radius: 6px;
   color: #eee;
+  display: flex;
+  flex-direction: column;
+  gap: 10px; /* centralize vertical rhythm */
+  position: absolute;
+  right: 300px;
+  min-width: 260px;
 }
 
 .action-panel.loading,
 .action-panel.empty {
-  padding: 8px;
   font-size: 13px;
   color: #999;
   font-style: italic;
 }
 
+/* Disable entire panel */
 .action-panel__disabled {
   pointer-events: none;
-  opacity: 0.65; /* optional but strongly recommended */
+  opacity: 0.65;
 }
+
+/* --------------------------------------------------
+   Message / Info
+-------------------------------------------------- */
 
 .action-message {
-  margin-bottom: 12px;
-  padding: 8px;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 4px;
-  font-size: 14px;
-  font-weight: 500;
-}
-
-.action-info {
-  padding: 8px;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 4px;
-  font-size: 13px;
+  padding: 8px 8px;
+  margin: 4px 0px;
   color: #ccc;
 }
 
@@ -44,26 +44,36 @@
 .action-panel__buttons {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 8px;
+  gap: 10px; /* better horizontal + vertical spacing */
+  margin-top: 4px; /* slight separation from text */
 }
 
+/* Base button */
 .action-panel__button {
-  padding: 6px 10px;
+  min-height: 32px; /* gives click target some weight */
+  padding: 6px 14px;
   font-size: 13px;
   font-weight: 500;
+
   border-radius: 4px;
   border: none;
   cursor: pointer;
+
   background: #3a3a3a;
   color: #eee;
+
   transition:
     background 0.15s ease,
-    opacity 0.15s ease;
+    opacity 0.15s ease,
+    transform 0.05s ease;
 }
 
 .action-panel__button:hover:not(:disabled) {
   background: #4a4a4a;
+}
+
+.action-panel__button:active:not(:disabled) {
+  transform: translateY(1px);
 }
 
 .action-panel__button:disabled {
@@ -71,12 +81,7 @@
   cursor: default;
 }
 
-/* Choice buttons (neutral) */
-.action-panel__button--choice {
-  background: #3a3a3a;
-}
-
-/* Primary confirm button */
+/* Primary action */
 .action-panel__button--primary {
   background: #4c6ef5;
   color: #fff;
@@ -86,7 +91,7 @@
   background: #5c7cfa;
 }
 
-/* Secondary (Cancel, etc.) */
+/* Secondary / cancel */
 .action-panel__button--secondary {
   background: #555;
   color: #ddd;

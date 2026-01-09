@@ -8,13 +8,16 @@ export interface SelectionContextType {
   showLoadingOverlay: boolean;
 
   legalActions: LegalActionsResponse;
-  filledParams: Record<string, string>;
+  filledParams: Record<string, string | string[]>;
   selectableBoardSpaces: Set<string>;
   selectableGamePieces: Set<string>;
   finalizeInfo: Record<string, ActionFinalize>;
 
   // User clicks a choice (hex, piece, or button) - pass the choice.id
   select: (choiceId: string) => void;
+
+  // set value of a parameter directly
+  setParam: (paramName: string, value: any) => void;
 
   // Cancel current selection chain
   cancelAction: () => void;

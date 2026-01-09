@@ -14,7 +14,7 @@ export function SelectionProvider({ children }: { children: React.ReactNode }) {
 
   const [legalActions, setLegalActions] = useState<LegalActionsResponse>({ actions: [] });
   const [finalizeInfo, setFinalizeInfo] = useState<Record<string, ActionFinalize>>({});
-  const [filledParams, setFilledParams] = useState<Record<string, string>>({});
+  const [filledParams, setFilledParams] = useState<Record<string, string | string[]>>({});
   const [selectableBoardSpaces, setSelectableBoardSpaces] = useState<Set<string>>(new Set());
   const [selectableGamePieces, setSelectableGamePieces] = useState<Set<string>>(new Set());
 
@@ -69,7 +69,7 @@ export function SelectionProvider({ children }: { children: React.ReactNode }) {
   /* ---------------- backend fetch ---------------- */
 
   const fetchLegalActions = useCallback(
-    async (params?: Record<string, string>): Promise<LegalActionsResponse> => {
+    async (params?: Record<string, string | string[]>): Promise<LegalActionsResponse> => {
       if (!user) return { actions: [] };
 
       const fetchId = ++fetchIdRef.current;
@@ -164,6 +164,20 @@ export function SelectionProvider({ children }: { children: React.ReactNode }) {
     [legalActions.actions, filledParams, fetchLegalActions, fetchFinalizeInfo]
   );
 
+  const setParam = useCallback(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    async (paramName: string, value: any) => {
+      const newFilledParams = {
+        ...filledParams,
+        [paramName]: value,
+      };
+
+      setFilledParams(newFilledParams);
+      await fetchLegalActions(newFilledParams);
+    },
+    [filledParams, fetchLegalActions]
+  );
+
   const cancelAction = useCallback(() => {
     beginUpdate(true);
     setFilledParams({});
@@ -191,6 +205,7 @@ export function SelectionProvider({ children }: { children: React.ReactNode }) {
         isLoading,
         showLoadingOverlay,
         select,
+        setParam,
         cancelAction,
         executeAction,
       }}

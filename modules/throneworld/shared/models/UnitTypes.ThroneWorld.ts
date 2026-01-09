@@ -1,12 +1,12 @@
 import raw from "../data/units.throneworld.json";
 
-export type UnitType = "Space" | "Ground";
+export type Domain = "Space" | "Ground";
 
 export interface ThroneworldUnitType {
-  id: string;            // used to define UnitTypeId, "F","M","A","C","bH", etc
+  id: string; // used to define UnitTypeId, "F","M","A","C","bH", etc
   Name: string;
   Symbol: string;
-  Type: UnitType;
+  Domain: Domain;
   Cost: number;
 
   // --- Common combat stats ---
@@ -15,19 +15,19 @@ export interface ThroneworldUnitType {
   HP?: number;
 
   // Cargo: positive = capacity, negative = requires capacity
-  Cargo?: number;        // undefined → treat as 0
+  Cargo?: number; // undefined → treat as 0
 
   // --- Special abilities ---
-  Explore?: boolean;     // Survey Team
-  Static?: boolean;      // Command Bunker, Shield
-  Command?: boolean;     // Command Bunkers
-  FirstFire?: boolean;   // Drop Infantry
+  Explore?: boolean; // Survey Team
+  Static?: boolean; // Command Bunker, Shield
+  Command?: boolean; // Command Bunkers
+  FirstFire?: boolean; // Drop Infantry
   FirstDefend?: boolean; // Command Bunkers
-  DropAttack?: boolean;  // Drop Infantry
-  Absorb?: number;       // Shields absorb hits
-  NonCombat?: boolean;   // Survey Teams auto-lose in combat
+  DropAttack?: boolean; // Drop Infantry
+  Absorb?: number; // Shields absorb hits
+  NonCombat?: boolean; // Survey Teams auto-lose in combat
 
-  Restricted?: boolean;  // Racial units
+  Restricted?: boolean; // Racial units
 
   // Defense bonuses (optional nested structure)
   DefenseBonus?: {
@@ -38,14 +38,9 @@ export interface ThroneworldUnitType {
 }
 
 // Make the JSON strongly typed
-const loadedUnits: Record<string, ThroneworldUnitType> = raw as Record<
-  string,
-  ThroneworldUnitType
->;
+const loadedUnits: Record<string, ThroneworldUnitType> = raw as Record<string, ThroneworldUnitType>;
 
-export const UNITS = Object.fromEntries(
-  Object.entries(loadedUnits).map(([id, u]) => [id, normalizeUnit(u)])
-);
+export const UNITS = Object.fromEntries(Object.entries(loadedUnits).map(([id, u]) => [id, normalizeUnit(u)]));
 
 // Export the unit ID type
 export type UnitTypeId = keyof typeof UNITS;

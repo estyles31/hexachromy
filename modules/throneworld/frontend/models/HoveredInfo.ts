@@ -25,7 +25,7 @@ export interface HoveredFleetInfo {
 export interface HoveredUnitInfo {
   kind: "unit";
   unitId: string;
-  hexId: string;
+  hexId?: string;
   unit: ThroneworldUnit;
   quantity: number;
   unitDef: ThroneworldUnitType;

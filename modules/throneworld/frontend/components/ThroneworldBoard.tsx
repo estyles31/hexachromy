@@ -5,7 +5,7 @@ import ThroneworldSystemLayer from "./ThroneworldSystemLayer";
 import { buildThroneworldBoardView } from "../models/ThroneworldBoardView";
 import type { ThroneworldGameState } from "../../shared/models/GameState.Throneworld";
 import { type ThroneworldBoardGeometry, getHexagonPoints } from "../../shared/models/BoardGeometry.ThroneWorld";
-import type InspectContext from "../../../../shared/models/InspectContext";
+import type InspectContext from "../../../../shared-frontend/InspectContext";
 import type { HoveredInfo } from "../models/HoveredInfo";
 import { useSelection } from "../../../../shared-frontend/contexts/SelectionContext";
 import { useGameStateContext } from "../../../../shared-frontend/contexts/GameStateContext";
@@ -18,49 +18,47 @@ interface Props {
 
 export const neutralColor = "#7f4800";
 
-export default function ThroneworldBoard({
-  boardGeometry,
-  onInspect,
-}: Props) {
+export default function ThroneworldBoard({ boardGeometry, onInspect }: Props) {
   const gameState = useGameStateContext() as ThroneworldGameState;
   const { filledParams, select, selectableBoardSpaces } = useSelection();
 
- const playerColors = useMemo(
-    () => {
-      const colors = Object.fromEntries(Object.entries(gameState.players).map(([uid, player]) => [uid, player.color]));
-      colors["neutral"] = neutralColor;
-      return colors;
-    },
-    [gameState.players]
-  );
+  const playerColors = useMemo(() => {
+    const colors = Object.fromEntries(Object.entries(gameState.players).map(([uid, player]) => [uid, player.color]));
+    colors["neutral"] = neutralColor;
+    return colors;
+  }, [gameState.players]);
 
   const boardView = useMemo(
-    () => buildThroneworldBoardView({
-      game: gameState,
-      boardGeometry,
-      playerColors,
-    }),
+    () =>
+      buildThroneworldBoardView({
+        game: gameState,
+        boardGeometry,
+        playerColors,
+      }),
     [gameState, boardGeometry, playerColors]
   );
 
   // Handle hex click - just pass the hexId
-  const handleHexClick = useCallback((hexId: string) => {
-    if (selectableBoardSpaces.has(hexId)) {
-      select(hexId);
-    } 
-  }, [selectableBoardSpaces, select]);
+  const handleHexClick = useCallback(
+    (hexId: string) => {
+      if (selectableBoardSpaces.has(hexId)) {
+        select(hexId);
+      }
+    },
+    [selectableBoardSpaces, select]
+  );
 
   // Get currently selected hex IDs for highlighting
   const selectedHexIds = useMemo(() => {
     const hexes = new Set<string>();
-    
+
     // Check if any filled param value is a hex ID that exists on the board
     for (const value of Object.values(filledParams)) {
-      if (boardGeometry.hexes[value]) {
+      if (typeof value === "string" && boardGeometry.hexes[value]) {
         hexes.add(value);
       }
     }
-    
+
     return hexes;
   }, [filledParams, boardGeometry.hexes]);
 
@@ -71,7 +69,7 @@ export default function ThroneworldBoard({
       {/* Highlight overlay for selectable hexes */}
       {selectableBoardSpaces.size > 0 && (
         <g className="hex-highlights">
-          {Array.from(selectableBoardSpaces).map(hexId => {
+          {Array.from(selectableBoardSpaces).map((hexId) => {
             const hex = boardGeometry.hexes[hexId];
             if (!hex) return null;
 
@@ -101,7 +99,7 @@ export default function ThroneworldBoard({
       {/* Selection indicators */}
       {selectedHexIds.size > 0 && (
         <g className="selection-indicators">
-          {Array.from(selectedHexIds).map(hexId => {
+          {Array.from(selectedHexIds).map((hexId) => {
             const hex = boardGeometry.hexes[hexId];
             if (!hex) return null;
 
@@ -121,7 +119,7 @@ export default function ThroneworldBoard({
       )}
 
       <ThroneworldSystemLayer boardView={boardView} onInspect={onInspect} />
-      <UnitCountersLayer boardView={boardView} onInspect={onInspect}/>
+      <UnitCountersLayer boardView={boardView} onInspect={onInspect} />
     </>
   );
 }

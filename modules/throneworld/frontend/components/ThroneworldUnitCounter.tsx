@@ -20,7 +20,7 @@ export default function UnitCounter({
   highlighted = false,
   selected = false,
 }: UnitCounterProps) {
-  const { id: unitId, Symbol: glyph, Type, Cargo: cargo = null } = unit;
+  const { id: unitId, Symbol: glyph, Domain: Type, Cargo: cargo = null } = unit;
 
   const isSpace = Type === "Space";
   const domainColor = isSpace ? "#6ca2faff" : "#ff8940ff"; // blue/orange ring
