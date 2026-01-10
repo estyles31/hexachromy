@@ -5,13 +5,10 @@
         "CannotBuild": ["H"],
         "CanBuild": ["bH"],
         "StartingTech": {
-            "Ground": 2,
-            "Space": 1,
-            "Jump": 1,
-            "Comm": 1
-        },
-        "TechBonus": {
-            "Ground": 1
+            "Ground": { "currentBox": 1, "bonus": 1 },
+            "Space": { "currentBox": 1, "bonus": 0 },
+            "Jump": { "currentBox": 1, "bonus": 0 },
+            "Comm": { "currentBox": 1, "bonus": 0 }
         }
     },
     "P": {
@@ -20,26 +17,20 @@
         "CannotBuild": ["F"],
         "CanBuild": ["pF"],
         "StartingTech": {
-            "Ground": 1,
-            "Space": 2,
-            "Jump": 1,
-            "Comm": 1
-        },
-        "TechBonus": {
-            "Space": 1
+            "Ground": { "currentBox": 1, "bonus": 0 },
+            "Space": { "currentBox": 1, "bonus": 1 },
+            "Jump": { "currentBox": 1, "bonus": 0 },
+            "Comm": { "currentBox": 1, "bonus": 0 }
         }
     },
     "Q": {
         "id": "Q",
         "Name": "Q'teni",
         "StartingTech": {
-            "Ground": 1,
-            "Space": 1,
-            "Jump": 1,
-            "Comm": 2
-        },
-        "TechBonus": {
-            "Comm": 1
+            "Ground": { "currentBox": 1, "bonus": 0 },
+            "Space": { "currentBox": 1, "bonus": 0 },
+            "Jump": { "currentBox": 1, "bonus": 0 },
+            "Comm": { "currentBox": 1, "bonus": 1 }
         },
         "BuildDiscount": {
             "C": 5
@@ -51,13 +42,10 @@
         "CannotBuild": ["L"],
         "CanBuild": ["tL"],
         "StartingTech": {
-            "Ground": 1,
-            "Space": 1,
-            "Jump": 2,
-            "Comm": 1
-        },
-        "TechBonus": {
-            "Jump": 1
+            "Ground": { "currentBox": 1, "bonus": 0 },
+            "Space": { "currentBox": 1, "bonus": 0 },
+            "Jump": { "currentBox": 1, "bonus": 1 },
+            "Comm": { "currentBox": 1, "bonus": 0 }
         },
         "SpecialAbility": {
             "FreeHWReturn": 1
@@ -67,10 +55,10 @@
         "id": "V",
         "Name": "Veneb",
         "StartingTech": {
-            "Ground": 2,
-            "Space": 2,
-            "Jump": 2,
-            "Comm": 2
+            "Ground": { "currentBox": 2, "bonus": 0 },
+            "Space": { "currentBox": 2, "bonus": 0 },
+            "Jump": { "currentBox": 2, "bonus": 0 },
+            "Comm": { "currentBox": 2, "bonus": 0 }
         },
         "SpecialAbility": {
             "TechReroll": 1
@@ -80,10 +68,10 @@
         "id": "Z",
         "Name": "Zytal",
         "StartingTech": {
-            "Ground": 1,
-            "Space": 1,
-            "Jump": 1,
-            "Comm": 1
+            "Ground": { "currentBox": 1, "bonus": 0 },
+            "Space": { "currentBox": 1, "bonus": 0 },
+            "Jump": { "currentBox": 1, "bonus": 0 },
+            "Comm": { "currentBox": 1, "bonus": 0 }
         },
         "ProductionBonus": {
             "Throneworld": 2,
