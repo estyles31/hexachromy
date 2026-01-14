@@ -3,9 +3,10 @@ import { registerAction } from "../../../../shared-backend/ActionRegistry";
 import { PhaseContext } from "../../../../shared/models/PhaseContext";
 import { GameAction, ActionFinalize, ActionResponse } from "../../../../shared/models/GameAction";
 import { GameState } from "../../../../shared/models/GameState";
-import { getHexesWithinRange } from "../../shared/models/BoardLayout.ThroneWorld";
+import { getHexesWithinRange } from "../../shared/models/BoardLayout.Throneworld";
 import { ThroneworldGameState } from "../../shared/models/GameState.Throneworld";
 import { findUnit, getAvailableBunkers, revealSystemToPlayer } from "./ActionHelpers";
+import { getEffectiveLevel } from "../../shared/models/Tech.Throneworld";
 
 interface ScanMetadata {
   targetHexId?: string;
@@ -47,7 +48,7 @@ export class ScanAction extends GameAction<ScanMetadata> {
             if (!bunker) return [];
 
             const player = tw.players[playerId];
-            const comm = player.tech.Comm ?? 1;
+            const comm = getEffectiveLevel(player.tech.Comm);
             const scenario =
               typeof tw.options.scenario === "string" && tw.options.scenario.trim() ? tw.options.scenario : "6p";
             const reachable = getHexesWithinRange(bunker.hexId, comm, scenario);
@@ -99,7 +100,7 @@ export class ScanAction extends GameAction<ScanMetadata> {
     if (already) return { action: this, success: false, error: "hex_scanned" };
 
     const player = tw.players[playerId];
-    const comm = player.tech.Comm ?? 1;
+    const comm = getEffectiveLevel(player.tech.Comm);
     const scenario = typeof tw.options.scenario === "string" && tw.options.scenario.trim() ? tw.options.scenario : "6p";
     const reachable = getHexesWithinRange(bunkerHexId, comm, scenario);
 

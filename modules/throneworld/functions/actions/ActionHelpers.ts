@@ -1,11 +1,12 @@
 // /modules/throneworld/functions/actions/ActionHelpers.ts
-import { getHexesWithinRange, hexGraphDistance } from "../../shared/models/BoardLayout.ThroneWorld";
+import { getHexesWithinRange, hexGraphDistance } from "../../shared/models/BoardLayout.Throneworld";
 import { Fleet } from "../../shared/models/Fleets.Throneworld";
 import { ThroneworldGameState, ThroneworldPlayerView } from "../../shared/models/GameState.Throneworld";
-import { ThroneworldUnit } from "../../shared/models/Unit.Throneworld";
-import { UNITS } from "../../shared/models/UnitTypes.ThroneWorld";
+import { ThroneworldUnit } from "../../shared/models/Units.Throneworld";
+import { UNITS } from "../../shared/models/Units.Throneworld";
 import type { PhaseContext } from "../../../../shared/models/PhaseContext";
 import type { LegalChoice } from "../../../../shared/models/GameAction";
+import { getEffectiveLevel } from "../../shared/models/Tech.Throneworld";
 
 // ============================================================================
 // Unit and Fleet Lookups
@@ -65,7 +66,7 @@ export function findFleet(
 
 export function getHexesInCommRange(originHexId: string, playerId: string, state: ThroneworldGameState): string[] {
   const player = state.players[playerId];
-  const commRange = player?.tech.Comm || 1;
+  const commRange = getEffectiveLevel(player?.tech.Comm);
   const scenario =
     typeof state.options.scenario === "string" && state.options.scenario.trim().length > 0
       ? state.options.scenario
@@ -75,7 +76,7 @@ export function getHexesInCommRange(originHexId: string, playerId: string, state
 
 export function getHexesInJumpRange(originHexId: string, playerId: string, state: ThroneworldGameState): string[] {
   const player = state.players[playerId];
-  const jumpRange = player?.tech.Jump || 1;
+  const jumpRange = getEffectiveLevel(player?.tech.Jump);
   const scenario =
     typeof state.options.scenario === "string" && state.options.scenario.trim().length > 0
       ? state.options.scenario
@@ -90,7 +91,7 @@ export function IsInCommRange(
   state: ThroneworldGameState
 ): boolean {
   const player = state.players[playerId];
-  const commRange = player?.tech.Comm || 1;
+  const commRange = getEffectiveLevel(player?.tech.Comm);
   const scenario =
     typeof state.options.scenario === "string" && state.options.scenario.trim().length > 0
       ? state.options.scenario

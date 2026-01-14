@@ -7,7 +7,7 @@ import type { ThroneworldGameState } from "../../shared/models/GameState.Thronew
 import { JumpAction } from "../actions/JumpAction";
 import { ProductionAction } from "../actions/ProductionAction";
 import { PassAction } from "../actions/PassAction";
-import { UNITS } from "../../shared/models/UnitTypes.ThroneWorld";
+import { UNITS } from "../../shared/models/Units.Throneworld";
 import { clearMovedUnits, readyAllBunkers } from "../actions/ActionHelpers";
 
 export class OutreachPhase extends Phase {
@@ -95,8 +95,12 @@ export class OutreachPhase extends Phase {
     const state = ctx.gameState as ThroneworldGameState;
 
     // Execute action consequences immediately
-    // Each action knows how to handle its own consequences
     if (result.action.type === "jump" || result.action.type === "scan") {
+      if ("executeConsequences" in result.action && typeof result.action.executeConsequences === "function") {
+        await (result.action as any).executeConsequences(ctx, playerId);
+      }
+    } else if (result.action.type === "production") {
+      // Execute production consequences immediately in Outreach
       if ("executeConsequences" in result.action && typeof result.action.executeConsequences === "function") {
         await (result.action as any).executeConsequences(ctx, playerId);
       }

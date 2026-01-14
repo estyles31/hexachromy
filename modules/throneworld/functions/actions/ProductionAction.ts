@@ -3,14 +3,18 @@ import { GameAction, ActionResponse, ActionFinalize } from "../../../../shared/m
 import { GameState } from "../../../../shared/models/GameState";
 import { ThroneworldGameState } from "../../shared/models/GameState.Throneworld";
 import { registerAction } from "../../../../shared-backend/ActionRegistry";
-import { UNITS, UnitTypeId, ThroneworldUnitType } from "../../shared/models/UnitTypes.ThroneWorld";
-import { buildUnit } from "../../shared/models/Unit.Throneworld";
-import { addUnitToSystem } from "../../shared/models/Systems.ThroneWorld";
-import { Factions } from "../../shared/models/Factions.ThroneWorld";
+import { UNITS, UnitTypeId, ThroneworldUnitType, buildUnit } from "../../shared/models/Units.Throneworld";
+import { addUnitToSystem } from "../../shared/models/Systems.Throneworld";
+import { Factions } from "../../shared/models/Factions.Throneworld";
 import { createFleet, addUnitToFleet, getCargo, type Fleet } from "../../shared/models/Fleets.Throneworld";
+import { PhaseContext } from "../../../../shared/models/PhaseContext";
+import { isPlanetConnected } from "../../shared/models/Production.Throneworld";
 
 interface ProductionMetadata {
+  hexId?: string;
+  unitTypeId?: UnitTypeId;
   cost?: number;
+  localProduction?: boolean;
 }
 
 function getBuildableUnits(factionId?: string, maxCost?: number, fleetsInSpace?: Fleet[]): ThroneworldUnitType[] {
@@ -122,7 +126,7 @@ export class ProductionAction extends GameAction<ProductionMetadata> {
               id: unitDef.id,
               label: unitDef.Name,
               metadata: {
-                symbol: unitDef.Symbol,
+                glpyh: unitDef.Glyph,
                 cost: getUnitCost(unitDef.id, player.race),
                 unitType: unitDef.Domain,
               },
@@ -162,6 +166,8 @@ export class ProductionAction extends GameAction<ProductionMetadata> {
       return { action: this, success: false, error: `Cannot build ${unitDef.Name}` };
 
     const cost = getUnitCost(unitTypeId, player.race);
+
+    // Check production limits
     const pending = pendingProduction ?? [];
     const alreadySpentAtPlanet = pending
       .filter((p) => p.getStringParam("hexId") === hexId)
@@ -169,13 +175,76 @@ export class ProductionAction extends GameAction<ProductionMetadata> {
         const uId = action.getStringParam("unitTypeId") as UnitTypeId;
         return sum + getUnitCost(uId, player.race);
       }, 0);
-    const isHomeworld = system.worldType === "Homeworld";
-    const planetLimit = isHomeworld ? undefined : (system.details?.dev ?? 0);
-    const remainingAtPlanet = planetLimit === undefined ? Infinity : planetLimit - alreadySpentAtPlanet;
-    if (cost > remainingAtPlanet) return { action: this, success: false, error: "Exceeds planet production limit" };
-    if (cost > player.resources) return { action: this, success: false, error: "Insufficient resources" };
 
-    player.resources -= cost;
+    // Determine if this is local production (isolated planet)
+    const isConnected = isPlanetConnected(tw, hexId, playerId);
+    const isLocalProduction = !isConnected;
+
+    if (isLocalProduction) {
+      // Isolated planet - check local production limit (free up to dev value)
+      const planetLimit = system.details?.dev ?? 0;
+      const remainingAtPlanet = planetLimit - alreadySpentAtPlanet;
+      if (cost > remainingAtPlanet) {
+        return {
+          action: this,
+          success: false,
+          error: `Exceeds local production limit (${remainingAtPlanet} remaining)`,
+        };
+      }
+    } else {
+      // Connected planet or homeworld - check treasury
+      const isHomeworld = system.worldType === "Homeworld";
+      if (!isHomeworld) {
+        // Non-homeworld connected planets have a dev limit too (but uses treasury)
+        const planetLimit = system.details?.dev ?? 0;
+        const remainingAtPlanet = planetLimit - alreadySpentAtPlanet;
+        if (cost > remainingAtPlanet) {
+          return {
+            action: this,
+            success: false,
+            error: `Exceeds planet production limit (${remainingAtPlanet} remaining)`,
+          };
+        }
+      }
+
+      if (cost > player.resources) {
+        return { action: this, success: false, error: "Insufficient resources" };
+      }
+    }
+
+    // Deduct resources immediately (for connected planets only)
+    if (!isLocalProduction) {
+      player.resources -= cost;
+    }
+
+    // Store metadata for executeConsequences
+    this.metadata.hexId = hexId;
+    this.metadata.unitTypeId = unitTypeId;
+    this.metadata.cost = cost;
+    this.metadata.localProduction = isLocalProduction;
+
+    return {
+      action: this,
+      success: true,
+      message: `Queued ${unitDef.Name} at ${hexId} (${isLocalProduction ? "local" : cost + " ⚡"})`,
+      undoable: true,
+    };
+  }
+
+  async executeConsequences(ctx: PhaseContext, playerId: string): Promise<void> {
+    const tw = ctx.gameState as ThroneworldGameState;
+    const { hexId, unitTypeId } = this.metadata;
+
+    if (!hexId || !unitTypeId) {
+      throw new Error("Production action missing metadata");
+    }
+
+    const system = tw.state.systems[hexId];
+    if (!system) throw new Error("Invalid hex in production consequences");
+
+    const unitDef = UNITS[unitTypeId];
+    if (!unitDef) throw new Error("Invalid unit type in production consequences");
+
     const unit = buildUnit(unitTypeId, playerId);
 
     // Handle space units with fleet placement logic
@@ -185,25 +254,14 @@ export class ProductionAction extends GameAction<ProductionMetadata> {
       const targetFleet = findFleetForUnit(system.fleetsInSpace[playerId], unitTypeId, playerId);
 
       if (targetFleet) {
-        // Add to existing fleet
         addUnitToFleet(targetFleet, unit);
       } else {
-        // Create new fleet
         const newFleet = createFleet(unit);
         system.fleetsInSpace[playerId].push(newFleet);
       }
     } else {
-      // Ground units use existing addUnitToSystem
       addUnitToSystem(system, unit);
     }
-
-    this.metadata.cost = cost;
-    return {
-      action: this,
-      success: true,
-      message: `Built ${unitDef.Name} at ${hexId} for ${cost} resources`,
-      undoable: true,
-    };
   }
 }
 

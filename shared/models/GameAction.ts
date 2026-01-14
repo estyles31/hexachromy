@@ -1,4 +1,5 @@
 // /shared/models/GameAction.ts
+import type { ActionLogMessage, ActionLogAnimation } from "./ActionHistoryEntry";
 import type { GameState } from "./GameState";
 import type { PhaseContext } from "./PhaseContext";
 
@@ -34,10 +35,16 @@ export interface ActionParam<T = string> {
 export interface ActionResponse {
   action: GameAction | IAction;
   success: boolean;
-  message?: string;
+  message?: string; // Error messages and backward compatibility
   undoable?: boolean;
   error?: string;
   phaseTransition?: PhaseTransition;
+
+  logEntries?: Array<{
+    messages?: ActionLogMessage[];
+    animations?: ActionLogAnimation[];
+    groupId?: string;
+  }>;
 }
 
 export interface PhaseTransition {

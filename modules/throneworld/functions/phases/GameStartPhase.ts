@@ -6,7 +6,7 @@ import { ChooseRaceAction } from "../actions/ChooseRaceAction";
 import { ChooseHomeworldAction } from "../actions/ChooseHomeworldAction";
 import { ActionResponse, SystemAction } from "../../../../shared/models/GameAction";
 import { shuffle } from "../../../../shared/utils/RandomUtils";
-import { getProductionForPlayer } from "../../shared/models/Production.ThroneWorld";
+import { getProductionForPlayer } from "../../shared/models/Production.Throneworld";
 
 export class GameStartPhase extends Phase {
   readonly name = "GameStart";

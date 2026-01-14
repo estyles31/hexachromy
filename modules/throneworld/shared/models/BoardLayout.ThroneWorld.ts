@@ -6,13 +6,7 @@ import data from "../data/boardLayout.throneworld.json";
 
 export type ColumnId = string;
 
-export type WorldType =
-  | "Homeworld"
-  | "Throneworld"
-  | "Inner"
-  | "Outer"
-  | "Fringe"
-  | "NotInPlay";
+export type WorldType = "Homeworld" | "Throneworld" | "Inner" | "Outer" | "Fringe" | "NotInPlay";
 
 export interface BoardHex {
   id: string;
@@ -25,20 +19,18 @@ export interface BoardHex {
   overridesByScenario: Partial<Record<string, WorldType>>;
 }
 
-
 // use:
 // import {
 //   BOARD_HEXES,
 //   getWorldType,
 //   isInPlay
-// } from "@/shared/models/BoardLayout.ThroneWorld";
+// } from "@/shared/models/BoardLayout.Throneworld";
 
 // const playerCount = game.players.length;
 
 // const activeHexes = BOARD_HEXES.filter(h =>
 //   isInPlay(h.id, playerCount)
 // );
-
 
 /* ───────────────────────── */
 /* Raw JSON Schema           */
@@ -76,22 +68,17 @@ export const BOARD_HEXES: BoardHex[] = [];
 
 Object.entries(raw.columns).forEach(([col, rows]) => {
   rows.forEach((row, rowIndexInColumn) => {
-
     const id = makeId(col, row);
 
-    const baseWorldType =
-      raw.baseWorldTypes[id] ??
-      raw.defaultWorldType;
+    const baseWorldType = raw.baseWorldTypes[id] ?? raw.defaultWorldType;
 
     const overridesByScenario: Partial<Record<string, WorldType>> = {};
 
-    Object.entries(raw.worldTypesByScenario).forEach(
-      ([scenarioId, map]) => {
-        if (map[id]) {
-          overridesByScenario[scenarioId] = map[id];
-        }
+    Object.entries(raw.worldTypesByScenario).forEach(([scenarioId, map]) => {
+      if (map[id]) {
+        overridesByScenario[scenarioId] = map[id];
       }
-    );
+    });
 
     BOARD_HEXES.push({
       id,
@@ -100,7 +87,7 @@ Object.entries(raw.columns).forEach(([col, rows]) => {
       colIndex: colIndex(col as ColumnId),
       rowIndexInColumn,
       baseWorldType,
-      overridesByScenario
+      overridesByScenario,
     });
   });
 });
@@ -109,34 +96,22 @@ Object.entries(raw.columns).forEach(([col, rows]) => {
 /* Index by ID               */
 /* ───────────────────────── */
 
-export const BOARD_HEXES_BY_ID: Record<string, BoardHex> =
-  Object.fromEntries(BOARD_HEXES.map(h => [h.id, h]));
+export const BOARD_HEXES_BY_ID: Record<string, BoardHex> = Object.fromEntries(BOARD_HEXES.map((h) => [h.id, h]));
 
 /* ───────────────────────── */
 /* Access API                */
 /* ───────────────────────── */
 
-export function getWorldType(
-  hexId: string,
-  scenarioId: string
-): WorldType {
-
+export function getWorldType(hexId: string, scenarioId: string): WorldType {
   const hex = BOARD_HEXES_BY_ID[hexId];
   if (!hex) throw new Error(`Unknown hex: ${hexId}`);
 
-  return (
-    hex.overridesByScenario[scenarioId] ??
-    hex.baseWorldType
-  );
+  return hex.overridesByScenario[scenarioId] ?? hex.baseWorldType;
 }
 
-export function isInPlay(
-  hexId: string,
-  scenarioId: string
-): boolean {
+export function isInPlay(hexId: string, scenarioId: string): boolean {
   return getWorldType(hexId, scenarioId) !== "NotInPlay";
 }
-
 
 // validation
 function assertHexExists(hexId: string) {
@@ -157,9 +132,7 @@ function assertAllHexReferencesValid() {
 
   Object.keys(raw.baseWorldTypes).forEach(check);
 
-  Object.values(raw.worldTypesByScenario).forEach(map =>
-    Object.keys(map).forEach(check)
-  );
+  Object.values(raw.worldTypesByScenario).forEach((map) => Object.keys(map).forEach(check));
 }
 
 /* ───────────────────────── */
@@ -189,11 +162,10 @@ function buildNeighbors() {
   }
 }
 
-
 function neighborOffsets(): Array<{ dc: number; dr: number }> {
   return [
-    { dc:  0, dr: -2 },
-    { dc:  0, dr: +2 },
+    { dc: 0, dr: -2 },
+    { dc: 0, dr: +2 },
 
     { dc: -1, dr: -1 },
     { dc: -1, dr: +1 },
@@ -202,7 +174,6 @@ function neighborOffsets(): Array<{ dc: number; dr: number }> {
     { dc: +1, dr: +1 },
   ];
 }
-
 
 /**
  * BFS topology distance.
@@ -223,7 +194,6 @@ export function hexGraphDistance(a: string, b: string, scenarioId: string): numb
 
     for (const hex of frontier) {
       for (const n of HEX_NEIGHBORS[hex]) {
-
         // skip hexes not in play for this scenario
         if (!isInPlay(n, scenarioId)) continue;
 
@@ -241,7 +211,6 @@ export function hexGraphDistance(a: string, b: string, scenarioId: string): numb
 
   return Infinity;
 }
-
 
 /* ───────────────────────── */
 /* Scan Range (BFS radius)   */

@@ -1,8 +1,7 @@
 // /modules/throneworld/frontend/components/ReorganizeFleetParam.tsx
 import { useState, useMemo } from "react";
 import type { GameAction } from "../../../../shared/models/GameAction";
-import { UNITS } from "../../shared/models/UnitTypes.ThroneWorld";
-import type { ThroneworldUnit } from "../../shared/models/Unit.Throneworld";
+import { UNITS, type ThroneworldUnit } from "../../shared/models/Units.Throneworld";
 import ThroneworldUnitCounter from "./ThroneworldUnitCounter";
 import { useGameStateContext } from "../../../../shared-frontend/contexts/GameStateContext";
 import type { ThroneworldGameState } from "../../shared/models/GameState.Throneworld";

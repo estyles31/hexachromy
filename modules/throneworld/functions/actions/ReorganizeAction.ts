@@ -2,10 +2,10 @@
 import { ActionResponse, GameAction } from "../../../../shared/models/GameAction";
 import type { GameState } from "../../../../shared/models/GameState";
 import type { ThroneworldGameState } from "../../shared/models/GameState.Throneworld";
-import { UNITS } from "../../shared/models/UnitTypes.ThroneWorld";
+import { UNITS } from "../../shared/models/Units.Throneworld";
 import { registerAction } from "../../../../shared-backend/ActionRegistry";
 import { getCargo, createEmptyFleet } from "../../shared/models/Fleets.Throneworld";
-import type { ThroneworldUnit } from "../../shared/models/Unit.Throneworld";
+import type { ThroneworldUnit } from "../../shared/models/Units.Throneworld";
 
 export class ReorganizeAction extends GameAction {
   constructor() {

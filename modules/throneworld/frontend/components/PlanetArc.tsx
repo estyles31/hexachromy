@@ -1,21 +1,21 @@
 //PlanetArc.tsx
-import type { WorldType } from "../../shared/models/BoardLayout.ThroneWorld";
+import type { WorldType } from "../../shared/models/BoardLayout.Throneworld";
 import { planetStyles, type PlanetStyleKey } from "../config/planetStyles";
 
 interface Props {
   dev: number;
-  worldType: WorldType;       // "outer" | "inner" | "fringe" | "throneworld" | "homeworld"
+  worldType: WorldType; // "outer" | "inner" | "fringe" | "throneworld" | "homeworld"
   cx: number;
   cy: number;
-  r: number;               // hex radius (from center to a vertex)
-  ownerColor?: string;     // tint overlay
+  r: number; // hex radius (from center to a vertex)
+  ownerColor?: string; // tint overlay
 }
 
 export default function PlanetArc({ dev, worldType, cx, cy, r, ownerColor }: Props) {
   // Determine style source
-  const styleKey = ((worldType === "Homeworld" || worldType === "Throneworld") 
-                    ? worldType
-                    : `dev${dev}`) as PlanetStyleKey;
+  const styleKey = (
+    worldType === "Homeworld" || worldType === "Throneworld" ? worldType : `dev${dev}`
+  ) as PlanetStyleKey;
 
   const style = planetStyles[styleKey] ?? planetStyles["default"];
 
@@ -26,7 +26,7 @@ export default function PlanetArc({ dev, worldType, cx, cy, r, ownerColor }: Pro
   const x1 = cx - r * 0.5 + 2;
   const y1 = cy + (Math.sqrt(3) / 2) * r - 1;
 
-  const x2 = cx + r - 2;      // midpoint of right edge
+  const x2 = cx + r - 2; // midpoint of right edge
   const y2 = cy;
 
   const bottomRightX = cx + r * 0.5;
@@ -57,24 +57,10 @@ export default function PlanetArc({ dev, worldType, cx, cy, r, ownerColor }: Pro
       <path d={pathData} fill={`url(#${gradientId})`} />
 
       {/* Highlight Arc */}
-      {style.highlight && (
-        <path
-          d={pathData}
-          fill="none"
-          stroke={style.highlight}
-          strokeWidth={2}
-          opacity={0.7}
-        />
-      )}
+      {style.highlight && <path d={pathData} fill="none" stroke={style.highlight} strokeWidth={2} opacity={0.7} />}
 
       {/* Ownership Tint (very subtle) */}
-      {ownerColor && (
-        <path
-          d={pathData}
-          fill={ownerColor}
-          opacity={0.12}
-        />
-      )}
+      {ownerColor && <path d={pathData} fill={ownerColor} opacity={0.12} />}
     </g>
   );
 }

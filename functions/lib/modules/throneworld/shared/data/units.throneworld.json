@@ -2,7 +2,10 @@
     "Sv": {
         "id": "Sv",
         "Name": "Survey Team",
-        "Symbol": "🏳️",
+        "Glyph": {
+            "unicode": "🏳️",
+            "icon": "tw-survey"
+        },
         "Domain": "Space",
         "Cost": 1,
         "Explore": true,
@@ -11,7 +14,10 @@
     "B": {
         "id": "B",
         "Name": "Blaster",
-        "Symbol": "💥",
+        "Glyph": {
+            "unicode": "💥",
+            "icon": "tw-blaster"
+        },
         "Domain": "Space",
         "Cost": 4,
         "Attack": 3,
@@ -21,7 +27,10 @@
     "P": {
         "id": "P",
         "Name": "Protector",
-        "Symbol": "🛡",
+        "Glyph": {
+            "unicode": "🛡",
+            "icon": "tw-protector"
+        },
         "Domain": "Space",
         "Cost": 5,
         "Attack": 2,
@@ -32,7 +41,10 @@
     "M": {
         "id": "M",
         "Name": "Mothership",
-        "Symbol": "🛸",
+        "Glyph": {
+            "unicode": "🛸",
+            "icon": "tw-mothership"
+        },
         "Domain": "Space",
         "Cost": 6,
         "Attack": 0,
@@ -43,7 +55,10 @@
     "F": {
         "id": "F",
         "Name": "Fighter",
-        "Symbol": "⯈",
+        "Glyph": {
+            "unicode": "⯈",
+            "icon": "tw-fighter"
+        },
         "Domain": "Space",
         "Cost": 2,
         "Attack": 1,
@@ -54,7 +69,10 @@
     "Sh": {
         "id": "Sh",
         "Name": "Shield",
-        "Symbol": "🌐",
+        "Glyph": {
+            "unicode": "🌐",
+            "icon": "tw-shieldcomb"
+        },
         "Domain": "Space",
         "Cost": 5,
         "Attack": 0,
@@ -66,7 +84,10 @@
     "pF": {
         "id": "pF",
         "Name": "Pasha Fighter",
-        "Symbol": "✦",
+        "Glyph": {
+            "unicode": "✦",
+            "icon": "tw-pasha-fighter"
+        },
         "Domain": "Space",
         "Cost": 2,
         "Attack": 2,
@@ -78,7 +99,10 @@
     "A": {
         "id": "A",
         "Name": "Assault Troops",
-        "Symbol": "✹",
+        "Glyph": {
+            "unicode": "✹",
+            "icon": "tw-assault"
+        },
         "Domain": "Ground",
         "Cost": 3,
         "Attack": 3,
@@ -94,7 +118,10 @@
     "H": {
         "id": "H",
         "Name": "Heavy Infantry",
-        "Symbol": "⛒",
+        "Glyph": {
+            "unicode": "⛒",
+            "icon": "tw-heavy"
+        },
         "Domain": "Ground",
         "Cost": 3,
         "Attack": 1,
@@ -105,7 +132,10 @@
     "L": {
         "id": "L",
         "Name": "Light Infantry",
-        "Symbol": "🞅",
+        "Glyph": {
+            "unicode": "🞅",
+            "icon": "tw-light"
+        },
         "Domain": "Ground",
         "Cost": 2,
         "Attack": 2,
@@ -116,7 +146,10 @@
     "D": {
         "id": "D",
         "Name": "Drop Infantry",
-        "Symbol": "⤓",
+        "Glyph": {
+            "unicode": "⤓",
+            "icon": "tw-drop"
+        },
         "Domain": "Ground",
         "Cost": 3,
         "Attack": 2,
@@ -129,7 +162,10 @@
     "C": {
         "id": "C",
         "Name": "Command Bunker",
-        "Symbol": "📡",
+        "Glyph": {
+            "unicode": "📡",
+            "icon": "tw-command"
+        },
         "Domain": "Ground",
         "Cost": 10,
         "Attack": 0,
@@ -143,7 +179,10 @@
     "bH": {
         "id": "bH",
         "Name": "Buralti Heavy Infantry",
-        "Symbol": "❖",
+        "Glyph": {
+            "unicode": "❖",
+            "icon": "tw-buralti-heavy"
+        },
         "Domain": "Ground",
         "Cost": 3,
         "Attack": 2,
@@ -155,7 +194,10 @@
     "tL": {
         "id": "tL",
         "Name": "Trill Light Infantry",
-        "Symbol": "❧",
+        "Glyph": {
+            "unicode": "❧",
+            "icon": "tw-trill-light"
+        },
         "Domain": "Ground",
         "Cost": 2,
         "Attack": 2,
@@ -168,7 +210,10 @@
     "fleet": {
         "id": "fleet",
         "Name": "Fleet",
-        "Symbol": "✨",
+        "Glyph": {
+            "unicode": "✨",
+            "icon": "tw-fleet"
+        },
         "Domain": "Space",
         "Cost": 0,
         "Attack": 0,

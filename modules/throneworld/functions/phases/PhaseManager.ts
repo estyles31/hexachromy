@@ -41,10 +41,23 @@ export class ThroneworldPhaseManager extends BasePhaseManager {
   async reloadGameState(): Promise<GameState> {
     const state = (await this.db.getDocument(`games/${this.gameId}`)) as ThroneworldGameState;
 
-    const neutralView = await this.db.getDocument(`games/${this.gameId}/playerViews/neutral`);
-
+    // Initialize playerViews object
     if (!state.playerViews) state.playerViews = {};
-    state.playerViews["neutral"] = neutralView as ThroneworldPlayerView;
+
+    // Load neutral view
+    const neutralView = await this.db.getDocument(`games/${this.gameId}/playerViews/neutral`);
+    if (neutralView) {
+      state.playerViews["neutral"] = neutralView as ThroneworldPlayerView;
+    }
+
+    // Load each player's view
+    for (const playerId of Object.keys(state.players)) {
+      const playerView = await this.db.getDocument(`games/${this.gameId}/playerViews/${playerId}`);
+      if (playerView) {
+        state.playerViews[playerId] = playerView as ThroneworldPlayerView;
+      }
+    }
+
     this.state = state;
     return state;
   }

@@ -3,8 +3,8 @@ import { useGameStateContext } from "../../../../shared-frontend/contexts/GameSt
 import type { ChoiceRendererProps } from "../../../../shared-frontend/FrontendModuleDefinition";
 import { useInspect } from "../../../../shared-frontend/InspectContext";
 import type { ThroneworldGameState } from "../../shared/models/GameState.Throneworld";
-import type { UnitTypeId } from "../../shared/models/UnitTypes.ThroneWorld";
-import { UNITS } from "../../shared/models/UnitTypes.ThroneWorld";
+import type { UnitTypeId } from "../../shared/models/Units.Throneworld";
+import { UNITS } from "../../shared/models/Units.Throneworld";
 import type { HoveredUnitInfo } from "../models/HoveredInfo";
 import ThroneworldUnitCounter from "./ThroneworldUnitCounter";
 

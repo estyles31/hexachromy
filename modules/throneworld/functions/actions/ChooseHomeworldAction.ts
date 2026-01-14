@@ -3,7 +3,7 @@ import { ActionResponse, GameAction } from "../../../../shared/models/GameAction
 import type { GameState } from "../../../../shared/models/GameState";
 import type { ThroneworldGameState } from "../../shared/models/GameState.Throneworld";
 import { registerAction } from "../../../../shared-backend/ActionRegistry";
-import { buildUnit } from "../../shared/models/Unit.Throneworld";
+import { buildUnit } from "../../shared/models/Units.Throneworld";
 import { createFleet } from "../../shared/models/Fleets.Throneworld";
 import { pickRandom, shuffle } from "../../../../shared/utils/RandomUtils";
 

@@ -37,4 +37,6 @@ export interface FrontendModuleDefinition<State = unknown, InspectPayload = unkn
 
   parameterRenderers?: Record<string, React.ComponentType<ParameterRendererProps>>;
   choiceRenderers?: Record<string, React.ComponentType<ChoiceRendererProps>>;
+
+  animations?: Record<string, React.ComponentType<any>>;
 }

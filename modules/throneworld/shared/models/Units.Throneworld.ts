@@ -1,11 +1,12 @@
 import raw from "../data/units.throneworld.json";
+import { getCodepointForIcon, type GlyphDef } from "../../../../shared/data/icoMoon";
 
 export type Domain = "Space" | "Ground";
 
 export interface ThroneworldUnitType {
   id: string; // used to define UnitTypeId, "F","M","A","C","bH", etc
   Name: string;
-  Symbol: string;
+  Glyph: GlyphDef;
   Domain: Domain;
   Cost: number;
 
@@ -37,6 +38,14 @@ export interface ThroneworldUnitType {
   };
 }
 
+export const STAT_GLYPHS = {
+  Attack: { icon: "tw-attack", unicode: "⚔", codepoint: getCodepointForIcon("tw-attack") },
+  Defense: { icon: "tw-defense2", unicode: "🛡", codepoint: getCodepointForIcon("tw-defense2") },
+  HP: { icon: "tw-hp", unicode: "❤", codepoint: getCodepointForIcon("tw-hp") },
+  Cargo: { icon: "tw-cargo", unicode: "📦", codepoint: getCodepointForIcon("tw-cargo") },
+  Cost: { icon: "tw-cost", unicode: "$", codepoint: getCodepointForIcon("tw-cost") },
+} satisfies Record<string, GlyphDef>;
+
 // Make the JSON strongly typed
 const loadedUnits: Record<string, ThroneworldUnitType> = raw as Record<string, ThroneworldUnitType>;
 
@@ -46,6 +55,12 @@ export const UNITS = Object.fromEntries(Object.entries(loadedUnits).map(([id, u]
 export type UnitTypeId = keyof typeof UNITS;
 
 export function normalizeUnit(u: ThroneworldUnitType) {
+  const glyph = u.Glyph;
+
+  if (glyph?.icon && !glyph.codepoint) {
+    glyph.codepoint = getCodepointForIcon(glyph.icon);
+  }
+
   return {
     Attack: 0,
     Defense: 0,
@@ -61,5 +76,32 @@ export function normalizeUnit(u: ThroneworldUnitType) {
     Absorb: 0,
     DefenseBonus: {},
     ...u,
+    Glyph: glyph,
   };
+}
+
+let unitIdCounter = 0;
+
+export interface ThroneworldUnit {
+  id: string;
+  unitTypeId: UnitTypeId;
+  hasMoved: boolean;
+  owner?: string;
+}
+
+export function buildUnit(unitTypeId: UnitTypeId, owner?: string): ThroneworldUnit {
+  return {
+    id: generateUnitId(),
+    unitTypeId,
+    owner,
+    hasMoved: false,
+  };
+}
+
+/**
+ * Generate a unique unit ID
+ * Uses a simple counter for now - could use UUID in production
+ */
+export function generateUnitId(): string {
+  return `unit_${Date.now()}_${unitIdCounter++}`;
 }

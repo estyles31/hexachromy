@@ -1,5 +1,5 @@
 import type { BoardGeometry } from "../../../../shared/models/BoardGeometry";
-import { BOARD_HEXES, getWorldType, isInPlay, type WorldType } from "./BoardLayout.ThroneWorld";
+import { type WorldType, BOARD_HEXES, isInPlay, getWorldType } from "./BoardLayout.Throneworld";
 
 export const HEX_RADIUS = 86;
 export const HEX_PADDING = 1;
@@ -30,16 +30,18 @@ export interface ThroneworldBoardGeometry extends BoardGeometry {
  */
 export function getHexagonPoints(cx: number, cy: number, r: number): string {
   const angles = [0, 60, 120, 180, 240, 300];
-  return angles.map(deg => {
-    const rad = (deg * Math.PI) / 180;
-    const x = cx + r * Math.cos(rad);
-    const y = cy + r * Math.sin(rad);
-    return `${x.toFixed(2)},${y.toFixed(2)}`;
-  }).join(" ");
+  return angles
+    .map((deg) => {
+      const rad = (deg * Math.PI) / 180;
+      const x = cx + r * Math.cos(rad);
+      const y = cy + r * Math.sin(rad);
+      return `${x.toFixed(2)},${y.toFixed(2)}`;
+    })
+    .join(" ");
 }
 
 export function computeBoardGeometry(scenario: string): ThroneworldBoardGeometry {
-  const playableHexes = BOARD_HEXES.filter(h => isInPlay(h.id, scenario));
+  const playableHexes = BOARD_HEXES.filter((h) => isInPlay(h.id, scenario));
 
   if (playableHexes.length === 0) {
     throw new Error(`No playable hexes for scenario ${scenario}`);
@@ -50,7 +52,7 @@ export function computeBoardGeometry(scenario: string): ThroneworldBoardGeometry
   let minY = Infinity;
   let maxY = -Infinity;
 
-  const hexes: HexGeometry[] = playableHexes.map(hex => {
+  const hexes: HexGeometry[] = playableHexes.map((hex) => {
     const cx = hex.colIndex * X_SPACING;
     const cy = hex.row * Y_SPACING;
     const worldType = getWorldType(hex.id, scenario);
@@ -71,8 +73,8 @@ export function computeBoardGeometry(scenario: string): ThroneworldBoardGeometry
     };
   });
 
-  const width = (maxX - minX) + MARGIN * 2;
-  const height = (maxY - minY) + MARGIN * 2;
+  const width = maxX - minX + MARGIN * 2;
+  const height = maxY - minY + MARGIN * 2;
 
   const shiftX = -minX + MARGIN;
   const shiftY = -minY + MARGIN;
@@ -91,6 +93,6 @@ export function computeBoardGeometry(scenario: string): ThroneworldBoardGeometry
     height,
     hexes: hexMap,
     margin: MARGIN,
-    hexRadius: HEX_RADIUS
+    hexRadius: HEX_RADIUS,
   };
 }

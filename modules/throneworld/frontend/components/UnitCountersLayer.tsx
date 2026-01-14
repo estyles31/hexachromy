@@ -2,8 +2,8 @@ import { useCallback } from "react";
 import { motion, type Easing } from "framer-motion";
 
 import type { ThroneworldBoardView, RenderableSystem } from "../models/ThroneworldBoardView";
-import type { ThroneworldUnit } from "../../shared/models/Unit.Throneworld";
-import { UNITS, type UnitTypeId } from "../../shared/models/UnitTypes.ThroneWorld";
+import type { ThroneworldUnit } from "../../shared/models/Units.Throneworld";
+import { UNITS, type UnitTypeId } from "../../shared/models/Units.Throneworld";
 import UnitCounter from "./ThroneworldUnitCounter";
 import { useSelection } from "../../../../shared-frontend/contexts/SelectionContext";
 import { fleetHasMoved, type Fleet } from "../../shared/models/Fleets.Throneworld";
@@ -35,11 +35,7 @@ type CounterSpec = {
 
 /* ---------- grouping ---------- */
 
-function groupUnits(
-  units: ThroneworldUnit[],
-  playerId: string,
-  playerColor: string
-): UnitGroup[] {
+function groupUnits(units: ThroneworldUnit[], playerId: string, playerColor: string): UnitGroup[] {
   const map = new Map<string, ThroneworldUnit[]>();
 
   for (const u of units) {
@@ -136,7 +132,7 @@ export default function UnitCountersLayer({ boardView, onInspect }: Props) {
   const handleHover = useCallback(
     (spec: CounterSpec | null) => {
       if (!onInspect) return;
-      
+
       if (!spec) {
         onInspect(null);
         return;
@@ -155,7 +151,7 @@ export default function UnitCountersLayer({ boardView, onInspect }: Props) {
             owner: spec.fleet.owner,
             spaceUnits: spec.fleet.spaceUnits,
             groundUnits: spec.fleet.groundUnits,
-          }
+          },
         });
       } else if (spec.unit) {
         // Unit hover
@@ -170,7 +166,7 @@ export default function UnitCountersLayer({ boardView, onInspect }: Props) {
             unit: spec.unit,
             quantity: spec.quantity,
             unitDef: spec.unitDef,
-          }
+          },
         });
       }
     },
@@ -193,7 +189,7 @@ export default function UnitCountersLayer({ boardView, onInspect }: Props) {
 
       fleets.forEach((fleet, i) => {
         const totalUnits = (fleet.spaceUnits?.length || 0) + (fleet.groundUnits?.length || 0);
-        
+
         // Use ✨ for multi-unit fleets, actual unit symbol for single-unit
         let unitDef;
         if (totalUnits > 1) {

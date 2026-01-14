@@ -1,9 +1,7 @@
 //modules/throneworld/shared/models/Systems.Throneworld.ts
-import type { ColumnId, WorldType } from "./BoardLayout.ThroneWorld";
+import type { ColumnId, WorldType } from "./BoardLayout.Throneworld";
 import { createFleet, type Fleet } from "./Fleets.Throneworld";
-import type { ThroneworldUnit } from "./Unit.Throneworld";
-import type { UnitTypeId } from "./UnitTypes.ThroneWorld";
-import { UNITS } from "./UnitTypes.ThroneWorld";
+import { UNITS, type UnitTypeId, type ThroneworldUnit } from "./Units.Throneworld";
 
 export type UnitCountMap = Partial<Record<UnitTypeId, number>>;
 

@@ -4,18 +4,11 @@ import fs from "fs";
 import { fileURLToPath } from "url";
 import path from "path";
 
-import { buildDefs, getWorldFill, getBackgroundRects, getBaseStyles, config }
-  from "./svgVisuals.throneworld";
+import { buildDefs, getWorldFill, getBackgroundRects, getBaseStyles, config } from "./svgVisuals.throneworld";
 
-import {
-  BOARD_HEXES,
-  scenarioIds,
-  type WorldType
-} from "../../shared/models/BoardLayout.ThroneWorld";
+import { BOARD_HEXES, scenarioIds, type WorldType } from "../../shared/models/BoardLayout.Throneworld";
 
-import { 
-  computeBoardGeometry 
-} from "../../shared/models/BoardGeometry.ThroneWorld";
+import { computeBoardGeometry } from "../../shared/models/BoardGeometry.Throneworld";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -51,11 +44,11 @@ function generateSvgForScenario(scenarioId: string): string {
   for (const [hexId, hex] of Object.entries(geometry.hexes)) {
     const points = hexagonPoints(hex.x, hex.y, geometry.hexRadius);
     const fill = getWorldFill(hex.worldType);
-    
+
     // Get original hex data for metadata
-    const originalHex = BOARD_HEXES.find(h => h.id === hexId);
+    const originalHex = BOARD_HEXES.find((h) => h.id === hexId);
     if (!originalHex) continue;
-    
+
     elements.push(
       `  <g id="hex-group-${hexId}" data-hex="${hexId}" data-col="${originalHex.col}" data-row="${originalHex.row}" data-world-type="${hex.worldType}">`,
       `    <polygon`,
@@ -88,15 +81,15 @@ function generateSvgForScenario(scenarioId: string): string {
     `  viewBox="0 0 ${geometry.width} ${geometry.height}"`,
     `>`,
     `  <defs>`,
-    ...defs.map(d => `    ${d}`),
+    ...defs.map((d) => `    ${d}`),
     `  </defs>`,
-    ...bg.map(b => `  ${b}`),
+    ...bg.map((b) => `  ${b}`),
     `  <style>`,
-    ...styles.map(s => `    ${s}`),
+    ...styles.map((s) => `    ${s}`),
     `  </style>`,
     ...elements,
     `</svg>`,
-    ``
+    ``,
   ].join("\n");
 
   return svg;
@@ -106,12 +99,14 @@ function generateSvgForScenario(scenarioId: string): string {
 
 function hexagonPoints(cx: number, cy: number, r: number): string {
   const angles = [0, 60, 120, 180, 240, 300];
-  return angles.map(deg => {
-    const rad = (deg * Math.PI) / 180;
-    const x = cx + r * Math.cos(rad);
-    const y = cy + r * Math.sin(rad);
-    return `${x.toFixed(2)},${y.toFixed(2)}`;
-  }).join(" ");
+  return angles
+    .map((deg) => {
+      const rad = (deg * Math.PI) / 180;
+      const x = cx + r * Math.cos(rad);
+      const y = cy + r * Math.sin(rad);
+      return `${x.toFixed(2)},${y.toFixed(2)}`;
+    })
+    .join(" ");
 }
 
 /* ───────── Styling helpers ───────── */

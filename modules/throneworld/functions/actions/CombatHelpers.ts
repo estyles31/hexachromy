@@ -1,12 +1,13 @@
 // /modules/throneworld/functions/actions/CombatHelpers.ts
 import type { ThroneworldGameState } from "../../shared/models/GameState.Throneworld";
-import type { ThroneworldUnit } from "../../shared/models/Unit.Throneworld";
+import type { ThroneworldUnit } from "../../shared/models/Units.Throneworld";
 import type { Fleet } from "../../shared/models/Fleets.Throneworld";
-import { UNITS } from "../../shared/models/UnitTypes.ThroneWorld";
-import { getHexesWithinRange } from "../../shared/models/BoardLayout.ThroneWorld";
+import { UNITS } from "../../shared/models/Units.Throneworld";
+import { getHexesWithinRange } from "../../shared/models/BoardLayout.Throneworld";
 import { getCargo } from "../../shared/models/Fleets.Throneworld";
 import { PassAction } from "./PassAction";
 import { ActionResponse } from "../../../../shared/models/GameAction";
+import { getEffectiveLevel } from "../../shared/models/Tech.Throneworld";
 
 export interface CombatMetadata {
   hexId: string;
@@ -312,7 +313,7 @@ export function executeRetreat(state: ThroneworldGameState, combat: CombatMetada
   if (playerId === combat.attackerId) {
     targetHexId = combat.sourceHexId || null;
   } else {
-    const jumpRange = state.players[playerId]?.tech?.Jump ?? 1;
+    const jumpRange = getEffectiveLevel(state.players[playerId]?.tech?.Jump);
     const scenario =
       typeof state.options.scenario === "string" && state.options.scenario.trim() ? state.options.scenario : "6p";
 
@@ -512,8 +513,8 @@ function resolveSpaceCombatRound(state: ThroneworldGameState, combat: CombatMeta
   const attackerUnits = getSpaceUnits(state, combat.hexId, combat.attackerId);
   const defenderUnits = getSpaceUnits(state, combat.hexId, combat.defenderId);
 
-  const attackerTech = state.players[combat.attackerId]?.tech?.Space ?? 0;
-  const defenderTech = state.players[combat.defenderId]?.tech?.Space ?? 0;
+  const attackerTech = getEffectiveLevel(state.players[combat.attackerId]?.tech?.Space);
+  const defenderTech = getEffectiveLevel(state.players[combat.defenderId]?.tech?.Space);
 
   const attackerRoll = rollCombatDice(attackerUnits, attackerUnits, true, attackerTech, defenderTech);
   const defenderRoll = rollCombatDice(defenderUnits, defenderUnits, false, defenderTech, attackerTech);
@@ -536,8 +537,8 @@ function resolveGroundCombatRound(state: ThroneworldGameState, combat: CombatMet
   let attackerUnits = getGroundUnits(state, combat.hexId, combat.attackerId);
   let defenderUnits = getGroundUnits(state, combat.hexId, combat.defenderId);
 
-  const attackerTech = state.players[combat.attackerId]?.tech?.Ground ?? 0;
-  const defenderTech = state.players[combat.defenderId]?.tech?.Ground ?? 0;
+  const attackerTech = getEffectiveLevel(state.players[combat.attackerId]?.tech?.Ground);
+  const defenderTech = getEffectiveLevel(state.players[combat.defenderId]?.tech?.Ground);
 
   let attackerHits = 0;
   let defenderHits = 0;

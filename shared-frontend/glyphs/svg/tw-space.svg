@@ -1,0 +1,36 @@
+<svg viewBox="0 0 36 36" fill="var(--color11, #a0041e)" width="32" height="32" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+  <style>
+    :root, .palette0 {color: currentColor;
+      --color0: #fff;
+      --color1: #000;
+      --color2: #fff1bc;
+      --color3: #ebff00;
+      --color4: #ff684f;
+      --color5: #23bbff;
+      --color6: #ccd6dd;
+      --color7: #66757f;
+      --color8: #ffac33;
+      --color9: #99aab5;
+      --color10: #e7ff23;
+      --color11: #a0041e;
+      --color12: #55acee;
+      --color13: #ffcc4d;
+      --color14: #677032;
+      --color15: #a3a364;
+      --color16: #717735;
+      --color17: #662113;
+      --color18: #c1694f;
+      --color19: #383a18;
+      --color20: #464f25;
+      --color21: #ffd983;
+      --color22: #f4900c;
+      --color23: #ffe8b6;
+    }
+  </style>
+  <path d="M1 17l8-7 16 1 1 16-7 8c0 0 1e-3-5.999-6-12S1 17 1 17z" />
+  <path fill="var(--color8, #ffac33)" d="M0.973 35c0 0-0.036-7.979 2.985-11S15 21.187 15 21.187 14.999 29 11.999 32 0.973 35 0.973 35z" />
+  <circle fill="var(--color13, #ffcc4d)" cx="8.999" cy="27" r="4" />
+  <path fill="var(--color12, #55acee)" d="M35.999 0c0 0-10 0-22 10-6 5-6 14-4 16s11 2 16-4c10-12 10-22 10-22z" />
+  <path fill="var(--color1, #000)" d="M26.999 5c-1.623 0-3.013 0.971-3.641 2.36C23.86 7.133 24.413 7 24.999 7c2.209 0 4 1.791 4 4 0 0.586-0.133 1.139-0.359 1.64 1.389-0.627 2.359-2.017 2.359-3.64 0-2.209-1.791-4-4-4z" />
+  <path d="M8 28c0 0 0-4 1-5s13.001-10.999 14-10-9.001 13-10.001 14S8 28 8 28z" />
+</svg>

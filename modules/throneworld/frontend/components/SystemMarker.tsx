@@ -1,7 +1,8 @@
-import type { ThroneworldSystemDetails } from "../../shared/models/Systems.ThroneWorld";
-import { UNITS } from "../../shared/models/UnitTypes.ThroneWorld";
-import type { WorldType } from "../../shared/models/BoardLayout.ThroneWorld";
+import type { ThroneworldSystemDetails } from "../../shared/models/Systems.Throneworld";
+import { UNITS } from "../../shared/models/Units.Throneworld";
+import type { WorldType } from "../../shared/models/BoardLayout.Throneworld";
 import "./SystemMarker.css";
+import { Glyph } from "../../../../shared-frontend/glyphs/Glyph";
 
 interface Props {
   system: ThroneworldSystemDetails;
@@ -198,7 +199,6 @@ export function SystemMarker({
 
       {/* Space units (left) */}
       {spaceEntries.map(([unitId, count], i) => {
-        const glyph = UNITS[unitId]?.Symbol ?? "?";
         const y = size * (1 - LAYOUT.spaceColumn.bottomPadding) - i * size * LAYOUT.spaceColumn.lineHeight;
 
         return (
@@ -209,15 +209,14 @@ export function SystemMarker({
             fontSize={size * LAYOUT.spaceColumn.fontSize}
             dominantBaseline="middle"
           >
-            {count}
-            {glyph}
+            <tspan>{count}</tspan>
+            <Glyph backgroundColor="#e8e8e8" mode="font" glyph={UNITS[unitId]?.Glyph} />
           </text>
         );
       })}
 
       {/* Ground units (right) */}
       {groundEntries.map(([unitId, count], i) => {
-        const glyph = UNITS[unitId]?.Symbol ?? "?";
         const y = size * (1 - LAYOUT.groundColumn.bottomPadding) - i * size * LAYOUT.groundColumn.lineHeight;
 
         return (
@@ -230,7 +229,7 @@ export function SystemMarker({
             dominantBaseline="middle"
           >
             {count}
-            {glyph}
+            <Glyph backgroundColor="#e8e8e8" mode="font" glyph={UNITS[unitId]?.Glyph} />
           </text>
         );
       })}

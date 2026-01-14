@@ -2,8 +2,8 @@
 import { ActionFinalize, ActionResponse, GameAction } from "../../../../shared/models/GameAction";
 import type { GameState } from "../../../../shared/models/GameState";
 import type { ThroneworldGameState } from "../../shared/models/GameState.Throneworld";
-import { UNITS } from "../../shared/models/UnitTypes.ThroneWorld";
-import { getHexesWithinRange } from "../../shared/models/BoardLayout.ThroneWorld";
+import { UNITS } from "../../shared/models/Units.Throneworld";
+import { getHexesWithinRange } from "../../shared/models/BoardLayout.Throneworld";
 import { registerAction } from "../../../../shared-backend/ActionRegistry";
 import { getCargo, type Fleet } from "../../shared/models/Fleets.Throneworld";
 import {
@@ -15,9 +15,10 @@ import {
   getSystemDetails,
 } from "./ActionHelpers";
 import { PhaseContext } from "../../../../shared/models/PhaseContext";
-import { buildUnit } from "../../shared/models/Unit.Throneworld";
-import type { UnitTypeId } from "../../shared/models/UnitTypes.ThroneWorld";
-import type { ThroneworldUnit } from "../../shared/models/Unit.Throneworld";
+import { buildUnit } from "../../shared/models/Units.Throneworld";
+import type { UnitTypeId } from "../../shared/models/Units.Throneworld";
+import type { ThroneworldUnit } from "../../shared/models/Units.Throneworld";
+import { getEffectiveLevel } from "../../shared/models/Tech.Throneworld";
 
 interface JumpMetadata {
   targetHexId?: string;
@@ -72,7 +73,7 @@ export class JumpAction extends GameAction<JumpMetadata> {
 
             const { hexId: bunkerHexId } = bunkerInfo;
             const player = tw.players[playerId];
-            const commRange = player.tech.Comm || 0;
+            const commRange = getEffectiveLevel(player.tech.Comm);
             const scenario =
               typeof tw.options.scenario === "string" && tw.options.scenario.trim().length > 0
                 ? tw.options.scenario
@@ -107,7 +108,7 @@ export class JumpAction extends GameAction<JumpMetadata> {
             if (!fleetId) return [];
 
             const player = tw.players[playerId];
-            const jumpRange = player.tech.Jump || 0;
+            const jumpRange = getEffectiveLevel(player.tech.Jump);
             const fleetInfo = findFleet(tw, playerId, fleetId as string);
             if (!fleetInfo) return [];
 
@@ -169,8 +170,8 @@ export class JumpAction extends GameAction<JumpMetadata> {
     if (!fleetIsJumpable(fleet)) return { action: this, success: false, error: "Fleet cannot jump" };
 
     const player = tw.players[playerId];
-    const comm = player.tech.Comm ?? 1;
-    const jump = player.tech.Jump ?? 1;
+    const comm = getEffectiveLevel(player.tech.Comm);
+    const jump = getEffectiveLevel(player.tech.Jump);
     const scenario = typeof tw.options.scenario === "string" && tw.options.scenario.trim() ? tw.options.scenario : "6p";
 
     const commReach = getHexesWithinRange(bunkerHexId, comm, scenario);

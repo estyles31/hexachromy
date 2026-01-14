@@ -1,6 +1,6 @@
 // /hexachromy/tools/svgVisuals.throneworld.ts
 
-import type { WorldType } from "../../shared/models/BoardLayout.ThroneWorld";
+import type { WorldType } from "../../shared/models/BoardLayout.Throneworld";
 import visuals from "../../shared/data/boardVisuals.throneworld.json" with { type: "json" };
 
 type GradientStop = {
@@ -64,8 +64,8 @@ type VisualConfig = {
   background: BackgroundVisuals;
   worldGradients: Partial<Record<WorldType, LinearGradientDef>>;
   hexBorder: {
-    color: string
-  }
+    color: string;
+  };
 };
 
 export const config = visuals as VisualConfig;
@@ -78,51 +78,38 @@ export function buildDefs(): string[] {
   const bg = config.background;
 
   // Space gradient
-  defs.push(
-    `<radialGradient id="${bg.gradient.id}" cx="50%" cy="50%" r="70%">`
-  );
+  defs.push(`<radialGradient id="${bg.gradient.id}" cx="50%" cy="50%" r="70%">`);
   for (const stop of bg.gradient.stops) {
-    const opacity = stop.opacity !== undefined
-                        ? ` stop-opacity="${stop.opacity}"`
-                        : "";
+    const opacity = stop.opacity !== undefined ? ` stop-opacity="${stop.opacity}"` : "";
 
     defs.push(`  <stop offset="${stop.offset}" stop-color="${stop.color}"${opacity}/>`);
   }
   defs.push(`</radialGradient>`);
 
   // Star pattern
-  if(bg.stars.enabled) {
+  if (bg.stars.enabled) {
     defs.push(
-        `<pattern id="${bg.stars.id}" width="${bg.stars.width}" height="${bg.stars.height}" patternUnits="userSpaceOnUse">`
+      `<pattern id="${bg.stars.id}" width="${bg.stars.width}" height="${bg.stars.height}" patternUnits="userSpaceOnUse">`
     );
     for (const star of bg.stars.circles) {
-        defs.push(
-        `  <circle cx="${star.cx}" cy="${star.cy}" r="${star.r}" fill="white" opacity="${star.opacity}"/>`
-        );
+      defs.push(`  <circle cx="${star.cx}" cy="${star.cy}" r="${star.r}" fill="white" opacity="${star.opacity}"/>`);
     }
     defs.push(`</pattern>`);
-    }
+  }
 
   // World gradients
   for (const grad of Object.values(config.worldGradients)) {
     if (!grad) continue;
-    defs.push(
-      `<linearGradient id="${grad.id}" x1="0%" y1="0%" x2="100%" y2="100%">`
-    );
+    defs.push(`<linearGradient id="${grad.id}" x1="0%" y1="0%" x2="100%" y2="100%">`);
     for (const stop of grad.stops) {
-      defs.push(
-        `  <stop offset="${stop.offset}" stop-color="${stop.color}"/>`
-      );
+      defs.push(`  <stop offset="${stop.offset}" stop-color="${stop.color}"/>`);
     }
     defs.push(`</linearGradient>`);
   }
 
   // Optional turbulence noise
   if (bg.noise?.enabled) {
-    const seedAttr =
-      bg.noise.deterministic && typeof bg.noise.seed === "number"
-        ? ` seed="${bg.noise.seed}"`
-        : "";
+    const seedAttr = bg.noise.deterministic && typeof bg.noise.seed === "number" ? ` seed="${bg.noise.seed}"` : "";
 
     defs.push(
       `<filter id="spaceNoise">`,
@@ -149,10 +136,7 @@ function getRandomStars(width: number, height: number): string[] {
   const cfg = config.background.randomStars;
   if (!cfg || !cfg.enabled || cfg.count <= 0) return [];
 
-  const rand =
-    cfg.deterministic && typeof cfg.seed === "number"
-      ? mulberry32(cfg.seed)
-      : Math.random;
+  const rand = cfg.deterministic && typeof cfg.seed === "number" ? mulberry32(cfg.seed) : Math.random;
 
   const stars: string[] = [];
 
@@ -172,12 +156,11 @@ function getRandomStars(width: number, height: number): string[] {
   return stars;
 }
 
-
 // Simple deterministic PRNG (mulberry32)
 function mulberry32(seed: number): () => number {
   let t = seed >>> 0;
   return () => {
-    t += 0x6D2B79F5;
+    t += 0x6d2b79f5;
     let x = t;
     x = Math.imul(x ^ (x >>> 15), x | 1);
     x ^= x + Math.imul(x ^ (x >>> 7), x | 61);
@@ -199,7 +182,7 @@ export function getBackgroundRects(width: number, height: number): string[] {
 
   const layers: string[] = [
     `<rect width="100%" height="100%" fill="url(#${bg.gradient.id})"/>`,
-    `<rect width="100%" height="100%" fill="url(#${bg.stars.id})"/>`
+    `<rect width="100%" height="100%" fill="url(#${bg.stars.id})"/>`,
   ];
 
   // Add randomized stars ON TOP of background layers
@@ -208,12 +191,10 @@ export function getBackgroundRects(width: number, height: number): string[] {
   return layers;
 }
 
-
-
 export function getBaseStyles(): string[] {
   return [
     `.hex { cursor: pointer; transition: stroke 0.15s ease, fill 0.15s ease; }`,
     `.hex-label { pointer-events: none; font-family: sans-serif; }`,
-    `.hex:hover { stroke: #ffffff; stroke-width: 3; }`
+    `.hex:hover { stroke: #ffffff; stroke-width: 3; }`,
   ];
 }

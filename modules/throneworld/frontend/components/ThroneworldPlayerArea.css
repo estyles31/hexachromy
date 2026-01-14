@@ -1,18 +1,18 @@
 /* // /modules/throneworld/frontend/components/ThroneworldPlayerArea.css */
 .tw-row {
   display: flex;
-  justify-content:space-between;
+  justify-content: space-between;
   align-items: center; /* optional, keeps them vertically aligned */
 }
 
 .tw-row-left {
   display: flex;
-  justify-content:left;
+  justify-content: left;
   align-items: center; /* optional, keeps them vertically aligned */
 }
 
 .tw-tech-row {
-  display:flex;
+  display: flex;
   gap: 12px;
   margin: 4px 6px 0px 6px;
 }
@@ -26,12 +26,14 @@
 }
 
 .tw-tech-icon {
-  font-size: 16px;
+  font-size: 24px;
+  padding: 2px 4px;
 }
 
 .tw-tech-value {
   font-weight: 700;
-  font-size: 14px;
+  font-size: 18px;
+  padding: 2px;
   font-family: monospace;
 }
 

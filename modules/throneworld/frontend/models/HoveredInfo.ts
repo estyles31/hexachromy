@@ -1,6 +1,6 @@
-import type { ThroneworldSystemDetails } from "../../shared/models/Systems.ThroneWorld";
-import type { ThroneworldUnit } from "../../shared/models/Unit.Throneworld";
-import type { ThroneworldUnitType } from "../../shared/models/UnitTypes.ThroneWorld";
+import type { ThroneworldSystemDetails } from "../../shared/models/Systems.Throneworld";
+import type { ThroneworldUnit } from "../../shared/models/Units.Throneworld";
+import type { ThroneworldUnitType } from "../../shared/models/Units.Throneworld";
 
 export type HoveredInfo = HoveredSystemInfo | HoveredFleetInfo | HoveredUnitInfo;
 

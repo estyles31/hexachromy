@@ -1,6 +1,6 @@
 // /modules/throneworld/functions/createThroneworldGame.ts
 import { randomInt } from "crypto";
-import { BOARD_HEXES, getWorldType, isInPlay } from "../shared/models/BoardLayout.ThroneWorld";
+import { BOARD_HEXES, getWorldType, isInPlay } from "../shared/models/BoardLayout.Throneworld";
 import type {
   ThroneworldGameState,
   ThroneworldPlayerView,
@@ -8,13 +8,14 @@ import type {
   ThroneworldState,
 } from "../shared/models/GameState.Throneworld";
 import type { GameState, Player, PlayerStatus } from "../../../shared/models/GameState";
-import type { SystemPool, ThroneworldSystemDetails } from "../shared/models/Systems.ThroneWorld";
 import systemsJson from "../shared/data/systems.throneworld.json";
 import { GameStartContext } from "../../../shared/models/ApiContexts";
 import { PlayerSlot } from "../../../shared/models/PlayerSlot";
 import { ThroneworldPhaseManager } from "./phases/PhaseManager";
 import { dbAdapter } from "../../../functions/src/services/database";
 import { ActionResponse, SystemAction } from "../../../shared/models/GameAction";
+import { SystemPool, ThroneworldSystemDetails } from "../shared/models/Systems.Throneworld";
+import { initializePlayerTech } from "../shared/models/Tech.Throneworld";
 
 // TODO: extract this to a shared file
 const PLAYER_COLORS = ["#ff7043", "#4dd0e1", "#ce93d8", "#aed581", "#ffd54f", "#90caf9"];
@@ -198,7 +199,7 @@ export async function buildInitialGameDocuments(params: BuildInitialParams): Pro
         status: playerStatuses[player.uid],
         resources: 0,
         color: colors[player.uid],
-        tech: { Ground: 1, Space: 1, Comm: 1, Jump: 1 },
+        tech: initializePlayerTech(),
       };
       return acc;
     },
@@ -308,6 +309,8 @@ export async function buildInitialGameDocuments(params: BuildInitialParams): Pro
     state: {
       systems,
       currentPhase: "Init",
+      turnNumber: 1,
+      isProductionTurn: true,
     },
 
     version: 0,

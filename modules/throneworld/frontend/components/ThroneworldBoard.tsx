@@ -4,7 +4,7 @@ import StaticBoardLayer from "../StaticBoardLayer";
 import ThroneworldSystemLayer from "./ThroneworldSystemLayer";
 import { buildThroneworldBoardView } from "../models/ThroneworldBoardView";
 import type { ThroneworldGameState } from "../../shared/models/GameState.Throneworld";
-import { type ThroneworldBoardGeometry, getHexagonPoints } from "../../shared/models/BoardGeometry.ThroneWorld";
+import { type ThroneworldBoardGeometry, getHexagonPoints } from "../../shared/models/BoardGeometry.Throneworld";
 import type InspectContext from "../../../../shared-frontend/InspectContext";
 import type { HoveredInfo } from "../models/HoveredInfo";
 import { useSelection } from "../../../../shared-frontend/contexts/SelectionContext";
@@ -16,7 +16,7 @@ interface Props {
   onInspect?: (context: InspectContext<HoveredInfo> | null) => void;
 }
 
-export const neutralColor = "#7f4800";
+export const neutralColor = "#000";
 
 export default function ThroneworldBoard({ boardGeometry, onInspect }: Props) {
   const gameState = useGameStateContext() as ThroneworldGameState;

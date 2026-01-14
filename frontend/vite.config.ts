@@ -6,6 +6,8 @@ import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 import { viteStaticCopy } from "vite-plugin-static-copy";
 
+import svgr from "vite-plugin-svgr";
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -13,10 +15,8 @@ const modulesDir = path.resolve(__dirname, "../modules");
 
 const firebaseProjectId = process.env.FIREBASE_PROJECT_ID ?? "hexachromy";
 const functionsRegion = process.env.FIREBASE_FUNCTIONS_REGION ?? "us-central1";
-const functionsEmulatorOrigin =
-  process.env.FUNCTIONS_EMULATOR_ORIGIN ?? "http://127.0.0.1:5001";
-const functionsEmulatorTarget =
-  `${functionsEmulatorOrigin}/${firebaseProjectId}/${functionsRegion}`;
+const functionsEmulatorOrigin = process.env.FUNCTIONS_EMULATOR_ORIGIN ?? "http://127.0.0.1:5001";
+const functionsEmulatorTarget = `${functionsEmulatorOrigin}/${firebaseProjectId}/${functionsRegion}`;
 
 const moduleAssetTargets =
   fs.existsSync(modulesDir) && fs.statSync(modulesDir).isDirectory()
@@ -54,10 +54,25 @@ export default defineConfig({
       exclude: [
         path.resolve(__dirname, "../functions") + "/**",
         path.resolve(__dirname, "../modules") + "/*/functions/**",
-      ],      
+      ],
     }),
     viteStaticCopy({
       targets: moduleAssetTargets,
+    }),
+    svgr({
+      svgrOptions: {
+        // Treat icons like glyphs, not illustrations
+        icon: true,
+
+        // Normalize fills so stroke + currentColor work
+        replaceAttrValues: {
+          "#fff": "currentColor",
+          "#ffffff": "currentColor",
+          "var(--color0, #fff)": "currentColor",
+          "var(--color1, #000)": "currentColor",
+        },
+        exportType: "default",
+      },
     }),
   ],
   resolve: {
@@ -65,29 +80,18 @@ export default defineConfig({
       "@game-modules": path.resolve(__dirname, "../modules/frontend.ts"),
       "@shared": path.resolve(__dirname, "../shared"),
     },
-    dedupe: ['react', 'react-dom', 'react/jsx-runtime'],
+    dedupe: ["react", "react-dom", "react/jsx-runtime"],
   },
   build: {
     rollupOptions: {
-      external: [
-        /\/functions\//,
-        /\/modules\/[^/]+\/functions\//,
-      ],
+      external: [/\/functions\//, /\/modules\/[^/]+\/functions\//],
     },
-  },  
+  },
   server: {
     fs: {
       strict: false,
-      allow: [
-        __dirname,
-        "..",
-        path.resolve(__dirname, "../modules"),
-        path.resolve(__dirname, "../shared")
-      ],
-      deny: [
-        path.resolve(__dirname, "../functions"),
-        path.resolve(__dirname, "../modules/*/functions"),
-      ],
+      allow: [__dirname, "..", path.resolve(__dirname, "../modules"), path.resolve(__dirname, "../shared")],
+      deny: [path.resolve(__dirname, "../functions"), path.resolve(__dirname, "../modules/*/functions")],
     },
     proxy: {
       "/api": {

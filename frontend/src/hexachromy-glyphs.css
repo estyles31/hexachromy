@@ -1,0 +1,53 @@
+@font-face {
+  font-family: "hexachromy-glyphs";
+  src:
+    url("/fonts/hexachromy-glyphs.woff2") format("woff2"),
+    url("/fonts/hexachromy-glyphs.ttf") format("truetype"),
+    url("/fonts/hexachromy-glyphs.woff") format("woff");
+  font-weight: normal;
+  font-style: normal;
+  font-display: block;
+}
+
+@font-palette-values --palette0 {
+  font-family: "hexachromy-glyphs";
+  base-palette: 0;
+}
+
+.icon {
+  /* Use !important to prevent extensions from overriding this font. */
+  font-family: "hexachromy-glyphs" !important;
+  font-style: normal;
+  font-weight: normal;
+  font-variant: normal;
+  text-transform: none;
+  line-height: 1;
+
+  /* Better Font Rendering =========== */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.glyph {
+  display: inline-block;
+  vertical-align: -0.1em;
+  line-height: 1;
+}
+
+.glyph[data-size="xs"] {
+  font-size: 0.75em;
+}
+.glyph[data-size="sm"] {
+  font-size: 0.9em;
+}
+.glyph[data-size="md"] {
+  font-size: 1em;
+}
+.glyph[data-size="lg"] {
+  font-size: 1.25em;
+}
+
+.palette0 {
+  font-palette: --palette0;
+  color: currentColor;
+}

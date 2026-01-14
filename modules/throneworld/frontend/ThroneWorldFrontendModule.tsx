@@ -3,7 +3,7 @@ import ThroneworldInfoPanel from "./components/ThroneworldInfoPanel";
 import ThroneworldPlayerArea from "./components/ThroneworldPlayerArea";
 import ThroneworldGameInfoArea from "./components/ThroneworldGameInfoArea";
 import type { ThroneworldGameState, ThroneworldState } from "../shared/models/GameState.Throneworld";
-import { computeBoardGeometry, type ThroneworldBoardGeometry } from "../shared/models/BoardGeometry.ThroneWorld";
+import { computeBoardGeometry, type ThroneworldBoardGeometry } from "../shared/models/BoardGeometry.Throneworld";
 
 import type { FrontendModuleDefinition } from "../../../shared-frontend/FrontendModuleDefinition";
 import type InspectContext from "../../../shared-frontend/InspectContext";

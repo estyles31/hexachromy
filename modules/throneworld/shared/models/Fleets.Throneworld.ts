@@ -1,6 +1,5 @@
 // /modules/throneworld/shared/models/Fleets.Throneworld.ts
-import type { ThroneworldUnit } from "./Unit.Throneworld";
-import { UNITS } from "./UnitTypes.ThroneWorld";
+import { type ThroneworldUnit, UNITS } from "./Units.Throneworld";
 
 export interface Fleet {
   id: string;

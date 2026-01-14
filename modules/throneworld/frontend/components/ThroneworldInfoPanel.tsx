@@ -3,14 +3,40 @@ import type { HoveredFleetInfo, HoveredInfo, HoveredSystemInfo, HoveredUnitInfo 
 import type InspectContext from "../../../../shared-frontend/InspectContext";
 import "./ThroneworldInfoPanel.css";
 import { useGameStateContext } from "../../../../shared-frontend/contexts/GameStateContext";
-import { UNITS } from "../../shared/models/UnitTypes.ThroneWorld";
+import {
+  STAT_GLYPHS,
+  UNITS,
+  type ThroneworldUnit,
+  type ThroneworldUnitType,
+} from "../../shared/models/Units.Throneworld";
 import ThroneworldUnitCounter from "./ThroneworldUnitCounter";
-import type { ThroneworldUnit } from "../../shared/models/Unit.Throneworld";
-import type { ThroneworldUnitType } from "../../shared/models/UnitTypes.ThroneWorld";
 import { SystemMarker } from "./SystemMarker";
 import { neutralColor } from "./ThroneworldBoard";
-import { Factions } from "../../shared/models/Factions.ThroneWorld";
-import type { ThroneworldPublicSystemState } from "../../shared/models/Systems.ThroneWorld";
+import type { ThroneworldPublicSystemState } from "../../shared/models/Systems.Throneworld";
+import { Factions } from "../../shared/models/Factions.Throneworld";
+import { Glyph } from "../../../../shared-frontend/glyphs/Glyph";
+
+//helper glyph components
+
+function AttIcon() {
+  return <Glyph glyph={STAT_GLYPHS.Attack} host="html" mode="font" color="#ff0" />;
+}
+
+function DefIcon() {
+  return <Glyph glyph={STAT_GLYPHS.Defense} host="html" mode="font" color="#99f" />;
+}
+
+function HpIcon() {
+  return <Glyph glyph={STAT_GLYPHS.HP} host="html" mode="font" color="#f7a" />;
+}
+
+function CgoIcon() {
+  return <Glyph glyph={STAT_GLYPHS.Cargo} host="html" mode="font" color="#c85" />;
+}
+
+function CostIcon() {
+  return <Glyph glyph={STAT_GLYPHS.Cost} host="html" mode="font" color="#fb5" />;
+}
 
 /* ============================================================
  * Root dispatcher
@@ -86,7 +112,7 @@ function getSpecialAbilities(unitDef: ThroneworldUnitType): string[] {
     for (const [, unitBonuses] of Object.entries(unitDef.DefenseBonus)) {
       for (const [unitId, bonus] of Object.entries(unitBonuses)) {
         const bonusUnit = UNITS[unitId];
-        if (bonusUnit) abilities.push(`+${bonus} Def with ${bonusUnit.Symbol}`);
+        if (bonusUnit) abilities.push(`+${bonus} Def with ${bonusUnit.Glyph.unicode}`);
       }
     }
   }
@@ -147,9 +173,20 @@ function TotalsRowLine({
   return (
     <div className={`totals-row ${className}`.trim()}>
       <span className="totals-label">{compactLabel ? label : `${label}:`}</span>
-      {!hideAttack && <span>⚔{totals.attack}</span>}
-      <span>🛡{totals.defense}</span>
-      <span>❤{totals.hp}</span>
+      {!hideAttack && (
+        <span>
+          <AttIcon />
+          {totals.attack}
+        </span>
+      )}
+      <span>
+        <DefIcon />
+        {totals.defense}
+      </span>
+      <span>
+        <HpIcon />
+        {totals.hp}
+      </span>
     </div>
   );
 }
@@ -237,9 +274,28 @@ function UnitStatCounter({
   return (
     <div className="unit-stat-counter">
       <div className="unit-stat-left">
-        {!unitDef.NonCombat && <div>{unitDef.Attack! > 0 && <>{unitDef.Attack}⚔</>}</div>}
-        {!unitDef.NonCombat && <div>{unitDef.Defense}🛡</div>}
-        {!unitDef.NonCombat && <div className="unit-stat-hp">{unitDef.HP}❤</div>}
+        {!unitDef.NonCombat && (
+          <div>
+            {unitDef.Attack! > 0 && (
+              <>
+                {unitDef.Attack}
+                <AttIcon />
+              </>
+            )}
+          </div>
+        )}
+        {!unitDef.NonCombat && (
+          <div>
+            {unitDef.Defense}
+            <DefIcon />
+          </div>
+        )}
+        {!unitDef.NonCombat && (
+          <div>
+            {unitDef.HP}
+            <HpIcon />
+          </div>
+        )}
       </div>
 
       <div className="unit-stat-icon">
@@ -362,9 +418,11 @@ function UnitInfo({ data, gameState }: { data: HoveredUnitInfo; gameState: Thron
         {unitDef.Name} {data.quantity > 1 && <>(×{data.quantity})</>}
       </div>
 
-      <div className="info-meta">
-        {playerName} • {data.hexId} • {data.unit.hasMoved ? "Moved" : "Ready"}
-      </div>
+      {data?.hexId && (
+        <div className="info-meta">
+          {playerName} • {data.hexId} • {data.unit.hasMoved ? "Moved" : "Ready"}
+        </div>
+      )}
 
       <div className="info-section">
         <div className="unit-info-header">
@@ -377,30 +435,37 @@ function UnitInfo({ data, gameState }: { data: HoveredUnitInfo; gameState: Thron
               playerColor={playerColor}
             />
           </div>
-          <div className="unit-info-cost">${finalCost}</div>
+          <div className="unit-info-cost">
+            <CostIcon /> {finalCost}
+          </div>
         </div>
 
         <div className="unit-detail-stats">
           {!unitDef.NonCombat && (
             <div>
               <div>
-                <strong>Attack:</strong> {unitDef.Attack}
+                <strong>Attack: </strong>
+                {unitDef.Attack} <AttIcon />
               </div>
               <div>
-                <strong>Defense:</strong> {unitDef.Defense}
+                <strong>Defense: </strong>
+                {unitDef.Defense} <DefIcon />
               </div>
             </div>
           )}
 
           <div>
             <div>
-              <strong>HP:</strong> {unitDef.HP}
+              <strong>HP: </strong>
+              {unitDef.HP} <HpIcon />
             </div>
 
             {(unitDef.Cargo ?? 0) !== 0 && (
               <div>
-                <strong>Cargo:</strong> {unitDef.Cargo! > 0 ? "+" : ""}
+                <strong>Cargo: </strong>
+                {unitDef.Cargo! > 0 ? "+" : ""}
                 {unitDef.Cargo}
+                <CgoIcon />
               </div>
             )}
           </div>
@@ -457,7 +522,11 @@ function FleetInfo({ data, gameState }: { data: HoveredFleetInfo; gameState: Thr
 
         <div className="fleet-header-stats">
           <TotalsSection rows={fleetTotalsRows} compactLabel={false} />
-          {cargo !== 0 && <div className="cargo-row">📦 {cargo}</div>}
+          {cargo !== 0 && (
+            <div className="cargo-row">
+              <CgoIcon /> {cargo > 0 ? `+${cargo}` : cargo}
+            </div>
+          )}
         </div>
       </div>
 

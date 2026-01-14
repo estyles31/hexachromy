@@ -1,5 +1,6 @@
 // /modules/throneworld/frontend/components/ThroneworldUnitCounter.tsx
-import type { ThroneworldUnitType } from "../../shared/models/UnitTypes.ThroneWorld";
+import { Glyph } from "../../../../shared-frontend/glyphs/Glyph";
+import type { ThroneworldUnitType } from "../../shared/models/Units.Throneworld";
 
 interface UnitCounterProps {
   unit: ThroneworldUnitType;
@@ -20,7 +21,7 @@ export default function UnitCounter({
   highlighted = false,
   selected = false,
 }: UnitCounterProps) {
-  const { id: unitId, Symbol: glyph, Domain: Type, Cargo: cargo = null } = unit;
+  const { id: unitId, Glyph: glyph, Domain: Type, Cargo: cargo = null } = unit;
 
   const isSpace = Type === "Space";
   const domainColor = isSpace ? "#6ca2faff" : "#ff8940ff"; // blue/orange ring
@@ -28,9 +29,8 @@ export default function UnitCounter({
   const borderWidth = 2;
 
   // Sizing
-  const fontSizeSymbol = size * 0.55;
-  const fontSizeId = size * 0.26;
-  const badgeRadius = size * 0.15;
+  const mainIconSize = size * 0.9;
+  const badgeRadius = size * 0.16;
   const badgeFont = size * 0.24;
 
   // Cargo style
@@ -88,6 +88,11 @@ export default function UnitCounter({
         opacity={hasMoved ? 0.65 : 1.0}
       />
 
+      {/* Unit Icon (center) */}
+      <g transform={`translate(${size * 0.52 + 3}, ${size * 0.53 + 3})`} opacity={hasMoved ? 0.75 : 1.0}>
+        <Glyph color="#fff" outlineColor="#000" size={mainIconSize} glyph={glyph} />
+      </g>
+
       {/* Diagonal "moved" X */}
       {hasMoved && (
         <>
@@ -96,34 +101,21 @@ export default function UnitCounter({
         </>
       )}
 
-      {/* UNIT SYMBOL (center) */}
-      <text
-        x={size * 0.55 + 3}
-        y={size * 0.55 + 3}
-        fontSize={fontSizeSymbol}
-        textAnchor="middle"
-        dominantBaseline="middle"
-        fill="white"
-        opacity={hasMoved ? 0.75 : 1.0}
-      >
-        {glyph}
-      </text>
-
       {/* UNIT ID with DOMAIN RING */}
       {unitId !== "fleet" && (
         <>
           <circle
-            cx={badgeRadius * 1.1 + 3}
-            cy={badgeRadius * 1.1 + 3}
-            r={badgeRadius}
+            cx={badgeRadius * 1.1 + 2}
+            cy={badgeRadius * 1.1 + 2}
+            r={badgeRadius * 1.2}
             fill={domainColor}
             stroke={domainColor}
             strokeWidth={2}
           />
           <text
-            x={badgeRadius * 1.1 + 3}
+            x={badgeRadius * 1.1 + 2}
             y={badgeRadius * 1.1 + 3}
-            fontSize={fontSizeId}
+            fontSize={badgeFont * 1.2}
             textAnchor="middle"
             dominantBaseline="middle"
             fill="#000"
@@ -138,16 +130,16 @@ export default function UnitCounter({
       {quantity > 1 && (
         <>
           <circle
-            cx={badgeRadius * 1.1 + 3}
-            cy={size - badgeRadius * 1.1 + 3}
+            cx={badgeRadius + 3}
+            cy={size - badgeRadius + 3}
             r={badgeRadius}
             fill={domainColor}
             stroke="#fff"
             strokeWidth={1}
           />
           <text
-            x={badgeRadius * 1.1 + 3}
-            y={size - badgeRadius * 1.1 + 4}
+            x={badgeRadius + 3}
+            y={size - badgeRadius + 4}
             fontSize={badgeFont}
             textAnchor="middle"
             dominantBaseline="middle"
@@ -163,16 +155,16 @@ export default function UnitCounter({
       {cargo !== null && cargo !== 0 && (
         <>
           <circle
-            cx={size - badgeRadius * 1.1 + 3}
-            cy={size - badgeRadius * 1.1 + 3}
+            cx={size - badgeRadius + 3}
+            cy={size - badgeRadius + 3}
             r={badgeRadius}
             fill={cargoFill}
             stroke="#fff"
             strokeWidth={1.3}
           />
           <text
-            x={size - badgeRadius * 1.1 + 3}
-            y={size - badgeRadius * 1.1 + 4}
+            x={size - badgeRadius + 3}
+            y={size - badgeRadius + 4}
             fontSize={badgeFont}
             textAnchor="middle"
             dominantBaseline="middle"
